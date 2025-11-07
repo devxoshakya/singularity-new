@@ -3,6 +3,7 @@ import { auth } from "@singularity/auth";
 import { Hono } from "hono";
 import { cors } from "hono/cors";
 import { logger } from "hono/logger";
+import prisma from "@singularity/db";
 
 const app = new Hono();
 
@@ -23,6 +24,9 @@ app.get("/", (c) => {
   return c.text("OK");
 });
 
-
+app.get("/users", async (c) => {
+  const users = await prisma.user.findMany();
+  return c.json(users);
+});
 
 export default app;
