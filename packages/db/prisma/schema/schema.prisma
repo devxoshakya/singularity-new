@@ -1,11 +1,19 @@
 generator client {
-  provider = "prisma-client"
-  output   = "../generated"
+  provider = "prisma-client-js"
   moduleFormat = "esm"
   runtime = "workerd"
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider = "mongodb"
+  directUrl = "mongodb+srv://adslabs:presence@presence.1hocm.mongodb.net/mongo-test?retryWrites=true&w=majority"
+  url      = "prisma://accelerate.prisma-data.net/?api_key=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqd3RfaWQiOjEsInNlY3VyZV9rZXkiOiJza19tYnRNdFFwNXlmVEpwMFpBejJoMloiLCJhcGlfa2V5IjoiMDFLOUVKU1MzR0s3R1FBNko4N1oxUFgzUEgiLCJ0ZW5hbnRfaWQiOiI5NmI4NGY1MzQyMGM4ZWUzZTZlYzExMTVhYWFjNzY2YWZjZjcxODllYjQ1YTFjZjdlMWEyYjMxYTVlMDQ1ZDcyIiwiaW50ZXJuYWxfc2VjcmV0IjoiNzM5ZDBjNTQtNmQzNi00ODAxLTg5NmEtMDcxNjNjZjhkM2ZkIn0.7yGvKhFa4ZWbJzRKLiUa_XzTyF6BiWdH75ckALp53QI"
+}
+
+
+model Test {
+  id        String    @id @default(uuid()) @map("_id")
+  name      String
+  email     String
+  @@map("test")
 }

@@ -15,7 +15,7 @@
     "build": "tsdown",
     "db:push": "prisma db push",
     "db:studio": "prisma studio",
-    "db:generate": "prisma generate",
+    "db:generate": "prisma generate --no-engine",
     "db:migrate": "prisma migrate dev",
     "db:start": "docker compose up -d",
     "db:watch": "docker compose up",
@@ -23,14 +23,15 @@
     "db:down": "docker compose down"
   },
   "devDependencies": {
-    "prisma": "^6.15.0",
+    "prisma": "^6.19.0",
     "tsdown": "catalog:"
   },
   "peerDependencies": {
     "typescript": "^5"
   },
   "dependencies": {
-    "@prisma/client": "catalog:",
+    "@prisma/client": "^6.19.0",
+    "@prisma/extension-accelerate": "^2.0.2",
     "dotenv": "catalog:",
     "zod": "catalog:"
   }

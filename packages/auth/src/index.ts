@@ -4,9 +4,9 @@ import prisma from "@singularity/db";
 
 export const auth = betterAuth<BetterAuthOptions>({
 	database: prismaAdapter(prisma, {
-		provider: "postgresql",
+		provider: "mongodb",
 	}),
-	trustedOrigins: [process.env.CORS_ORIGIN || ""],
+	trustedOrigins: [],
 	emailAndPassword: {
 		enabled: true,
 	},
