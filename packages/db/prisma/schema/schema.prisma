@@ -2,6 +2,7 @@ generator client {
   provider = "prisma-client-js"
   moduleFormat = "esm"
   runtime = "workerd"
+  engineType = "edge"
 }
 
 datasource db {

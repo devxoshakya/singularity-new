@@ -21,7 +21,7 @@ app.use(
 app.on(["POST", "GET"], "/api/auth/*", (c) => auth.handler(c.req.raw));
 
 app.get("/", (c) => {
-  return c.text("OK");
+  return c.text("OK JI");
 });
 
 app.get("/users", async (c) => {
