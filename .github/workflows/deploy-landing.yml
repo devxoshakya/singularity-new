@@ -18,6 +18,16 @@ jobs:
         uses: oven-sh/setup-bun@v2
         with:
           bun-version: latest
+      
+      - name: Cache Bun Dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.bun/install/cache
+            bun.lock # 👈 Corrected to use the new text-based lockfile
+          key: ${{ runner.os }}-bun-${{ hashFiles('bun.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-bun-
 
       - name: Install dependencies
         run: bun install
