@@ -1,3 +1,5 @@
+name: Deploy Hono Backend to Cloudflare Workers
+
 on:
     push:
         branches:
