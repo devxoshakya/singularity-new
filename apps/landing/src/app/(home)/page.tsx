@@ -5,7 +5,9 @@ import { Features } from '@/sections/Features'
 import { Benefits } from '@/sections/Benefits'
 import { Testimonials } from '@/sections/Testimonials'
 import { CallToAction } from '@/sections/CallToAction'
-import { Footer } from '@/sections/Footer'
+import  { Footer2 }  from '@/components/footer2'
+import { MietResults } from '@/components/miet-results'
+import { Faq } from '@/components/faq'
 
 export default function Home() {
   return (
@@ -16,8 +18,10 @@ export default function Home() {
       <Features />
       {/* <Benefits /> */}
       <Testimonials />
+      <MietResults />
+      <Faq />
       <CallToAction />
-      <Footer />
+      <Footer2 />
     </div>
   )
 }
