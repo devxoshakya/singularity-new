@@ -16,8 +16,8 @@ export const Logo = () => {
       <Image
         src="/logo.svg"
         alt="Billing SDK"
-        width={28}
-        height={28}
+        width={56}
+        height={56}
         className="fill-white"
       />
       <span className="text-3xl font-display">/</span>

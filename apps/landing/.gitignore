@@ -7,6 +7,9 @@
 # test & build
 /coverage
 /.next/
+/.open-next/
+/dist/
+/.wrangler/
 /out/
 /build
 *.tsbuildinfo
