@@ -31,7 +31,7 @@ jobs:
         with:
           path: |
             ~/.bun/install/cache
-            bun.lock # 👈 Corrected to use the new text-based lockfile
+            bun.lock 
           key: ${{ runner.os }}-bun-${{ hashFiles('bun.lock') }}
           restore-keys: |
             ${{ runner.os }}-bun-
