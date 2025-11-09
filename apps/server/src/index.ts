@@ -25,7 +25,7 @@ app.get("/", (c) => {
 });
 
 app.get("/users", async (c) => {
-  const users = await prisma.user.findMany();
+  const users = await prisma.user.findMany({ cacheStrategy: { swr: 600, ttl: 600 } });
   return c.json(users);
 });
 
