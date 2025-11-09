@@ -2,7 +2,9 @@ import { Header } from '@/sections/Header'
 import  Hero  from '@/sections/Hero'
 import { LogoTicker } from '@/sections/LogoTicker'
 import { Features } from '@/sections/Features'
+import { BentoFeatures } from '@/sections/BentoFeatures'
 import { Benefits } from '@/sections/Benefits'
+import { Pricing } from '@/sections/Pricing'
 import { Testimonials } from '@/sections/Testimonials'
 import { CallToAction } from '@/sections/CallToAction'
 import  { Footer2 }  from '@/components/footer2'
@@ -16,6 +18,8 @@ export default function Home() {
       <Hero />
       <LogoTicker />
       <Features />
+      <BentoFeatures />
+      <Pricing />
       {/* <Benefits /> */}
       <Testimonials />
       <MietResults />
