@@ -9,7 +9,7 @@ export function MietResults() {
     return (
         <div className="w-full h-120 rounded-2xl overflow-hidden relative before:absolute before:inset-0 before:rounded-2xl before:bg-linear-to-b before:from-black/20 before:via-transparent before:to-black/20 before:pointer-events-none after:absolute after:inset-0 after:rounded-2xl after:bg-linear-to-t after:from-black/10 after:via-transparent after:to-black/10 after:pointer-events-none">
             <img
-                src="https://cdn.devshakya.xyz/landing/sentrabg.png"
+                src="https://cdn2.devshakya.xyz/landing/sentrabg.png"
                 alt="Moon background"
                 className="absolute inset-0 w-full h-full opacity-40 blur-[1px] md:blur-[2px] object-cover"
             />
@@ -57,7 +57,7 @@ export function MietResults() {
                 <div className="flex items-center justify-center md:w-1/2 mt-8 md:mt-0">
                     <div className="p-4 rounded-xl bg-muted/20 overflow-x-scroll md:overflow-auto border border-muted/80">
                         <img
-                            src="https://cdn.devshakya.xyz/landing/Sentra.png"
+                            src="https://cdn2.devshakya.xyz/landing/Sentra.png"
                             alt="Sentra"
                             className="opacity-80 drop-shadow-2xl"
                         />

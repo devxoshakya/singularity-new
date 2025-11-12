@@ -9,7 +9,7 @@ export const Header = () => {
           <div className="absolute inset-0 backdrop-blur -z-10 hidden md:block"></div>
           <div className="">
             <div className="border border-white/15 h-10 w-10 rounded-lg inline-flex justify-center items-center">
-              <img src="https://cdn.devshakya.xyz/landing/assets/logo.svg" alt="Singularity Logo" className="h-8 w-8" />
+              <img src="https://cdn2.devshakya.xyz/landing/assets/logo.svg" alt="Singularity Logo" className="h-8 w-8" />
             </div>
           </div>
           <div className="hidden md:block">
@@ -30,7 +30,7 @@ export const Header = () => {
           </div>
           <div className="flex gap-4 items-center">
             <Button>Get Started</Button>
-            <img src="https://cdn.devshakya.xyz/landing/assets/icon-menu.svg" alt="Menu" className="md:hidden" />
+            <img src="https://cdn2.devshakya.xyz/landing/assets/icon-menu.svg" alt="Menu" className="md:hidden" />
           </div>
         </div>
       </div>

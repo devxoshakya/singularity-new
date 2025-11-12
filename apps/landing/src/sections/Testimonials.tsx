@@ -6,25 +6,25 @@ const testimonials = [
 		text: '"Singularity has completely transformed how we process student results and generate reports"',
 		name: 'Dr. Priya Sharma',
 		title: 'HOD @ MIET College',
-		avatarImg: 'https://cdn.devshakya.xyz/landing/assets/avatar-1.png',
+		avatarImg: 'https://cdn2.devshakya.xyz/landing/assets/avatar-1.png',
 	},
 	{
 		text: '"The automated analysis has revolutionized our entire result processing workflow overnight"',
 		name: 'Prof. Rajesh Kumar',
 		title: 'Registrar @ AKTU Affiliate',
-		avatarImg: 'https://cdn.devshakya.xyz/landing/assets/avatar-2.png',
+		avatarImg: 'https://cdn2.devshakya.xyz/landing/assets/avatar-2.png',
 	},
 	{
 		text: '"The interface is so intuitive and easy to use, it has saved us countless hours of manual work"',
 		name: 'Dr. Anita Verma',
 		title: 'Faculty @ Engineering College',
-		avatarImg: 'https://cdn.devshakya.xyz/landing/assets/avatar-3.png',
+		avatarImg: 'https://cdn2.devshakya.xyz/landing/assets/avatar-3.png',
 	},
 	{
 		text: '"Our department efficiency has increased significantly since we started using Singularity"',
 		name: 'Prof. Mukesh Rawat',
 		title: 'Project Mentor @ MIET',
-		avatarImg: 'https://cdn.devshakya.xyz/landing/assets/avatar-4.png',
+		avatarImg: 'https://cdn2.devshakya.xyz/landing/assets/avatar-4.png',
 	},
 ]
 

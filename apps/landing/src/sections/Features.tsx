@@ -135,7 +135,7 @@ export const Features = () => {
           <motion.div
             className="aspect-video bg-cover border border-white/20 rounded-lg"
             style={{
-              backgroundImage: `url(https://cdn.devshakya.xyz/landing/assets/product-image.png)`,
+              backgroundImage: `url(https://cdn2.devshakya.xyz/landing/assets/product-image.png)`,
               backgroundPosition: backgroundPosition,
               backgroundSize: backgroundSize,
             }}

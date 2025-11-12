@@ -55,21 +55,21 @@ export const CallToAction = () => {
             ease: 'linear',
           }}
           style={{
-            backgroundImage: `url(https://cdn.devshakya.xyz/landing/assets/stars.png)`,
+            backgroundImage: `url(https://cdn2.devshakya.xyz/landing/assets/stars.png)`,
             backgroundPositionY: backgroundPositionY,
           }}
         >
           <div
             className="absolute inset-0 bg-[rgb(74,32,138)] bg-blend-overlay mask-[radial-gradient(50%_50%_at_50%_35%,black,transparent)] group-hover:opacity-0 transition duration-300"
             style={{
-              backgroundImage: `url(https://cdn.devshakya.xyz/landing/assets/grid-lines.png)`,
+              backgroundImage: `url(https://cdn2.devshakya.xyz/landing/assets/grid-lines.png)`,
             }}
           ></div>
           <motion.div
             className="absolute inset-0 bg-[rgb(74,32,138)] bg-blend-overlay opacity-0 group-hover:opacity-100 transition duration-300"
             style={{
               maskImage: maskImage,
-              backgroundImage: `url(https://cdn.devshakya.xyz/landing/assets/grid-lines.png)`,
+              backgroundImage: `url(https://cdn2.devshakya.xyz/landing/assets/grid-lines.png)`,
             }}
           ></motion.div>
           <div className="relative">
