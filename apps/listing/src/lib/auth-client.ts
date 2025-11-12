@@ -1,0 +1,22 @@
+import type { createAuth } from "@singularity/auth";
+import { createAuthClient } from "better-auth/react";
+import { inferAdditionalFields } from "better-auth/client/plugins";
+import { redirect } from "next/navigation";
+
+export const authClient = createAuthClient({
+	baseURL: process.env.NEXT_PUBLIC_SERVER_URL,
+	plugins: [inferAdditionalFields<typeof createAuth>()],
+});
+
+export const signIn = async () => {
+
+	try {
+		await authClient.signIn.social({
+			provider: "google",
+			callbackURL: `${window.location.origin}/on-boarding`,
+			errorCallbackURL: `${window.location.origin}/login?error=email_domain_not_allowed`,
+		});
+	} catch {
+		redirect("/login?error=email_domain_not_allowed");
+	}
+}
