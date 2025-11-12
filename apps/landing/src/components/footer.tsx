@@ -11,7 +11,7 @@ export function Footer() {
   return (
     <footer className="w-full h-80 border rounded-2xl overflow-hidden relative">
       <img
-        src="/landing/FractalMaze.jpg"
+        src="https://cdn.devshakya.xyz/landing/FractalMaze.jpg"
         alt="Moon background"
         className="absolute inset-0 w-full h-full opacity-40 blur-[1px] md:blur-[2px] object-cover rotate-180"
       />

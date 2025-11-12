@@ -110,7 +110,7 @@ export const SkeletonOne = () => {
       <div className="w-full p-5 mx-auto rounded-sm border-muted/80 bg-muted/20 shadow-2xl group h-full">
         <div className="flex flex-1 w-full h-full flex-col space-y-2">
           <img
-            src="/landing/Sentra.png"
+            src="https://cdn.devshakya.xyz/landing/Sentra.png"
             alt="header"
             className="h-full w-full aspect-square object-cover object-top-left rounded-sm"
           />
