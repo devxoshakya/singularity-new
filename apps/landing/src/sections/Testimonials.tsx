@@ -1,8 +1,4 @@
 'use client'
-import avatar1 from '@/assets/avatar-1.png'
-import avatar2 from '@/assets/avatar-2.png'
-import avatar3 from '@/assets/avatar-3.png'
-import avatar4 from '@/assets/avatar-4.png'
 import { motion } from 'framer-motion'
 
 const testimonials = [
@@ -10,25 +6,25 @@ const testimonials = [
 		text: '"Singularity has completely transformed how we process student results and generate reports"',
 		name: 'Dr. Priya Sharma',
 		title: 'HOD @ MIET College',
-		avatarImg: avatar1,
+		avatarImg: 'https://cdn.devshakya.xyz/landing/assets/avatar-1.png',
 	},
 	{
 		text: '"The automated analysis has revolutionized our entire result processing workflow overnight"',
 		name: 'Prof. Rajesh Kumar',
 		title: 'Registrar @ AKTU Affiliate',
-		avatarImg: avatar2,
+		avatarImg: 'https://cdn.devshakya.xyz/landing/assets/avatar-2.png',
 	},
 	{
 		text: '"The interface is so intuitive and easy to use, it has saved us countless hours of manual work"',
 		name: 'Dr. Anita Verma',
 		title: 'Faculty @ Engineering College',
-		avatarImg: avatar3,
+		avatarImg: 'https://cdn.devshakya.xyz/landing/assets/avatar-3.png',
 	},
 	{
 		text: '"Our department efficiency has increased significantly since we started using Singularity"',
 		name: 'Prof. Mukesh Rawat',
 		title: 'Project Mentor @ MIET',
-		avatarImg: avatar4,
+		avatarImg: 'https://cdn.devshakya.xyz/landing/assets/avatar-4.png',
 	},
 ]
 
@@ -70,7 +66,7 @@ export const Testimonials = () => {
 								<div className="flex items-center gap-3 mt-5">
 									<div className="relative after:content-[''] after:absolute after:inset-0 after:bg-[rgb(140,69,244)] after:mix-blend-soft-light before:content-[''] before:absolute before:inset-0 before:border before:border-white/30 before:z-10 before:rounded-lg">
 										<img
-											src={testimonial.avatarImg.src}
+											src={testimonial.avatarImg}
 											alt={testimonial.name}
 											className="h-11 w-11 rounded-lg grayscale"
 										/>

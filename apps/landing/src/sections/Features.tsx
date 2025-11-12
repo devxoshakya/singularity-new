@@ -1,5 +1,4 @@
 'use client'
-import ProductImage from '@/assets/product-image.png'
 import { DotLottieReact } from '@lottiefiles/dotlottie-react'
 import { animate, motion, useMotionTemplate, useMotionValue, ValueAnimationTransition } from 'framer-motion'
 import { ComponentPropsWithoutRef, useEffect, useRef, useState } from 'react'
@@ -136,7 +135,7 @@ export const Features = () => {
           <motion.div
             className="aspect-video bg-cover border border-white/20 rounded-lg"
             style={{
-              backgroundImage: `url(${ProductImage.src})`,
+              backgroundImage: `url(https://cdn.devshakya.xyz/landing/assets/product-image.png)`,
               backgroundPosition: backgroundPosition,
               backgroundSize: backgroundSize,
             }}

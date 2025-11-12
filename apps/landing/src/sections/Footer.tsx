@@ -1,8 +1,3 @@
-import Logo from '@/assets/logo.svg'
-import XSocial from '@/assets/social-x.svg'
-import InstaSocial from '@/assets/social-instagram.svg'
-import YTSocial from '@/assets/social-youtube.svg'
-
 export const Footer = () => {
   return (
     <footer>
@@ -10,7 +5,7 @@ export const Footer = () => {
         <div className="container">
           <div className="flex flex-col lg:flex-row lg:items-center gap-5">
             <div className="flex gap-2 items-center lg:flex-1">
-              <Logo className="h-6 w-6" />
+              <img src="https://cdn.devshakya.xyz/landing/assets/logo.svg" alt="Singularity Logo" className="h-6 w-6" />
               <div className="font-medium">Singularity - AKTU Result Analysis</div>
             </div>
             <nav className="flex flex-col lg:flex-row gap-2 lg:gap-4 lg:flex-1 lg:justify-center">
@@ -31,9 +26,9 @@ export const Footer = () => {
               </a>
             </nav>
             <div className="flex gap-5 lg:flex-1 lg:justify-end">
-              <XSocial className="text-white/40 hover:text-white transition" />
-              <InstaSocial className="text-white/40 hover:text-white transition" />
-              <YTSocial className="text-white/40 hover:text-white transition" />
+              <img src="https://cdn.devshakya.xyz/landing/assets/social-x.svg" alt="X/Twitter" className="text-white/40 hover:text-white transition" />
+              <img src="https://cdn.devshakya.xyz/landing/assets/social-instagram.svg" alt="Instagram" className="text-white/40 hover:text-white transition" />
+              <img src="https://cdn.devshakya.xyz/landing/assets/social-youtube.svg" alt="YouTube" className="text-white/40 hover:text-white transition" />
             </div>
           </div>
         </div>

@@ -1,27 +1,21 @@
 'use client'
-import acmeLogo from '@/assets/logo-acme.png'
-import apexLogo from '@/assets/logo-apex.png'
-import celestialLogo from '@/assets/logo-celestial.png'
-import quantumLogo from '@/assets/logo-quantum.png'
-import pulseLogo from '@/assets/logo-pulse.png'
-import echoLogo from '@/assets/logo-echo.png'
 import { motion } from 'framer-motion'
 
 export const LogoTicker = () => {
   const logos = [
-    acmeLogo,
-    pulseLogo,
-    echoLogo,
-    celestialLogo,
-    apexLogo,
-    quantumLogo,
+    'https://cdn.devshakya.xyz/landing/assets/logo-acme.png',
+    'https://cdn.devshakya.xyz/landing/assets/logo-pulse.png',
+    'https://cdn.devshakya.xyz/landing/assets/logo-echo.png',
+    'https://cdn.devshakya.xyz/landing/assets/logo-celestial.png',
+    'https://cdn.devshakya.xyz/landing/assets/logo-apex.png',
+    'https://cdn.devshakya.xyz/landing/assets/logo-quantum.png',
     // repeat
-    acmeLogo,
-    pulseLogo,
-    echoLogo,
-    celestialLogo,
-    apexLogo,
-    quantumLogo,
+    'https://cdn.devshakya.xyz/landing/assets/logo-acme.png',
+    'https://cdn.devshakya.xyz/landing/assets/logo-pulse.png',
+    'https://cdn.devshakya.xyz/landing/assets/logo-echo.png',
+    'https://cdn.devshakya.xyz/landing/assets/logo-celestial.png',
+    'https://cdn.devshakya.xyz/landing/assets/logo-apex.png',
+    'https://cdn.devshakya.xyz/landing/assets/logo-quantum.png',
   ]
   return (
     <section className="py-20 md:py-24">
@@ -40,7 +34,7 @@ export const LogoTicker = () => {
               }}
             >
               {logos.map((logo, index) => (
-                <img src={logo.src} alt="" className="h-6 w-auto" key={index} />
+                <img src={logo} alt="" className="h-6 w-auto" key={index} />
               ))}
             </motion.div>
           </div>

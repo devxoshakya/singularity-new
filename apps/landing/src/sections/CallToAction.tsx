@@ -1,7 +1,5 @@
 'use client'
 import Button from '@/components/Button'
-import startBg from '@/assets/stars.png'
-import gridLines from '@/assets/grid-lines.png'
 import { RefObject, useEffect, useRef } from 'react'
 import { useMotionTemplate, useMotionValue, useScroll, useTransform } from 'framer-motion'
 import { motion } from 'framer-motion'
@@ -49,7 +47,7 @@ export const CallToAction = () => {
           ref={borderedDivRef}
           className="border border-white/15 py-24 rounded-xl overflow-hidden relative group"
           animate={{
-            backgroundPositionX: startBg.width,
+            backgroundPositionX: 1800,
           }}
           transition={{
             repeat: Infinity,
@@ -57,21 +55,21 @@ export const CallToAction = () => {
             ease: 'linear',
           }}
           style={{
-            backgroundImage: `url(${startBg.src})`,
+            backgroundImage: `url(https://cdn.devshakya.xyz/landing/assets/stars.png)`,
             backgroundPositionY: backgroundPositionY,
           }}
         >
           <div
             className="absolute inset-0 bg-[rgb(74,32,138)] bg-blend-overlay mask-[radial-gradient(50%_50%_at_50%_35%,black,transparent)] group-hover:opacity-0 transition duration-300"
             style={{
-              backgroundImage: `url(${gridLines.src})`,
+              backgroundImage: `url(https://cdn.devshakya.xyz/landing/assets/grid-lines.png)`,
             }}
           ></div>
           <motion.div
             className="absolute inset-0 bg-[rgb(74,32,138)] bg-blend-overlay opacity-0 group-hover:opacity-100 transition duration-300"
             style={{
               maskImage: maskImage,
-              backgroundImage: `url(${gridLines.src})`,
+              backgroundImage: `url(https://cdn.devshakya.xyz/landing/assets/grid-lines.png)`,
             }}
           ></motion.div>
           <div className="relative">
