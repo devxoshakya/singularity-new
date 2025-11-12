@@ -2,18 +2,15 @@
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
 import { CornerDownLeft } from "lucide-react";
-import Image from "next/image";
 import { ShineButton } from "./shine-button";
 
 
 export function MietResults() {
     return (
-        <div className="w-full h-[30rem] rounded-2xl overflow-hidden relative before:absolute before:inset-0 before:rounded-2xl before:bg-gradient-to-b before:from-black/20 before:via-transparent before:to-black/20 before:pointer-events-none after:absolute after:inset-0 after:rounded-2xl after:bg-gradient-to-t after:from-black/10 after:via-transparent after:to-black/10 after:pointer-events-none">
-            <Image
+        <div className="w-full h-120 rounded-2xl overflow-hidden relative before:absolute before:inset-0 before:rounded-2xl before:bg-linear-to-b before:from-black/20 before:via-transparent before:to-black/20 before:pointer-events-none after:absolute after:inset-0 after:rounded-2xl after:bg-linear-to-t after:from-black/10 after:via-transparent after:to-black/10 after:pointer-events-none">
+            <img
                 src="/landing/sentrabg.png"
                 alt="Moon background"
-                width={1920}
-                height={1080}
                 className="absolute inset-0 w-full h-full opacity-40 blur-[1px] md:blur-[2px] object-cover"
             />
 
@@ -45,7 +42,7 @@ export function MietResults() {
                     >
                         
                                 <Button
-                                    className="w-44 md:w-52 h-12 text-primary-foreground before:from-primary-foreground/20 after:from-primary-foreground/10 relative isolate inline-flex items-center justify-center overflow-hidden rounded-md px-3 text-left text-sm font-medium before:pointer-events-none before:absolute before:inset-0 before:-z-10 before:rounded-md before:bg-gradient-to-b before:opacity-80 before:transition-opacity before:duration-300 before:ease-[cubic-bezier(0.4,0.36,0,1)] after:pointer-events-none after:absolute after:inset-0 after:-z-10 after:rounded-md after:bg-gradient-to-b after:to-transparent after:mix-blend-overlay hover:cursor-pointer"
+                                    className="w-44 md:w-52 h-12 text-primary-foreground before:from-primary-foreground/20 after:from-primary-foreground/10 relative isolate inline-flex items-center justify-center overflow-hidden rounded-md px-3 text-left text-sm font-medium before:pointer-events-none before:absolute before:inset-0 before:-z-10 before:rounded-md before:bg-linear-to-b before:opacity-80 before:transition-opacity before:duration-300 before:ease-[cubic-bezier(0.4,0.36,0,1)] after:pointer-events-none after:absolute after:inset-0 after:-z-10 after:rounded-md after:bg-linear-to-b after:to-transparent after:mix-blend-overlay hover:cursor-pointer"
                                 >
                                     <span className="flex group items-center gap-2">
                                         <span>Get Alpha Access</span>
@@ -58,12 +55,10 @@ export function MietResults() {
 
                 {/* Right Sentra Image */}
                 <div className="flex items-center justify-center md:w-1/2 mt-8 md:mt-0">
-                    <div className="relative p-4 rounded-xl bg-muted/20 relative rounded-xl overflow-x-scroll md:overflow-auto border border-muted/80">
-                        <Image
+                    <div className="p-4 rounded-xl bg-muted/20 overflow-x-scroll md:overflow-auto border border-muted/80">
+                        <img
                             src="/landing/Sentra.png"
                             alt="Sentra"
-                            width={500}
-                            height={500}
                             className="opacity-80 drop-shadow-2xl"
                         />
                     </div>

@@ -4,7 +4,6 @@ import React, { useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { motion } from "motion/react";
 import Link from "next/link";
-import Image from "next/image";
 import { Badge } from "@/components/ui/badge";
 import { CornerDownLeft } from "lucide-react";
 // import { CodeBlock, CodeBlockCopyButton } from "./code-block";
@@ -51,11 +50,9 @@ const Hero = () => {
   return (
     <div className="rounded-4xl border border-muted min-h-180 pt-30 max-h-fit overflow-hidden relative">
       {/* Background Image */}
-      <Image
+      <img
         src="/landing/FractalMaze.jpg"
         alt="Moon background"
-        width={1920}
-        height={1080}
         className="absolute inset-0 w-full h-full opacity-40 blur-[1px] md:blur-[2px] object-cover"
       />
       {/* Content */}
@@ -86,9 +83,9 @@ const Hero = () => {
                 transition={{ duration: 0.4, delay: 0.3, ease: "easeOut" }}
               >
                 <span
-                  className="absolute -top-0 left-[1.125rem] h-px 
+                  className="absolute top-0 left-4.5 h-px 
                    w-[calc(100%-2.25rem)] 
-                   bg-gradient-to-r from-emerald-400/0 via-primary/40 
+                   bg-linear-to-r from-emerald-400/0 via-primary/40 
                    transition-opacity duration-500 group-hover:opacity-40"
                 ></span>
 
@@ -124,9 +121,9 @@ const Hero = () => {
 
                 {/* Underline effect like Tailwind Connect */}
                 <span
-                  className="absolute -bottom-0 left-[1.125rem] h-px 
+                  className="absolute bottom-0 left-4.5 h-px 
                    w-[calc(100%-2.25rem)] 
-                   bg-gradient-to-r from-emerald-400/0 via-primary/90  
+                   bg-linear-to-r from-emerald-400/0 via-primary/90  
                    transition-opacity duration-500 group-hover:opacity-40"
                 ></span>
               </motion.div>
@@ -192,7 +189,7 @@ const Hero = () => {
             transition={{ duration: 0.4, delay: 0.4, ease: "easeOut" }}
           >
             <motion.div
-              className="shadow-lg mx-4 bg-gradient-to-r from-white/5 to-white/10 px-2 rounded-t-xl backdrop-blur-md pt-2 sm:mx-6 md:mx-8 mt-4 h-64 sm:h-72 lg:h-80  w-full max-w-2xl relative"
+              className="shadow-lg mx-4 bg-linear-to-r from-white/5 to-white/10 px-2 rounded-t-xl backdrop-blur-md pt-2 sm:mx-6 md:mx-8 mt-4 h-64 sm:h-72 lg:h-80  w-full max-w-2xl relative"
               variants={{
                 hidden: { opacity: 0, scale: 0.95 },
                 visible: { opacity: 1, scale: 1 },
@@ -219,9 +216,9 @@ const Hero = () => {
                   >
                     {/* Top gradient line like Fully Open Source */}
                     <span
-                      className="absolute -top-0 left-[1.125rem] h-px 
+                      className="absolute top-0 left-4.5 h-px 
        w-[calc(100%-2.25rem)] 
-       bg-gradient-to-r from-emerald-400/0 via-primary/40 
+       bg-linear-to-r from-emerald-400/0 via-primary/40 
        transition-opacity duration-500 group-hover:opacity-40"
                     ></span>
 
@@ -259,9 +256,9 @@ const Hero = () => {
 
                     {/* Bottom underline like Fully Open Source */}
                     <span
-                      className="absolute -bottom-0 left-[1.125rem] h-px 
+                      className="absolute bottom-0 left-4.5 h-px 
        w-[calc(100%-2.25rem)] 
-       bg-gradient-to-r from-emerald-400/0 via-primary/90  
+       bg-linear-to-r from-emerald-400/0 via-primary/90  
        transition-opacity duration-500 group-hover:opacity-40"
                     ></span>
                   </motion.div>

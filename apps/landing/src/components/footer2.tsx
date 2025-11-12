@@ -2,7 +2,6 @@ import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { BsTwitterX } from "react-icons/bs";
 import { FaGithub, FaHeart } from "react-icons/fa";
-import Image from "next/image";
 import { Footer } from "./footer";
 
 export function Footer2() {
@@ -16,7 +15,7 @@ export function Footer2() {
             <div className="lg:col-span-1">
               <div className="flex items-center mb-4">
                 <div className="flex items-center justify-center">
-                  <Image
+                  <img
                     src="/logo/Logo.svg"
                     alt="BillingSDK Logo"
                     width={160}
@@ -45,7 +44,7 @@ export function Footer2() {
                     target="_blank"
                     rel="noopener noreferrer"
                   >
-                    <Image
+                    <img
                       src="/logo/logo-dodo.svg"
                       alt="Dodo Payments"
                       width={16}

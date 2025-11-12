@@ -1,5 +1,4 @@
 "use client";
-import Image from "next/image";
 import { Button } from "./ui/button";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
@@ -13,7 +12,7 @@ import { CornerDownLeft } from "lucide-react";
 export const Logo = () => {
   return (
     <div className="flex items-center justify-center gap-2">
-      <Image
+      <img
         src="/logo.svg"
         alt="Billing SDK"
         width={36}
@@ -21,7 +20,7 @@ export const Logo = () => {
         className="fill-white"
       />
       <span className="text-3xl font-display">/</span>
-      <Image
+      <img
         src="/logo-acme.png"
         alt="Billing SDK"
         width={120}
