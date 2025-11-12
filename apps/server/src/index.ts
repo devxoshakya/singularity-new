@@ -1,11 +1,19 @@
 import { env } from "cloudflare:workers";
-import { auth } from "@singularity/auth";
+import { createAuth } from "@singularity/auth";
 import { Hono } from "hono";
 import { cors } from "hono/cors";
 import { logger } from "hono/logger";
 import prisma from "@singularity/db";
 
 const app = new Hono();
+
+// Create auth instance with environment variables
+const auth = createAuth({
+  GOOGLE_CLIENT_ID: env.GOOGLE_CLIENT_ID,
+  GOOGLE_CLIENT_SECRET: env.GOOGLE_CLIENT_SECRET,
+  BETTER_AUTH_SECRET: env.BETTER_AUTH_SECRET,
+  BETTER_AUTH_URL: env.BETTER_AUTH_URL,
+});
 
 app.use(logger());
 app.use(
