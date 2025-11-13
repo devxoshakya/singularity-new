@@ -64,4 +64,6 @@ app.get("/users", async (c) => {
   return c.json(users);
 });
 
+export type AppType = typeof app;
+
 export default app;

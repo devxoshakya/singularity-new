@@ -4,94 +4,104 @@ import React, { useState } from "react";
 import { motion } from "framer-motion";
 import { Button } from "./button";
 import { Input } from "./input";
-import { cn } from "@/lib/utils";
-import { useRouter } from "next/navigation";
 import { Spinner } from "./spinner";
+import { toast } from "sonner";
+import { useOnboarding } from "@/hooks/use-onboarding";
 
 interface OnboardingPageProps {
     userEmail: string;
 }
 
 export function OnboardingPage({ userEmail }: OnboardingPageProps) {
-    const router = useRouter();
     const [rollNo, setRollNo] = useState("");
+    const [turnstileReady, setTurnstileReady] = useState(false);
     const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
-    const [isSubmitting, setIsSubmitting] = useState(false);
+
+    const onboardingMutation = useOnboarding();
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        
-        if (!rollNo || !turnstileToken) {
+
+        if (!rollNo) {
+            toast.error("Roll number required.", {
+                description: "Please enter your 13-digit roll number.",
+            });
             return;
         }
 
-        setIsSubmitting(true);
-        
-        try {
-            // TODO: Add your API call here to save user data
-            // await saveUserOnboarding({ email: userEmail, rollNo, turnstileToken });
-            
-            // Redirect to pricing page
-            router.push("/pricing" as any);
-        } catch (error) {
-            console.error("Onboarding error:", error);
-            setIsSubmitting(false);
+        if (!/^[0-9]{13}$/.test(rollNo)) {
+            toast.error("Invalid roll number", {
+                description: "Roll number must be exactly 13 digits.",
+            });
+            return;
         }
+
+        if (!turnstileToken) {
+            toast.error("Please complete the verification.", {
+                description: "Verification is required to continue.",
+            });
+            return;
+        }
+
+        // Submit with the verified token
+        onboardingMutation.mutate({ rollNo });
+    };
+
+    const handleTurnstileVerify = (token: string) => {
+        setTurnstileToken(token);
+        console.log("Turnstile token received:", token);
     };
 
     return (
         <main className="relative md:h-screen md:overflow-hidden bg-black lg:grid lg:grid-cols-2">
+            {/* Left side visual */}
             <div className="bg-transparent relative hidden h-full flex-col border-r p-10 lg:flex">
                 <img
                     src="https://cdn2.devshakya.xyz/landing/sentrabg.png"
                     alt="Moon background"
-                    className="absolute inset-0 w-full h-full opacity-20 blur-[1px] md:blur-[2px] object-cover"
+                    className="absolute inset-0 w-full h-full opacity-20 blur-[2px] object-cover"
                 />
-                <div className="from-background absolute inset-0 z-10 bg-gradient-to-t to-transparent" />
+                <div className="absolute inset-0 z-10 bg-gradient-to-t from-background to-transparent" />
                 <div className="z-10 flex items-center gap-2">
-                    <div className="flex items-center">
-                        <svg
-                            xmlns="http://www.w3.org/2000/svg"
+                    <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="#ffffff"
+                        viewBox="0 0 120 120"
+                        className="size-8"
+                    >
+                        <path
                             fill="#ffffff"
-                            viewBox="0 0 120 120"
-                            className="size-8 translate-x-[-0.5px]"
-                        >
-                            <path
-                                fill="#ffffff"
-                                fillRule="evenodd"
-                                d="M0 60c38.137 0 60-21.863 60-60 0 38.137 21.863 60 60 60-38.137 0-60 21.863-60 60 0-38.137-21.863-60-60-60"
-                                clipRule="evenodd"
-                            ></path>
-                        </svg>
-                    </div>
+                            d="M0 60c38.137 0 60-21.863 60-60 0 38.137 21.863 60 60 60-38.137 0-60 21.863-60 60 0-38.137-21.863-60-60-60"
+                        />
+                    </svg>
                     <p className="text-xl font-semibold">Singularity</p>
                 </div>
+
                 <div className="z-10 mt-auto">
                     <blockquote className="space-y-2">
                         <p className="text-xl">
-                            &ldquo;This Platform has helped me to save time and
-                            verify student's background faster than ever before.&rdquo;
+                            “This Platform has helped me save time and verify
+                            students faster than ever before.”
                         </p>
                         <footer className="text-sm font-medium">
                             - Akshay Kumar, Senior QA Automation Engineer
                         </footer>
                     </blockquote>
                 </div>
+
                 <div className="absolute inset-0">
                     <FloatingPaths position={1} />
                     <FloatingPaths position={-1} />
                 </div>
             </div>
+
+            {/* Right side form */}
             <div className="relative flex min-h-screen flex-col justify-center p-4">
                 <div
                     aria-hidden
-                    className="absolute inset-0 isolate contain-strict -z-10 opacity-60"
-                >
-                    <div className="bg-[radial-gradient(68.54%_68.72%_at_55.02%_31.46%,--theme(--color-foreground/.06)_0,hsla(0,0%,55%,.02)_50%,--theme(--color-foreground/.01)_80%)] absolute top-0 right-0 h-320 w-140 -translate-y-87.5 rounded-full" />
-                    <div className="bg-[radial-gradient(50%_50%_at_50%_50%,--theme(--color-foreground/.04)_0,--theme(--color-foreground/.01)_80%,transparent_100%)] absolute top-0 right-0 h-320 w-60 [translate:5%_-50%] rounded-full" />
-                    <div className="bg-[radial-gradient(50%_50%_at_50%_50%,--theme(--color-foreground/.04)_0,--theme(--color-foreground/.01)_80%,transparent_100%)] absolute top-0 right-0 h-320 w-60 -translate-y-87.5 rounded-full" />
-                </div>
-                
+                    className="absolute inset-0 isolate -z-10 opacity-60"
+                />
+
                 <div className="mx-auto space-y-4 sm:w-sm">
                     <div className="flex items-center gap-2 lg:hidden">
                         <svg
@@ -100,14 +110,11 @@ export function OnboardingPage({ userEmail }: OnboardingPageProps) {
                             viewBox="0 0 120 120"
                             className="size-6"
                         >
-                            <path
-                                fillRule="evenodd"
-                                d="M0 60c38.137 0 60-21.863 60-60 0 38.137 21.863 60 60 60-38.137 0-60 21.863-60 60 0-38.137-21.863-60-60-60"
-                                clipRule="evenodd"
-                            ></path>
+                            <path d="M0 60c38.137 0 60-21.863 60-60 0 38.137 21.863 60 60 60-38.137 0-60 21.863-60 60 0-38.137-21.863-60-60-60" />
                         </svg>
                         <p className="text-xl font-semibold">Singularity</p>
                     </div>
+
                     <div className="flex flex-col space-y-1">
                         <h1 className="font-heading text-2xl font-bold tracking-wide">
                             Complete Your Profile
@@ -119,12 +126,10 @@ export function OnboardingPage({ userEmail }: OnboardingPageProps) {
 
                     <form onSubmit={handleSubmit} className="space-y-4">
                         <div className="space-y-2">
-                            <label htmlFor="email" className="text-sm font-medium">
+                            <label className="text-sm font-medium">
                                 Email Address
                             </label>
                             <Input
-                                id="email"
-                                type="email"
                                 value={userEmail}
                                 disabled
                                 className="bg-muted"
@@ -132,11 +137,10 @@ export function OnboardingPage({ userEmail }: OnboardingPageProps) {
                         </div>
 
                         <div className="space-y-2">
-                            <label htmlFor="rollNo" className="text-sm font-medium">
+                            <label className="text-sm font-medium">
                                 Roll Number
                             </label>
                             <Input
-                                id="rollNo"
                                 type="text"
                                 placeholder="Enter your roll number"
                                 value={rollNo}
@@ -145,33 +149,38 @@ export function OnboardingPage({ userEmail }: OnboardingPageProps) {
                                 className="uppercase"
                             />
                             <p className="text-xs text-muted-foreground">
-                                Enter your AKTU roll number (e.g., 2300680100100)
+                                Enter your AKTU roll number (e.g.,
+                                2300680100100)
                             </p>
                         </div>
 
+                        {/* Visible Turnstile Widget */}
                         <div className="space-y-2">
                             <label className="text-sm font-medium">
                                 Verification
                             </label>
-                            <div className="flex justify-center">
-                                <CloudflareTurnstile
-                                    onVerify={(token) => setTurnstileToken(token)}
-                                />
-                            </div>
+                            <ManagedTurnstile
+                                onReady={() => setTurnstileReady(true)}
+                                onVerify={handleTurnstileVerify}
+                            />
                         </div>
 
                         <Button
                             type="submit"
                             className="w-full"
-                            disabled={!rollNo || !turnstileToken || isSubmitting}
+                            disabled={
+                                !turnstileReady ||
+                                !turnstileToken ||
+                                onboardingMutation.isPending
+                            }
                         >
-                            {isSubmitting ? (
+                            {onboardingMutation.isPending ? (
                                 <>
                                     <Spinner className="size-4 me-2" />
                                     <span>Setting up your account...</span>
                                 </>
                             ) : (
-                                <span>Complete Setup</span>
+                                "Complete Setup"
                             )}
                         </Button>
                     </form>
@@ -181,6 +190,7 @@ export function OnboardingPage({ userEmail }: OnboardingPageProps) {
     );
 }
 
+/* Background Animation */
 function FloatingPaths({ position }: { position: number }) {
     const paths = Array.from({ length: 36 }, (_, i) => ({
         id: i,
@@ -191,34 +201,27 @@ function FloatingPaths({ position }: { position: number }) {
         } ${343 - i * 6}C${616 - i * 5 * position} ${470 - i * 6} ${
             684 - i * 5 * position
         } ${875 - i * 6} ${684 - i * 5 * position} ${875 - i * 6}`,
-        color: `rgba(54,1,63,${0.1 + i * 0.03})`,
         width: 0.5 + i * 0.03,
     }));
 
     return (
         <div className="pointer-events-none absolute inset-0">
-            <svg
-                className="h-full w-full text-[#ffffff] dark:text-[#ffffff]"
-                viewBox="0 0 696 316"
-                fill="none"
-            >
-                <title>Background Paths</title>
+            <svg className="h-full w-full" viewBox="0 0 696 316" fill="none">
                 {paths.map((path) => (
                     <motion.path
                         key={path.id}
                         d={path.d}
                         stroke="currentColor"
                         strokeWidth={path.width}
-                        strokeOpacity={0.1 + path.id * 0.03}
-                        initial={{ pathLength: 0.3, opacity: 0.6 }}
+                        initial={{ pathLength: 0.3, opacity: 0.4 }}
                         animate={{
                             pathLength: 1,
                             opacity: [0.3, 0.6, 0.3],
                             pathOffset: [0, 1, 0],
                         }}
                         transition={{
-                            duration: 20 + Math.random() * 10,
-                            repeat: Number.POSITIVE_INFINITY,
+                            duration: 22 + Math.random() * 10,
+                            repeat: Infinity,
                             ease: "linear",
                         }}
                     />
@@ -228,37 +231,117 @@ function FloatingPaths({ position }: { position: number }) {
     );
 }
 
-interface CloudflareTurnstileProps {
+/* Managed Turnstile Component - Visible Widget with Auto-execution */
+function ManagedTurnstile({
+    onVerify,
+    onReady,
+}: {
     onVerify: (token: string) => void;
-}
+    onReady: () => void;
+}) {
+    const onVerifyRef = React.useRef(onVerify);
+    const widgetIdRef = React.useRef<string | null>(null);
 
-function CloudflareTurnstile({ onVerify }: CloudflareTurnstileProps) {
-    const containerRef = React.useRef<HTMLDivElement>(null);
+    // Keep onVerify ref updated
+    React.useEffect(() => {
+        onVerifyRef.current = onVerify;
+    }, [onVerify]);
 
     React.useEffect(() => {
-        // Load Cloudflare Turnstile script
-        const script = document.createElement("script");
-        script.src = "https://challenges.cloudflare.com/turnstile/v0/api.js";
-        script.async = true;
-        script.defer = true;
-        document.body.appendChild(script);
+        // Check if script already loaded
+        let script = document.querySelector(
+            'script[src*="challenges.cloudflare.com/turnstile"]'
+        ) as HTMLScriptElement;
 
-        script.onload = () => {
-            if (containerRef.current && (window as any).turnstile) {
-                (window as any).turnstile.render(containerRef.current, {
-                    sitekey: process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY || "1x00000000000000000000AA",
-                    callback: (token: string) => {
-                        onVerify(token);
-                    },
+        if (!script) {
+            script = document.createElement("script");
+            script.src =
+                "https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit";
+            script.async = true;
+            script.defer = true;
+            document.body.appendChild(script);
+        }
+
+        const initTurnstile = () => {
+            const ts = (window as any).turnstile;
+
+            if (!ts) {
+                console.error("Turnstile failed to load");
+                toast.error("Failed to load verification");
+                return;
+            }
+
+            try {
+                // Use test sitekey for development (always passes)
+                // Production sitekey: 0x4AAAAAACAtfCYbnqYoa8pu
+                const sitekey =
+                    process.env.NODE_ENV === "production"
+                        ? "0x4AAAAAACAtfCYbnqYoa8pu"
+                        : "1x00000000000000000000AA"; // Test key - always passes
+
+                // Render in managed mode - Visible widget with automatic execution
+                widgetIdRef.current = ts.render("#cf-turnstile", {
+                    sitekey,
+                    size: "flexible",
                     theme: "auto",
+                    // No execution mode = auto-executes immediately
+                    callback: (token: string) => {
+                        console.log("Turnstile verification successful");
+                        onVerifyRef.current(token);
+                    },
+                    "error-callback": (errorCode: string) => {
+                        console.error("Turnstile error:", errorCode);
+                        toast.error("Verification failed", {
+                            description: `Error: ${errorCode}. Please try again.`,
+                        });
+                    },
+                    "expired-callback": () => {
+                        console.warn("Turnstile token expired");
+                        toast.error("Verification expired", {
+                            description: "Please submit again.",
+                        });
+                    },
+                    "timeout-callback": () => {
+                        console.warn("Turnstile timeout");
+                        toast.error("Verification timeout", {
+                            description: "Please try again.",
+                        });
+                    },
                 });
+
+                console.log(
+                    "Turnstile widget rendered (Managed Mode):",
+                    widgetIdRef.current
+                );
+                onReady();
+            } catch (error) {
+                console.error("Turnstile render error:", error);
+                toast.error("Failed to initialize verification");
             }
         };
 
-        return () => {
-            document.body.removeChild(script);
-        };
-    }, [onVerify]);
+        if ((window as any).turnstile) {
+            initTurnstile();
+        } else {
+            script.addEventListener("load", initTurnstile);
+            script.addEventListener("error", () => {
+                console.error("Failed to load Turnstile script");
+                toast.error("Failed to load verification");
+            });
+        }
 
-    return <div ref={containerRef} className="border-none cf-turnstile" />;
+        return () => {
+            const ts = (window as any).turnstile;
+            if (ts && widgetIdRef.current) {
+                try {
+                    ts.remove(widgetIdRef.current);
+                    console.log("Turnstile widget removed");
+                } catch (err) {
+                    console.warn("Error removing Turnstile:", err);
+                }
+            }
+        };
+    }, [onReady]);
+
+    return <div id="cf-turnstile" />;
 }
