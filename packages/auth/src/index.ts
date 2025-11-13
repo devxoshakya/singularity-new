@@ -13,7 +13,6 @@ export interface AuthEnv {
 	FRONTEND_URL: string;
 }
 
-// Factory function to create auth instance with environment variables
 export const createBetterAuth = (env: AuthEnv) => {
 	return betterAuth<BetterAuthOptions>({
 		database: prismaAdapter(prisma, {
