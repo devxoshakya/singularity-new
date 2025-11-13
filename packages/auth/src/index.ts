@@ -70,7 +70,7 @@ export const createBetterAuth = (env: AuthEnv) => {
 			},
 		},
 		onAPIError: {
-			errorURL: "http://localhost:3000/login",
+			errorURL: "https://m.devshakya.xyz/login",
 		},
 	});
 };
