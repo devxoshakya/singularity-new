@@ -21,9 +21,10 @@
     "typescript": "^5"
   },
   "dependencies": {
+    "@singularity/db": "workspace:*",
+    "@types/node": "^24.10.1",
     "better-auth": "catalog:",
     "dotenv": "catalog:",
-    "zod": "catalog:",
-    "@singularity/db": "workspace:*"
+    "zod": "catalog:"
   }
 }

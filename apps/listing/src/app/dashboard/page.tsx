@@ -19,6 +19,8 @@ export default async function DashboardPage() {
 		<div>
 			<h1>Dashboard</h1>
 			<p>Welcome {session.user.name}</p>
+			<p>{JSON.stringify(session.user)}</p>
+			{session.user.image && <img src={session.user.image} alt={session.user.name!} />}
 			<Dashboard session={session} />
 		</div>
 	);
