@@ -59,10 +59,16 @@ jobs:
                       GOOGLE_CLIENT_ID
                       GOOGLE_CLIENT_SECRET
                       FRONTEND_URL
+                      BETTER_AUTH_SECRET
+                      BETTER_AUTH_URL
+                      CORS_ORIGIN
 
               env:
                   DATABASE_URL: ${{ secrets.DATABASE_URL }}
                   DIRECT_URL: ${{ secrets.DIRECT_URL }}
                   GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
                   FRONTEND_URL: ${{ secrets.FRONTEND_URL }}
+                  BETTER_AUTH_SECRET: ${{ secrets.BETTER_AUTH_SECRET }}
+                  BETTER_AUTH_URL: ${{ secrets.BETTER_AUTH_URL }}
+                  CORS_ORIGIN: ${{ secrets.CORS_ORIGIN }}
                   GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
