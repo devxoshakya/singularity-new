@@ -10,6 +10,10 @@ jobs:
         runs-on: ubuntu-latest
         timeout-minutes: 60
 
+        env : 
+            NEXT_PUBLIC_SERVER_URL: ${{ secrets.SERVER_URL }}
+            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
         steps:
             - name: Checkout repository
               uses: actions/checkout@v4
