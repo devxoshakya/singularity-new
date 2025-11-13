@@ -1,12 +1,10 @@
 import { betterAuth, type BetterAuthOptions } from "better-auth";
 import { prismaAdapter } from "better-auth/adapters/prisma";
 import prisma from "@singularity/db";
-import { APIError } from 'better-auth/api'; // Import APIError for custom validation
+import { APIError } from 'better-auth/api'; 
 
-// Define the required domain for strict enforcement
 const REQUIRED_DOMAIN = '@miet.ac.in';
 
-// Define interface for environment variables
 export interface AuthEnv {
 	GOOGLE_CLIENT_ID: string;
 	GOOGLE_CLIENT_SECRET: string;
