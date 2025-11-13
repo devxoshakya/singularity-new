@@ -1,7 +1,6 @@
 import type React from "react";
 import type { Metadata } from "next";
 import { Figtree } from "next/font/google";
-import { GeistMono } from "geist/font/mono";
 import { Instrument_Serif } from "next/font/google";
 import Providers from "@/components/providers";
 import "../index.css";
@@ -39,7 +38,7 @@ export default function RootLayout({
 html {
   font-family: ${figtree.style.fontFamily};
   --font-sans: ${figtree.variable};
-  --font-mono: ${GeistMono.variable};
+  --font-mono: ${figtree.variable};
   --font-instrument-serif: ${instrumentSerif.variable};
 }
         `}</style>

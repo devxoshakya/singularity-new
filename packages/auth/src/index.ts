@@ -12,6 +12,7 @@ export interface AuthEnv {
 	GOOGLE_CLIENT_SECRET: string;
 	BETTER_AUTH_SECRET: string;
 	BETTER_AUTH_URL: string;
+	FRONTEND_URL: string;
 }
 
 // Factory function to create auth instance with environment variables
@@ -35,7 +36,7 @@ export const createBetterAuth = (env: AuthEnv) => {
 				}
 			}
 		},
-		trustedOrigins: ["http://localhost:3001", "https://listing.singularity.miet.ac.in"],
+		trustedOrigins: ["http://localhost:3001", env.FRONTEND_URL],
 		emailAndPassword: {
 			enabled: true,
 		},

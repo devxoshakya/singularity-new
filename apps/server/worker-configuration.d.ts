@@ -13,6 +13,7 @@ declare namespace Cloudflare {
 		CORS_ORIGIN: string;
 		GOOGLE_CLIENT_ID: string;
 		GOOGLE_CLIENT_SECRET: string;
+        FRONTEND_URL: string
 	}
 }
 interface CloudflareBindings extends Cloudflare.Env {}

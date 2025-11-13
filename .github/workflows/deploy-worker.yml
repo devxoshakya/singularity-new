@@ -56,6 +56,11 @@ jobs:
                   secrets: |
                       DATABASE_URL
                       DIRECT_URL
+                      GOOGLE_CLIENT_ID
+                      GOOGLE_CLIENT_SECRET
+
               env:
                   DATABASE_URL: ${{ secrets.DATABASE_URL }}
                   DIRECT_URL: ${{ secrets.DIRECT_URL }}
+                  GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
+                  GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
