@@ -15,11 +15,26 @@ export interface AuthEnv {
 }
 
 // Factory function to create auth instance with environment variables
-export const createAuth = (env: AuthEnv) => {
+export const createBetterAuth = (env: AuthEnv) => {
 	return betterAuth<BetterAuthOptions>({
 		database: prismaAdapter(prisma, {
 			provider: "mongodb",
 		}),
+		user : {
+			additionalFields : {
+				rollNo : {
+					type: "string",
+					required: false,
+					defaultValue : null,
+				},
+				blocked : {
+					type: "boolean",
+					required: true,
+					defaultValue : false,
+					input : false,
+				}
+			}
+		},
 		trustedOrigins: ["http://localhost:3001", "https://listing.singularity.miet.ac.in"],
 		emailAndPassword: {
 			enabled: true,
@@ -27,12 +42,10 @@ export const createAuth = (env: AuthEnv) => {
 		secret: env.BETTER_AUTH_SECRET,
 		baseURL: env.BETTER_AUTH_URL,
 
-		// 👇 ADDED: Google Social Provider Configuration 👇
 		socialProviders: {
 			google: {
 				clientId: env.GOOGLE_CLIENT_ID,
 				clientSecret: env.GOOGLE_CLIENT_SECRET,
-				// 2. ENFORCEMENT: This is the mandatory security check on the server side.
 				mapProfileToUser: (profile) => {
 					const userEmail = profile.email as string | undefined;
 					if (!userEmail || !userEmail.endsWith(REQUIRED_DOMAIN)) {
@@ -42,7 +55,6 @@ export const createAuth = (env: AuthEnv) => {
 						});
 					}
 
-					// If the domain is correct, return the mapped user data
 					return {
 						email: userEmail,
 						name: profile.name,
@@ -51,8 +63,6 @@ export const createAuth = (env: AuthEnv) => {
 				},
 			},
 		},
-		// 👆 END of ADDED configuration 👆
-
 		advanced: {
 			defaultCookieAttributes: {
 				sameSite: "none",
@@ -61,9 +71,6 @@ export const createAuth = (env: AuthEnv) => {
 			},
 		},
 		onAPIError: {
-			// This is the guaranteed redirect URL for *any* unhandled server API error,
-			// which includes the domain restriction error from your mapProfileToUser hook.
-			// Make sure this is the public URL of your login page.
 			errorURL: "http://localhost:3000/login",
 		},
 	});

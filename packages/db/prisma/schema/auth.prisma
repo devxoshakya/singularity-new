@@ -6,6 +6,8 @@ model User {
   updatedAt     DateTime  @updatedAt
   emailVerified Boolean   @default(false)
   image         String?
+  rollNo        String?   @unique
+  blocked       Boolean   @default(false)
   sessions      Session[]
   accounts      Account[]
 

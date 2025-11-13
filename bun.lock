@@ -98,10 +98,10 @@
       "dependencies": {
         "@singularity/auth": "workspace:*",
         "@singularity/db": "workspace:*",
-        "better-auth": "catalog:",
+        "better-auth": "^1.3.34",
         "dotenv": "catalog:",
         "hono": "^4.8.2",
-        "zod": "catalog:",
+        "zod": "^4.1.12",
       },
       "devDependencies": {
         "@types/node": "catalog:",

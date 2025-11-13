@@ -1,11 +1,17 @@
-import type { createAuth } from "@singularity/auth";
+import type { createBetterAuth } from "@singularity/auth";
 import { createAuthClient } from "better-auth/react";
 import { inferAdditionalFields } from "better-auth/client/plugins";
 import { redirect } from "next/navigation";
 
 export const authClient = createAuthClient({
 	baseURL: process.env.NEXT_PUBLIC_SERVER_URL,
-	plugins: [inferAdditionalFields<typeof createAuth>()],
+	plugins: [inferAdditionalFields<typeof createBetterAuth>()],
+	user : {
+		additionalFields: {
+			rollNo: null as string | null,
+			blocked: null as boolean | null,
+		},
+	}
 });
 
 export const signIn = async () => {
