@@ -26,29 +26,7 @@ app.use(logger());
 app.use(
   "/*",
   cors({
-    origin: (origin) => {
-      // Allow requests with credentials from specific origins
-      const allowedOrigins = [
-        "http://localhost:3001",
-        "http://localhost:3000", 
-        "https://m.devshakya.xyz",
-        "https://listing.singularity.miet.ac.in",
-        env.CORS_ORIGIN, // Additional origin from env
-      ].filter(Boolean); // Remove undefined values
-
-      // If origin is in allowed list, return it; otherwise return first allowed origin
-      if (origin && allowedOrigins.includes(origin)) {
-        return origin;
-      }
-      
-      // For development, allow localhost origins
-      if (origin && (origin.includes("localhost") || origin.includes("127.0.0.1"))) {
-        return origin;
-      }
-
-      // Default to first allowed origin
-      return allowedOrigins[0] || origin;
-    },
+    origin: env.CORS_ORIGIN, // Replace with your frontend URL or use a function for dynamic origins
     allowMethods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allowHeaders: ["Content-Type", "Authorization", "Cookie"],
     exposeHeaders: ["Set-Cookie"],

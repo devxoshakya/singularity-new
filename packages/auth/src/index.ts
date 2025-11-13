@@ -36,7 +36,7 @@ export const createBetterAuth = (env: AuthEnv) => {
 				}
 			}
 		},
-		trustedOrigins: ["http://localhost:3001", "https://*.devshakya.xyz", env.FRONTEND_URL],
+		trustedOrigins: ["http://localhost:3001", "https://m.devshakya.xyz", env.FRONTEND_URL],
 		emailAndPassword: {
 			enabled: true,
 		},
