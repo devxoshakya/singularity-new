@@ -66,6 +66,7 @@ export const createBetterAuth = (env: AuthEnv) => {
 				sameSite: "none",
 				secure: true,
 				httpOnly: true,
+				domain : ".devshakya.xyz"
 			},
 		},
 		onAPIError: {

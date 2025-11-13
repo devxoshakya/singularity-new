@@ -26,14 +26,15 @@ app.use(logger());
 app.use(
   "/*",
   cors({
-    origin: env.CORS_ORIGIN, // Replace with your frontend URL or use a function for dynamic origins
+    origin: "https://m.devshakya.xyz",  
     allowMethods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-    allowHeaders: ["Content-Type", "Authorization", "Cookie"],
+    allowHeaders: ["Content-Type", "Authorization"],
     exposeHeaders: ["Set-Cookie"],
     credentials: true,
-    maxAge: 86400, // 24 hours
+    maxAge: 86400,
   }),
 );
+
 
 // Apply Better Auth middleware to validate sessions
 app.on(["POST", "GET"], "/api/auth/*", (c) => auth.handler(c.req.raw));

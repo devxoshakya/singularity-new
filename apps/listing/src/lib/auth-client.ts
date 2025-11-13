@@ -11,6 +11,9 @@ export const authClient = createAuthClient({
 			rollNo: null as string | null,
 			blocked: null as boolean | null,
 		},
+	},
+	fetchOptions : {
+		credentials : "include",
 	}
 });
 
