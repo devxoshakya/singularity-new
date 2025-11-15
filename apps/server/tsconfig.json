@@ -8,6 +8,11 @@
 			"@/*": ["./src/*"]
 		},
 		"jsx": "react-jsx",
-		"jsxImportSource": "hono/jsx"
-	}
+		"jsxImportSource": "hono/jsx",
+		"types": ["node"],
+		"lib": ["ESNext"],
+		"moduleResolution": "bundler",
+		"noImplicitAny": false
+	},
+	"include": ["src/**/*", "worker-configuration.d.ts"]
 }

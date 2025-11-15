@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useState } from "react";
-import { Button } from "./button";
 import { PricingSection } from "./pricing";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";

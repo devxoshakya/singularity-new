@@ -1,4 +1,3 @@
-import { env } from "cloudflare:workers";
 import { Hono } from "hono";
 import { cors } from "hono/cors";
 import { logger } from "hono/logger";
@@ -8,6 +7,7 @@ import type { HonoContext } from "./types/context";
 import { defaultCacheStrategy } from "./utils/cache";
 import { auth } from "./lib/auth";
 import { authMiddleware } from "./middleware/auth.middleware";
+import type { Context } from "hono";
 
 
 // Create auth instance with environment variables
@@ -37,7 +37,7 @@ app.use(
 
 
 // Apply Better Auth middleware to validate sessions
-app.on(["POST", "GET"], "/api/auth/*", (c) => auth.handler(c.req.raw));
+app.on(["POST", "GET"], "/api/auth/*", (c: Context) => auth.handler(c.req.raw));
 
 // Apply auth middleware only to protected routes (NOT on /api/auth/*)
 app.use("/api/me", authMiddleware);
@@ -47,12 +47,12 @@ app.use("/users", authMiddleware);
 // Onboarding route
 app.route("/api/onboarding", onboardingRouter);
 
-app.get("/", (c) => {
+app.get("/", (c: Context) => {
   return c.text("OK JI");
 });
 
 // Example: Get current authenticated user
-app.get("/api/me", (c) => {
+app.get("/api/me", (c: Context) => {
   const user = c.get("user");
 
   if (!user) {
@@ -62,8 +62,8 @@ app.get("/api/me", (c) => {
   return c.json({ user });
 });
 
-app.get("/users", async (c) => {
-  const users = await prisma.user.findMany({
+app.get("/users", async (c: Context) => {
+  const users = await prisma?.user?.findMany({
     cacheStrategy: defaultCacheStrategy
   });
   return c.json(users);
