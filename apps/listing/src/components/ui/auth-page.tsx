@@ -1,14 +1,27 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import { motion } from "framer-motion";
 import { Button } from "./button";
-
+import { Checkbox } from "./checkbox";
 import { ChevronLeftIcon, LightbulbIcon } from "lucide-react";
 import Link from "next/link";
 import { signIn } from "@/lib/auth-client";
+import { toast } from "sonner";
 
 export function AuthPage() {
+    const [acceptedTerms, setAcceptedTerms] = useState(false);
+
+    const handleGoogleSignIn = () => {
+        if (!acceptedTerms) {
+            toast.error("Terms and Conditions Required", {
+                description: "Please accept the Terms of Service and Privacy Policy to continue.",
+            });
+            return;
+        }
+        
+        signIn();
+    };
     return (
         <main className="relative md:h-screen md:overflow-hidden lg:grid lg:grid-cols-2">
             <div className="bg-transparent relative hidden h-full flex-col border-r p-10 lg:flex">
@@ -17,7 +30,7 @@ export function AuthPage() {
                     alt="Moon background"
                     className="absolute inset-0 w-full h-full opacity-20 blur-[1px] md:blur-[2px] object-cover"
                 />
-                <div className="from-background absolute inset-0 z-10 bg-gradient-to-t to-transparent" />
+                <div className="from-background absolute inset-0 z-10 bg-linear-to-t to-transparent" />
                 <div className="z-10 flex items-center gap-2">
                     <div className="flex items-center">
                         <svg
@@ -100,10 +113,21 @@ export function AuthPage() {
                         </p>
                     </div>
                     <div className="space-y-3">
-                        <Button type="button" size="lg" className="w-full" onClick={signIn}>
-                            <GoogleIcon className="size-4 me-2" />
-                            Continue with Google
-                        </Button>
+                        {/* Wrapper div to capture clicks even when button is disabled */}
+                        <div 
+                            onClick={handleGoogleSignIn}
+                            className="w-full"
+                        >
+                            <Button 
+                                type="button" 
+                                size="lg" 
+                                className="w-full pointer-events-none" 
+                                disabled={!acceptedTerms}
+                            >
+                                <GoogleIcon className="size-4 me-2" />
+                                Continue with Google
+                            </Button>
+                        </div>
                         <div className="bg-blue-500/10 border border-blue-500/20 rounded-lg py-1.5 px-2 text-center">
                             <p className="text-sm text-blue-600 dark:text-blue-400 flex items-center justify-center gap-2">
                                 <LightbulbIcon className="size-4 font-bold shrink-0" />
@@ -114,23 +138,49 @@ export function AuthPage() {
                             </p>
                         </div>
                     </div>
-                    <p className="text-muted-foreground mt-8 text-sm">
-                        By clicking continue, you agree to our{" "}
-                        <Link
-                            href="#"
-                            className="hover:text-primary underline underline-offset-4"
+                    
+                    {/* Terms and Conditions Checkbox */}
+                    <div className="flex items-start space-x-3 mt-4">
+                        <Checkbox
+                            id="terms"
+                            checked={acceptedTerms}
+                            onCheckedChange={(checked) => setAcceptedTerms(checked as boolean)}
+                            className="mt-1"
+                        />
+                        <label
+                            htmlFor="terms"
+                            className="text-sm text-muted-foreground leading-relaxed cursor-pointer"
                         >
-                            Terms of Service
-                        </Link>{" "}
-                        and{" "}
-                        <Link
-                            href="#"
-                            className="hover:text-primary underline underline-offset-4"
-                        >
-                            Privacy Policy
-                        </Link>
-                        .
-                    </p>
+                            I agree to the{" "}
+                            <a
+                                href="#"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-primary hover:underline underline-offset-4"
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    e.preventDefault();
+                                    toast.info("Terms of Service page coming soon");
+                                }}
+                            >
+                                Terms of Service
+                            </a>{" "}
+                            and{" "}
+                            <a
+                                href="#"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-primary hover:underline underline-offset-4"
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    e.preventDefault();
+                                    toast.info("Privacy Policy page coming soon");
+                                }}
+                            >
+                                Privacy Policy
+                            </a>
+                        </label>
+                    </div>
                 </div>
             </div>
         </main>
