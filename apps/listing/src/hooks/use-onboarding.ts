@@ -11,11 +11,11 @@ export function useOnboarding() {
     mutationFn: onboardingApi.submitOnboarding,
     onSuccess: (data) => {
       toast.success("Profile completed successfully!", {
-        description: `Welcome, ${data.user.name}! Your roll number has been registered.`,
+        description: `Welcome, ${data.user.name}! Let's choose your plan.`,
       });
       
-      // Redirect to dashboard
-      router.push("/dashboard");
+      // Redirect to pricing page to complete onboarding flow
+      router.push("/pricing");
     },
     onError: (error: AxiosError<ApiError>) => {
       const errorMessage = 
