@@ -21,15 +21,20 @@ import { authMiddleware } from "./middleware/auth.middleware";
 const app = new Hono<HonoContext>();
 
 app.use(logger());
+
+// CORS configuration with dynamic origin handling
 app.use(
   "/*",
   cors({
-    origin: env.CORS_ORIGIN || "",
-    allowMethods: ["GET", "POST", "OPTIONS"],
+    origin: "https://m.devshakya.xyz",  
+    allowMethods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allowHeaders: ["Content-Type", "Authorization"],
+    exposeHeaders: ["Set-Cookie"],
     credentials: true,
+    maxAge: 86400,
   }),
 );
+
 
 // Apply Better Auth middleware to validate sessions
 app.on(["POST", "GET"], "/api/auth/*", (c) => auth.handler(c.req.raw));

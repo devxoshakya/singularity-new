@@ -1,12 +1,10 @@
 import { betterAuth, type BetterAuthOptions } from "better-auth";
 import { prismaAdapter } from "better-auth/adapters/prisma";
 import prisma from "@singularity/db";
-import { APIError } from 'better-auth/api'; // Import APIError for custom validation
+import { APIError } from 'better-auth/api'; 
 
-// Define the required domain for strict enforcement
 const REQUIRED_DOMAIN = '@miet.ac.in';
 
-// Define interface for environment variables
 export interface AuthEnv {
 	GOOGLE_CLIENT_ID: string;
 	GOOGLE_CLIENT_SECRET: string;
@@ -15,7 +13,6 @@ export interface AuthEnv {
 	FRONTEND_URL: string;
 }
 
-// Factory function to create auth instance with environment variables
 export const createBetterAuth = (env: AuthEnv) => {
 	return betterAuth<BetterAuthOptions>({
 		database: prismaAdapter(prisma, {
@@ -36,7 +33,7 @@ export const createBetterAuth = (env: AuthEnv) => {
 				}
 			}
 		},
-		trustedOrigins: ["http://localhost:3001", env.FRONTEND_URL],
+		trustedOrigins: ["http://localhost:3001", "https://m.devshakya.xyz", env.FRONTEND_URL],
 		emailAndPassword: {
 			enabled: true,
 		},
@@ -69,10 +66,11 @@ export const createBetterAuth = (env: AuthEnv) => {
 				sameSite: "none",
 				secure: true,
 				httpOnly: true,
+				domain : ".devshakya.xyz"
 			},
 		},
 		onAPIError: {
-			errorURL: "http://localhost:3000/login",
+			errorURL: "https://m.devshakya.xyz/login",
 		},
 	});
 };
