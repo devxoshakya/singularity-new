@@ -21,9 +21,11 @@
     "typescript": "^5"
   },
   "dependencies": {
+    "@dodopayments/better-auth": "^1.3.6",
     "@singularity/db": "workspace:*",
     "@types/node": "^24.10.1",
     "better-auth": "catalog:",
+    "dodopayments": "^2.5.0",
     "dotenv": "catalog:",
     "zod": "catalog:"
   }

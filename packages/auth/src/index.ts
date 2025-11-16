@@ -1,7 +1,15 @@
-import { betterAuth, type BetterAuthOptions } from "better-auth";
+import { betterAuth, success, type BetterAuthOptions } from "better-auth";
 import { prismaAdapter } from "better-auth/adapters/prisma";
 import prisma from "@singularity/db";
-import { APIError } from 'better-auth/api'; 
+import { APIError } from 'better-auth/api';
+import { DodoPayments } from "dodopayments";
+import {
+	dodopayments,
+	checkout as dodocheckout,
+	portal as dodoportal,
+	webhooks as dodowebhooks,
+} from "@dodopayments/better-auth";
+
 
 const REQUIRED_DOMAIN = '@miet.ac.in';
 
@@ -13,23 +21,29 @@ export interface AuthEnv {
 	FRONTEND_URL: string;
 }
 
+export const dodoPayments = new DodoPayments({
+	bearerToken: process.env.DODO_PAYMENTS_API_KEY!,
+	environment: "test_mode"
+});
+
+
 export const createBetterAuth = (env: AuthEnv) => {
 	return betterAuth<BetterAuthOptions>({
 		database: prismaAdapter(prisma, {
 			provider: "mongodb",
 		}),
-		user : {
-			additionalFields : {
-				rollNo : {
+		user: {
+			additionalFields: {
+				rollNo: {
 					type: "string",
 					required: false,
-					defaultValue : null,
+					defaultValue: null,
 				},
-				blocked : {
+				blocked: {
 					type: "boolean",
 					required: true,
-					defaultValue : false,
-					input : false,
+					defaultValue: false,
+					input: false,
 				}
 			}
 		},
@@ -66,11 +80,32 @@ export const createBetterAuth = (env: AuthEnv) => {
 				sameSite: "none",
 				secure: true,
 				httpOnly: true,
-				domain : ".devshakya.xyz"
+				domain: ".devshakya.xyz"
 			},
 		},
 		onAPIError: {
 			errorURL: "https://m.devshakya.xyz/login",
 		},
+		plugins: [
+			dodopayments({
+				client: dodoPayments,
+				createCustomerOnSignUp: true,
+				use: [
+					dodocheckout({
+						products: [
+							{
+								productId: "pdt_eBvi3ZK8ZsX7QDJshNWBA",
+								slug: "premium-plan",
+							},
+						],
+						successUrl: "/",
+						authenticatedUsersOnly: true,
+					}),
+				],
+			}),
+			dodoportal(),
+			dodowebhooks(),
+
+		]
 	});
 };

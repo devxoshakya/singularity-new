@@ -1,0 +1,358 @@
+.
+├── apps
+│   ├── landing
+│   │   ├── components.json
+│   │   ├── content
+│   │   │   └── docs
+│   │   │       ├── index.mdx
+│   │   │       └── test.mdx
+│   │   ├── next.config.mjs
+│   │   ├── next-env.d.ts
+│   │   ├── node_modules
+│   │   │   ├── class-variance-authority -> ../../../node_modules/.bun/class-variance-authority@0.7.1/node_modules/class-variance-authority
+│   │   │   ├── clsx -> ../../../node_modules/.bun/clsx@2.1.1/node_modules/clsx
+│   │   │   ├── cobe -> ../../../node_modules/.bun/cobe@0.6.5/node_modules/cobe
+│   │   │   ├── framer-motion -> ../../../node_modules/.bun/framer-motion@12.23.24+2b5434204782a989/node_modules/framer-motion
+│   │   │   ├── fumadocs-core -> ../../../node_modules/.bun/fumadocs-core@16.0.7+a15f8b4ce745c94c/node_modules/fumadocs-core
+│   │   │   ├── fumadocs-mdx -> ../../../node_modules/.bun/fumadocs-mdx@13.0.5+84d4e79e159e6860/node_modules/fumadocs-mdx
+│   │   │   ├── fumadocs-ui -> ../../../node_modules/.bun/fumadocs-ui@16.0.7+339b1006a4f8bb0f/node_modules/fumadocs-ui
+│   │   │   ├── lucide-react -> ../../../node_modules/.bun/lucide-react@0.553.0+2f44e903108183df/node_modules/lucide-react
+│   │   │   ├── next -> ../../../node_modules/.bun/next@16.0.3+f98dd74b6b4c2783/node_modules/next
+│   │   │   ├── @opennextjs
+│   │   │   │   └── cloudflare -> ../../../../node_modules/.bun/@opennextjs+cloudflare@1.12.0+b28c1207b94861f5/node_modules/@opennextjs/cloudflare
+│   │   │   ├── postcss -> ../../../node_modules/.bun/postcss@8.5.6/node_modules/postcss
+│   │   │   ├── @radix-ui
+│   │   │   │   ├── react-accordion -> ../../../../node_modules/.bun/@radix-ui+react-accordion@1.2.12+aa536b7840a7ea28/node_modules/@radix-ui/react-accordion
+│   │   │   │   └── react-slot -> ../../../../node_modules/.bun/@radix-ui+react-slot@1.2.4+c149cc96bf793074/node_modules/@radix-ui/react-slot
+│   │   │   ├── react -> ../../../node_modules/.bun/react@19.2.0/node_modules/react
+│   │   │   ├── react-dom -> ../../../node_modules/.bun/react-dom@19.2.0+2f44e903108183df/node_modules/react-dom
+│   │   │   ├── react-icons -> ../../../node_modules/.bun/react-icons@5.5.0+2f44e903108183df/node_modules/react-icons
+│   │   │   ├── @tabler
+│   │   │   │   └── icons-react -> ../../../../node_modules/.bun/@tabler+icons-react@3.35.0+2f44e903108183df/node_modules/@tabler/icons-react
+│   │   │   ├── @tailwindcss
+│   │   │   │   └── postcss -> ../../../../node_modules/.bun/@tailwindcss+postcss@4.1.17/node_modules/@tailwindcss/postcss
+│   │   │   ├── tailwindcss -> ../../../node_modules/.bun/tailwindcss@4.1.17/node_modules/tailwindcss
+│   │   │   ├── tailwind-merge -> ../../../node_modules/.bun/tailwind-merge@3.4.0/node_modules/tailwind-merge
+│   │   │   ├── tw-animate-css -> ../../../node_modules/.bun/tw-animate-css@1.4.0/node_modules/tw-animate-css
+│   │   │   ├── @types
+│   │   │   │   ├── mdx -> ../../../../node_modules/.bun/@types+mdx@2.0.13/node_modules/@types/mdx
+│   │   │   │   ├── node -> ../../../../node_modules/.bun/@types+node@22.19.1/node_modules/@types/node
+│   │   │   │   ├── react -> ../../../../node_modules/.bun/@types+react@19.2.3/node_modules/@types/react
+│   │   │   │   └── react-dom -> ../../../../node_modules/.bun/@types+react-dom@19.2.3+549586b348ef905e/node_modules/@types/react-dom
+│   │   │   ├── typescript -> ../../../node_modules/.bun/typescript@5.9.3/node_modules/typescript
+│   │   │   └── wrangler -> ../../../node_modules/.bun/wrangler@4.48.0/node_modules/wrangler
+│   │   ├── open-next.config.ts
+│   │   ├── package.json
+│   │   ├── postcss.config.mjs
+│   │   ├── public
+│   │   │   ├── assets
+│   │   │   │   └── lottie
+│   │   │   │       ├── click.lottie
+│   │   │   │       ├── stars.lottie
+│   │   │   │       └── vroom.lottie
+│   │   │   ├── landing
+│   │   │   │   ├── FractalMaze.jpg
+│   │   │   │   ├── sentrabg.png
+│   │   │   │   └── Sentra.png
+│   │   │   ├── logo-acme.png
+│   │   │   └── logo.svg
+│   │   ├── README.md
+│   │   ├── source.config.ts
+│   │   ├── src
+│   │   │   ├── app
+│   │   │   │   ├── api
+│   │   │   │   │   └── search
+│   │   │   │   │       └── route.ts
+│   │   │   │   ├── docs
+│   │   │   │   │   ├── layout.tsx
+│   │   │   │   │   └── [[...slug]]
+│   │   │   │   │       └── page.tsx
+│   │   │   │   ├── global.css
+│   │   │   │   ├── (home)
+│   │   │   │   │   ├── layout.tsx
+│   │   │   │   │   └── page.tsx
+│   │   │   │   ├── layout.tsx
+│   │   │   │   ├── llms-full.txt
+│   │   │   │   │   └── route.ts
+│   │   │   │   └── og
+│   │   │   │       └── docs
+│   │   │   │           └── [...slug]
+│   │   │   │               └── route.tsx
+│   │   │   ├── assets
+│   │   │   │   ├── avatar-1.png
+│   │   │   │   ├── avatar-2.png
+│   │   │   │   ├── avatar-3.png
+│   │   │   │   ├── avatar-4.png
+│   │   │   │   ├── grid-lines.png
+│   │   │   │   ├── icon-click.svg
+│   │   │   │   ├── icon-guage.svg
+│   │   │   │   ├── icon-menu.svg
+│   │   │   │   ├── icon-stars.svg
+│   │   │   │   ├── logo-acme.png
+│   │   │   │   ├── logo-apex.png
+│   │   │   │   ├── logo-celestial.png
+│   │   │   │   ├── logo-echo.png
+│   │   │   │   ├── logo-pulse.png
+│   │   │   │   ├── logo-quantum.png
+│   │   │   │   ├── logo.svg
+│   │   │   │   ├── product-image.png
+│   │   │   │   ├── social-instagram.svg
+│   │   │   │   ├── social-x.svg
+│   │   │   │   ├── social-youtube.svg
+│   │   │   │   └── stars.png
+│   │   │   ├── components
+│   │   │   │   ├── blocks
+│   │   │   │   │   └── feature-section-with-bento-grid.tsx
+│   │   │   │   ├── Button.tsx
+│   │   │   │   ├── faq.tsx
+│   │   │   │   ├── footer2.tsx
+│   │   │   │   ├── footer.tsx
+│   │   │   │   ├── logo-mark.tsx
+│   │   │   │   ├── Logo.tsx
+│   │   │   │   ├── MenuIcon.tsx
+│   │   │   │   ├── miet-results.tsx
+│   │   │   │   ├── Navbar.tsx
+│   │   │   │   ├── shine-button.tsx
+│   │   │   │   └── ui
+│   │   │   │       ├── accordion.tsx
+│   │   │   │       ├── badge.tsx
+│   │   │   │       ├── button.tsx
+│   │   │   │       └── pricing-table.tsx
+│   │   │   ├── lib
+│   │   │   │   ├── layout.shared.tsx
+│   │   │   │   ├── source.ts
+│   │   │   │   └── utils.ts
+│   │   │   ├── mdx-components.tsx
+│   │   │   ├── sections
+│   │   │   │   ├── Benefits.tsx
+│   │   │   │   ├── BentoFeatures.tsx
+│   │   │   │   ├── CallToAction.tsx
+│   │   │   │   ├── Features.tsx
+│   │   │   │   ├── Footer.tsx
+│   │   │   │   ├── Header.tsx
+│   │   │   │   ├── Hero.tsx
+│   │   │   │   ├── LogoTicker.tsx
+│   │   │   │   ├── Pricing.tsx
+│   │   │   │   └── Testimonials.tsx
+│   │   │   └── types
+│   │   │       └── svg.d.ts
+│   │   ├── tsconfig.json
+│   │   └── wrangler.jsonc
+│   ├── listing
+│   │   ├── components.json
+│   │   ├── next.config.ts
+│   │   ├── next-env.d.ts
+│   │   ├── node_modules
+│   │   │   ├── axios -> ../../../node_modules/.bun/axios@1.13.2/node_modules/axios
+│   │   │   ├── babel-plugin-react-compiler -> ../../../node_modules/.bun/babel-plugin-react-compiler@1.0.0/node_modules/babel-plugin-react-compiler
+│   │   │   ├── better-auth -> ../../../node_modules/.bun/better-auth@1.3.34/node_modules/better-auth
+│   │   │   ├── class-variance-authority -> ../../../node_modules/.bun/class-variance-authority@0.7.1/node_modules/class-variance-authority
+│   │   │   ├── clsx -> ../../../node_modules/.bun/clsx@2.1.1/node_modules/clsx
+│   │   │   ├── framer-motion -> ../../../node_modules/.bun/framer-motion@12.23.24+2b5434204782a989/node_modules/framer-motion
+│   │   │   ├── hono -> ../../../node_modules/.bun/hono@4.10.6/node_modules/hono
+│   │   │   ├── lucide-react -> ../../../node_modules/.bun/lucide-react@0.553.0+2f44e903108183df/node_modules/lucide-react
+│   │   │   ├── next -> ../../../node_modules/.bun/next@16.0.3+f98dd74b6b4c2783/node_modules/next
+│   │   │   ├── next-themes -> ../../../node_modules/.bun/next-themes@0.4.6+2b5434204782a989/node_modules/next-themes
+│   │   │   ├── @opennextjs
+│   │   │   │   └── cloudflare -> ../../../../node_modules/.bun/@opennextjs+cloudflare@1.12.0+b28c1207b94861f5/node_modules/@opennextjs/cloudflare
+│   │   │   ├── @paper-design
+│   │   │   │   └── shaders-react -> ../../../../node_modules/.bun/@paper-design+shaders-react@0.0.63+399d6f1b763c005a/node_modules/@paper-design/shaders-react
+│   │   │   ├── @prisma
+│   │   │   │   └── client -> ../../../../node_modules/.bun/@prisma+client@6.19.0+467040141d559361/node_modules/@prisma/client
+│   │   │   ├── @radix-ui
+│   │   │   │   ├── react-slot -> ../../../../node_modules/.bun/@radix-ui+react-slot@1.2.4+399d6f1b763c005a/node_modules/@radix-ui/react-slot
+│   │   │   │   └── react-tooltip -> ../../../../node_modules/.bun/@radix-ui+react-tooltip@1.2.8+ffea6f1991549cc6/node_modules/@radix-ui/react-tooltip
+│   │   │   ├── radix-ui -> ../../../node_modules/.bun/radix-ui@1.4.3+ffea6f1991549cc6/node_modules/radix-ui
+│   │   │   ├── react -> ../../../node_modules/.bun/react@19.2.0/node_modules/react
+│   │   │   ├── react-dom -> ../../../node_modules/.bun/react-dom@19.2.0+2f44e903108183df/node_modules/react-dom
+│   │   │   ├── @singularity
+│   │   │   │   └── auth -> ../../../../packages/auth
+│   │   │   ├── sonner -> ../../../node_modules/.bun/sonner@2.0.7+2b5434204782a989/node_modules/sonner
+│   │   │   ├── @tailwindcss
+│   │   │   │   └── postcss -> ../../../../node_modules/.bun/@tailwindcss+postcss@4.1.17/node_modules/@tailwindcss/postcss
+│   │   │   ├── tailwindcss -> ../../../node_modules/.bun/tailwindcss@4.1.17/node_modules/tailwindcss
+│   │   │   ├── tailwind-merge -> ../../../node_modules/.bun/tailwind-merge@3.4.0/node_modules/tailwind-merge
+│   │   │   ├── @tanstack
+│   │   │   │   ├── react-form -> ../../../../node_modules/.bun/@tanstack+react-form@1.25.0+2b5434204782a989/node_modules/@tanstack/react-form
+│   │   │   │   ├── react-query -> ../../../../node_modules/.bun/@tanstack+react-query@5.90.9+2f44e903108183df/node_modules/@tanstack/react-query
+│   │   │   │   └── react-query-devtools -> ../../../../node_modules/.bun/@tanstack+react-query-devtools@5.90.2+bb05770eef587d8f/node_modules/@tanstack/react-query-devtools
+│   │   │   ├── tw-animate-css -> ../../../node_modules/.bun/tw-animate-css@1.4.0/node_modules/tw-animate-css
+│   │   │   ├── @types
+│   │   │   │   ├── node -> ../../../../node_modules/.bun/@types+node@22.19.1/node_modules/@types/node
+│   │   │   │   ├── react -> ../../../../node_modules/.bun/@types+react@19.2.5/node_modules/@types/react
+│   │   │   │   └── react-dom -> ../../../../node_modules/.bun/@types+react-dom@19.2.3+98c89c46460f05ed/node_modules/@types/react-dom
+│   │   │   ├── typescript -> ../../../node_modules/.bun/typescript@5.9.3/node_modules/typescript
+│   │   │   ├── wrangler -> ../../../node_modules/.bun/wrangler@4.48.0/node_modules/wrangler
+│   │   │   └── zod -> ../../../node_modules/.bun/zod@4.1.12/node_modules/zod
+│   │   ├── open-next.config.ts
+│   │   ├── package.json
+│   │   ├── postcss.config.mjs
+│   │   ├── public
+│   │   │   └── logo.svg
+│   │   ├── src
+│   │   │   ├── app
+│   │   │   │   ├── dashboard
+│   │   │   │   │   ├── dashboard.tsx
+│   │   │   │   │   └── page.tsx
+│   │   │   │   ├── favicon.ico
+│   │   │   │   ├── layout.tsx
+│   │   │   │   ├── login
+│   │   │   │   │   └── page.tsx
+│   │   │   │   ├── on-boarding
+│   │   │   │   │   └── page.tsx
+│   │   │   │   ├── page.tsx
+│   │   │   │   └── pricing
+│   │   │   │       └── page.tsx
+│   │   │   ├── components
+│   │   │   │   ├── header1.tsx
+│   │   │   │   ├── header.tsx
+│   │   │   │   ├── hero-content.tsx
+│   │   │   │   ├── loader.tsx
+│   │   │   │   ├── mode-toggle.tsx
+│   │   │   │   ├── providers.tsx
+│   │   │   │   ├── pulsing-circle.tsx
+│   │   │   │   ├── shader-background.tsx
+│   │   │   │   ├── sign-in-form.tsx
+│   │   │   │   ├── sign-up-form.tsx
+│   │   │   │   ├── theme-provider.tsx
+│   │   │   │   ├── ui
+│   │   │   │   │   ├── auth-page.tsx
+│   │   │   │   │   ├── button.tsx
+│   │   │   │   │   ├── card.tsx
+│   │   │   │   │   ├── checkbox.tsx
+│   │   │   │   │   ├── dropdown-menu.tsx
+│   │   │   │   │   ├── input.tsx
+│   │   │   │   │   ├── label.tsx
+│   │   │   │   │   ├── onboarding-page.tsx
+│   │   │   │   │   ├── pricing-page.tsx
+│   │   │   │   │   ├── pricing.tsx
+│   │   │   │   │   ├── skeleton.tsx
+│   │   │   │   │   ├── sonner.tsx
+│   │   │   │   │   ├── spinner.tsx
+│   │   │   │   │   └── tooltip.tsx
+│   │   │   │   └── user-menu.tsx
+│   │   │   ├── hooks
+│   │   │   │   └── use-onboarding.ts
+│   │   │   ├── index.css
+│   │   │   └── lib
+│   │   │       ├── api.ts
+│   │   │       ├── auth-client.ts
+│   │   │       └── utils.ts
+│   │   ├── tsconfig.json
+│   │   └── wrangler.jsonc
+│   └── server
+│       ├── node_modules
+│       │   ├── better-auth -> ../../../node_modules/.bun/better-auth@1.3.34/node_modules/better-auth
+│       │   ├── dotenv -> ../../../node_modules/.bun/dotenv@17.2.3/node_modules/dotenv
+│       │   ├── @hono
+│       │   │   └── node-server -> ../../../../node_modules/.bun/@hono+node-server@1.19.6+86bafc9754e56507/node_modules/@hono/node-server
+│       │   ├── hono -> ../../../node_modules/.bun/hono@4.10.6/node_modules/hono
+│       │   ├── @singularity
+│       │   │   ├── auth -> ../../../../packages/auth
+│       │   │   └── db -> ../../../../packages/db
+│       │   ├── tsdown -> ../../../node_modules/.bun/tsdown@0.15.12+7b5577ceddf78c80/node_modules/tsdown
+│       │   ├── @types
+│       │   │   └── node -> ../../../../node_modules/.bun/@types+node@22.19.1/node_modules/@types/node
+│       │   ├── typescript -> ../../../node_modules/.bun/typescript@5.9.3/node_modules/typescript
+│       │   ├── wrangler -> ../../../node_modules/.bun/wrangler@4.48.0/node_modules/wrangler
+│       │   └── zod -> ../../../node_modules/.bun/zod@4.1.12/node_modules/zod
+│       ├── package.json
+│       ├── README.md
+│       ├── src
+│       │   ├── controllers
+│       │   │   └── onboarding.controller.ts
+│       │   ├── index.ts
+│       │   ├── lib
+│       │   │   └── auth.ts
+│       │   ├── middleware
+│       │   │   └── auth.middleware.ts
+│       │   ├── routes
+│       │   │   └── onboarding.route.ts
+│       │   ├── schemas
+│       │   │   └── onboarding.schema.ts
+│       │   ├── types
+│       │   │   └── context.ts
+│       │   └── utils
+│       │       └── cache.ts
+│       ├── tsconfig.json
+│       ├── tsdown.config.ts
+│       ├── worker-configuration.d.ts
+│       └── wrangler.jsonc
+├── bunfig.toml
+├── bun.lock
+├── karuna.students.json
+├── node_modules
+│   ├── dotenv -> .bun/dotenv@17.2.3/node_modules/dotenv
+│   ├── framer-motion -> .bun/framer-motion@12.23.24+2b5434204782a989/node_modules/framer-motion
+│   ├── @lottiefiles
+│   │   └── dotlottie-react -> ../.bun/@lottiefiles+dotlottie-react@0.17.7+2f44e903108183df/node_modules/@lottiefiles/dotlottie-react
+│   ├── motion -> .bun/motion@12.23.24+2b5434204782a989/node_modules/motion
+│   ├── @prisma
+│   │   ├── client -> ../.bun/@prisma+client@6.19.0+467040141d559361/node_modules/@prisma/client
+│   │   └── extension-accelerate -> ../.bun/@prisma+extension-accelerate@2.0.2+85d4c278cde36487/node_modules/@prisma/extension-accelerate
+│   ├── prisma -> .bun/prisma@6.19.0+1fb4c65d43e298b9/node_modules/prisma
+│   ├── shadcn -> .bun/shadcn@3.5.0+90e19f8f2300c501/node_modules/shadcn
+│   ├── @svgr
+│   │   └── webpack -> ../.bun/@svgr+webpack@8.1.0+1fb4c65d43e298b9/node_modules/@svgr/webpack
+│   ├── tsdown -> .bun/tsdown@0.16.4+c0e056b1db8226be/node_modules/tsdown
+│   ├── turbo -> .bun/turbo@2.6.1/node_modules/turbo
+│   ├── @types
+│   │   └── node -> ../.bun/@types+node@24.10.1/node_modules/@types/node
+│   └── zod -> .bun/zod@4.1.12/node_modules/zod
+├── package.json
+├── packages
+│   ├── auth
+│   │   ├── llms-full.txt
+│   │   ├── node_modules
+│   │   │   ├── better-auth -> ../../../node_modules/.bun/better-auth@1.3.34/node_modules/better-auth
+│   │   │   ├── @dodopayments
+│   │   │   │   └── better-auth -> ../../../../node_modules/.bun/@dodopayments+better-auth@1.3.6+5954958163efbb2a/node_modules/@dodopayments/better-auth
+│   │   │   ├── dodopayments -> ../../../node_modules/.bun/dodopayments@2.5.0/node_modules/dodopayments
+│   │   │   ├── dotenv -> ../../../node_modules/.bun/dotenv@17.2.3/node_modules/dotenv
+│   │   │   ├── @singularity
+│   │   │   │   └── db -> ../../../db
+│   │   │   ├── tsdown -> ../../../node_modules/.bun/tsdown@0.15.12+7b5577ceddf78c80/node_modules/tsdown
+│   │   │   ├── @types
+│   │   │   │   └── node -> ../../../../node_modules/.bun/@types+node@24.10.1/node_modules/@types/node
+│   │   │   ├── typescript -> ../../../node_modules/.bun/typescript@5.9.3/node_modules/typescript
+│   │   │   └── zod -> ../../../node_modules/.bun/zod@4.1.12/node_modules/zod
+│   │   ├── package.json
+│   │   ├── src
+│   │   │   └── index.ts
+│   │   ├── tsconfig.json
+│   │   └── tsdown.config.ts
+│   └── db
+│       ├── dist
+│       │   ├── index.d.ts
+│       │   ├── index.d.ts.map
+│       │   ├── index.js
+│       │   └── index.js.map
+│       ├── docker-compose.yml
+│       ├── node_modules
+│       │   ├── dotenv -> ../../../node_modules/.bun/dotenv@17.2.3/node_modules/dotenv
+│       │   ├── @prisma
+│       │   │   ├── client -> ../../../../node_modules/.bun/@prisma+client@6.19.0+467040141d559361/node_modules/@prisma/client
+│       │   │   └── extension-accelerate -> ../../../../node_modules/.bun/@prisma+extension-accelerate@2.0.2+85d4c278cde36487/node_modules/@prisma/extension-accelerate
+│       │   ├── prisma -> ../../../node_modules/.bun/prisma@6.19.0+1fb4c65d43e298b9/node_modules/prisma
+│       │   ├── tsdown -> ../../../node_modules/.bun/tsdown@0.15.12+7b5577ceddf78c80/node_modules/tsdown
+│       │   ├── typescript -> ../../../node_modules/.bun/typescript@5.9.3/node_modules/typescript
+│       │   └── zod -> ../../../node_modules/.bun/zod@4.1.12/node_modules/zod
+│       ├── package.json
+│       ├── prisma
+│       │   └── schema
+│       │       ├── auth.prisma
+│       │       ├── result.prisma
+│       │       ├── schema.prisma
+│       │       └── subscription.prisma
+│       ├── prisma.config.ts
+│       ├── src
+│       │   └── index.ts
+│       ├── tsconfig.json
+│       └── tsdown.config.ts
+├── README.md
+├── structure.txt
+├── tsconfig.base.json
+├── tsconfig.json
+└── turbo.json
+
+186 directories, 170 files

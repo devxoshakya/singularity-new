@@ -10,6 +10,7 @@ model User {
   blocked       Boolean   @default(false)
   sessions      Session[]
   accounts      Account[]
+  subscriptions Subscription[]
 
   @@map("user")
 }

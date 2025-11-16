@@ -1,0 +1,36 @@
+model Result {
+  id                 String    @id @default(auto()) @map("_id") @db.ObjectId
+  rollNo             String
+  enrollmentNo       String
+  fullName           String
+  blocked            Boolean   @default(false)
+  fatherName         String
+  course             String
+  branch             String
+  year               Int
+  SGPA               Json?
+  CarryOvers         Json[]
+  divison            String    @default("")
+  cgpa               String    @default("")
+  instituteName      String
+  Subjects           Subject[]
+  latestResultStatus String    @default("")
+  totalMarksObtained Int       @default(0)
+  latestCOP          String    @default("")
+
+  @@map("result")
+}
+
+model Subject {
+  id       String  @id @default(auto()) @map("_id") @db.ObjectId
+  subject  String
+  code     String
+  type     String
+  internal String
+  external String?
+
+  resultId String   @db.ObjectId      
+  result   Result   @relation(fields: [resultId], references: [id])
+
+  @@map("subject")
+}
