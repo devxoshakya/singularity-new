@@ -62,6 +62,9 @@ jobs:
                       BETTER_AUTH_SECRET
                       BETTER_AUTH_URL
                       CORS_ORIGIN
+                      DODO_PAYMENTS_API_KEY
+                      DODO_PAYMENTS_WEBHOOK_SECRET
+                      WORKER_ENVIRONMENT
 
               env:
                   DATABASE_URL: ${{ secrets.DATABASE_URL }}
@@ -72,3 +75,6 @@ jobs:
                   BETTER_AUTH_URL: ${{ secrets.BETTER_AUTH_URL }}
                   CORS_ORIGIN: ${{ secrets.CORS_ORIGIN }}
                   GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
+                  DODO_PAYMENTS_API_KEY: ${{ secrets.DODO_PAYMENTS_API_KEY }}
+                  DODO_PAYMENTS_WEBHOOK_SECRET: ${{ secrets.DODO_PAYMENTS_WEBHOOK_SECRET }}
+                  WORKER_ENVIRONMENT: ${{ secrets.WORKER_ENVIRONMENT }}
