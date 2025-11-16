@@ -11,11 +11,13 @@ import { cn } from '@/lib/utils';
 import { Check, StarIcon } from 'lucide-react';
 import Link from 'next/link';
 import { motion, type Transition } from 'framer-motion';
+import { authClient } from '@/lib/auth-client';
+import { useRouter } from 'next/navigation';
 
 type FREQUENCY = '1 Semester' | '2 Semesters';
 const frequencies: FREQUENCY[] = ['1 Semester', '2 Semesters'];
 
-interface Plan {
+export interface Plan {
 	name: string;
 	info: string;
 	price: {
@@ -35,6 +37,8 @@ interface Plan {
 	isFree?: boolean;
 	isLoading?: boolean;
 	disabled?: boolean;
+	slug6m?: string;
+	slug12m?: string;
 }
 
 interface PricingSectionProps extends React.ComponentProps<'div'> {
@@ -50,6 +54,31 @@ export function PricingSection({
 	...props
 }: PricingSectionProps) {
 	const [frequency, setFrequency] = React.useState<FREQUENCY>('1 Semester');
+	const [checkoutLoading, setCheckoutLoading] = React.useState<string | null>(null);
+	const router = useRouter();
+	const { data: session } = authClient.useSession();
+
+	// Handle checkout for a specific product using Better Auth client
+	const handleCheckout = async (productSlug: string) => {
+		// Check if user is logged in
+		if (!session?.user) {
+			// Redirect to login page
+			router.push("/login");
+			return;
+		}
+
+		setCheckoutLoading(productSlug);
+		try {
+			// Use Better Auth DodoPayments client-side checkout
+			await authClient.dodopayments.checkout({
+				slug: productSlug,
+			});
+			// User will be automatically redirected to DodoPayments checkout
+		} catch (error) {
+			console.error("Checkout error:", error);
+			setCheckoutLoading(null);
+		}
+	};
 
 	return (
 		<div
@@ -75,7 +104,15 @@ export function PricingSection({
 			/>
 			<div className="mx-auto grid w-full max-w-4xl grid-cols-1 gap-4 md:grid-cols-3">
 				{plans.map((plan) => (
-					<PricingCard plan={plan} key={plan.name} frequency={frequency} />
+					<PricingCard 
+						plan={plan} 
+						key={plan.name} 
+						frequency={frequency}
+						onCheckout={handleCheckout}
+						checkoutLoading={checkoutLoading}
+						isLoggedIn={!!session?.user}
+						router={router}
+					/>
 				))}
 			</div>
 		</div>
@@ -123,6 +160,10 @@ export function PricingFrequencyToggle({
 type PricingCardProps = React.ComponentProps<'div'> & {
 	plan: Plan;
 	frequency?: FREQUENCY;
+	onCheckout?: (slug: string) => void;
+	checkoutLoading?: string | null;
+	isLoggedIn?: boolean;
+	router?: any;
 };
 
 const calculateDiscount = (plan: Plan, frequency: FREQUENCY) => {
@@ -139,9 +180,17 @@ export function PricingCard({
 	plan,
 	className,
 	frequency = frequencies[0],
+	onCheckout,
+	checkoutLoading,
+	isLoggedIn,
+	router,
 	...props
 }: PricingCardProps) {
 	const discount = calculateDiscount(plan, frequency);
+	
+	// Determine the current slug based on frequency
+	const currentSlug = frequency === '1 Semester' ? plan.slug6m : plan.slug12m;
+	const isLoading = currentSlug && checkoutLoading === currentSlug;
 
 	return (
 		<div
@@ -227,14 +276,34 @@ export function PricingCard({
 					plan.highlighted && 'bg-muted/40',
 				)}
 			>
-				{plan.btn.onClick ? (
+				{plan.isFree ? (
+					<Button
+						className="w-full"
+						variant="outline"
+						onClick={() => {
+							if (isLoggedIn) {
+								router?.push("/dashboard");
+							} else {
+								router?.push("/login");
+							}
+						}}
+					>
+						Get Started
+					</Button>
+				) : plan.btn.onClick || (onCheckout && currentSlug) ? (
 					<Button
 						className="w-full"
 						variant={plan.highlighted ? 'default' : 'outline'}
-						onClick={plan.btn.onClick}
-						disabled={plan.disabled || plan.isLoading}
+						onClick={() => {
+							if (plan.btn.onClick) {
+								plan.btn.onClick();
+							} else if (onCheckout && currentSlug) {
+								onCheckout(currentSlug);
+							}
+						}}
+						disabled={plan.disabled || isLoading}
 					>
-						{plan.isLoading ? (
+						{isLoading ? (
 							<>
 								<svg className="animate-spin -ml-1 mr-2 h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
 									<circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
@@ -284,7 +353,7 @@ export function BorderTrail({
 	};
 
 	return (
-		<div className="pointer-events-none absolute inset-0 rounded-[inherit] border border-transparent [mask-clip:padding-box,border-box] [mask-composite:intersect] [mask-image:linear-gradient(transparent,transparent),linear-gradient(#000,#000)]">
+		<div className="pointer-events-none absolute inset-0 rounded-[inherit] border border-transparent [mask-clip:padding-box,border-box] mask-intersect mask-[linear-gradient(transparent,transparent),linear-gradient(#000,#000)]">
 			<motion.div
 				className={cn('absolute aspect-square bg-zinc-500', className)}
 				style={{

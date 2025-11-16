@@ -2,10 +2,12 @@ import type { createBetterAuth } from "@singularity/auth";
 import { createAuthClient } from "better-auth/react";
 import { inferAdditionalFields } from "better-auth/client/plugins";
 import { redirect } from "next/navigation";
+import { dodopaymentsClient } from "@dodopayments/better-auth";
+
 
 export const authClient = createAuthClient({
 	baseURL: process.env.NEXT_PUBLIC_SERVER_URL,
-	plugins: [inferAdditionalFields<typeof createBetterAuth>()],
+	plugins: [inferAdditionalFields<typeof createBetterAuth>(), dodopaymentsClient()],
 	user : {
 		additionalFields: {
 			rollNo: null as string | null,

@@ -14,6 +14,10 @@ declare namespace Cloudflare {
 		GOOGLE_CLIENT_ID: string;
 		GOOGLE_CLIENT_SECRET: string;
         FRONTEND_URL: string
+        DODO_PAYMENTS_API_KEY: string
+        DODO_PAYMENTS_WEBHOOK_SECRET: string
+        DODO_PAYMENTS_BUSINESS_ID: string
+        WORKER_ENVIRONMENT: string;
 	}
 }
 interface CloudflareBindings extends Cloudflare.Env {}

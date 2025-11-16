@@ -1,6 +1,9 @@
-// In your route file (e.g., app/pricing/page.tsx):
-import { PricingPage } from "@/components/ui/pricing-page";
+import { PricingWithCheckout } from "@/components/pricing-with-checkout";
 
-export default function Pricing() {
-  return <PricingPage />;
+export default function DemoPage() {
+    return (
+        <div className="min-h-screen bg-black flex flex-col items-center justify-center p-4">
+            <PricingWithCheckout />
+        </div>
+    );
 }
