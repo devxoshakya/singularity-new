@@ -304,7 +304,7 @@ export function PricingCard({
                                 onCheckout(currentSlug);
                             }
                         }}
-                        disabled={plan.disabled || isLoading}
+                        disabled={!!(plan.disabled || isLoading)}
                     >
                         {isLoading ? (
                             <>

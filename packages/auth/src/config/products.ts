@@ -1,5 +1,3 @@
-
-
 export interface ProductConfig {
 	productId: string;
 	slug: string;
@@ -71,17 +69,6 @@ export const LIVE_PRODUCTS: ProductConfig[] = [
 ];
 
 
-
-/**
- * Helper to get product config by productId from webhook
- */
-export function getProductConfig(productId: string): ProductConfig | null {
-	return PRODUCTS.find(p => p.productId === productId) || null;
-}
-
-/**
- * Helper to get product config by slug
- */
-export function getProductBySlug(slug: string): ProductConfig | null {
-	return PRODUCTS.find(p => p.slug === slug) || null;
-}
+export const getProductConfig = (productId: string): ProductConfig | undefined => {
+	return [...TEST_PRODUCTS, ...LIVE_PRODUCTS].find(p => p.productId === productId);
+};

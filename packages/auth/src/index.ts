@@ -11,6 +11,7 @@ import {
 } from "@dodopayments/better-auth";
 import { SubscriptionService } from "./services/subscription.service";
 import { TEST_PRODUCTS, LIVE_PRODUCTS } from "./config/products";
+import { getDurationMonthsFromProductId, getEndingDate } from "./lib/helper";
 
 
 const REQUIRED_DOMAIN = '@miet.ac.in';
@@ -89,7 +90,7 @@ export const createBetterAuth = (env: AuthEnv) => {
 				sameSite: "none",
 				secure: true,
 				httpOnly: true,
-				domain: env.WORKER_ENVIRONMENT === "prod" ? ".devshakya.xyz" : "localhost"// Added localhost for local testing
+				domain: env.WORKER_ENVIRONMENT === "prod" ? ".devshakya.xyz" : "localhost"
 			},
 		},
 		onAPIError: {
@@ -121,79 +122,30 @@ export const createBetterAuth = (env: AuthEnv) => {
 
 							try {
 								switch (payload.type) {
-									// Subscription lifecycle events
-									case 'subscription.created':
-									case 'subscription.activated':
-									case 'subscription.active':
-										console.log('➕ Upserting subscription:', payload.data.subscription_id);
-										await SubscriptionService.upsertSubscription({
-											subscriptionId: payload.data.subscription_id,
-											customerEmail: payload.data.customer.email,
-											productId: payload.data.product_id,
-											status: 'active',
-											startDate: payload.data.start_date,
-											endDate: payload.data.end_date || payload.data.next_billing_date,
-											autoRenew: payload.data.auto_renew ?? true,
-										});
-										break;
-
-									case 'subscription.cancelled':
-										await SubscriptionService.cancelSubscription(
-											payload.data.subscription_id
-										);
-										break;
-
-									case 'subscription.expired':
-										await SubscriptionService.expireSubscription(
-											payload.data.subscription_id
-										);
-										break;
-
-									case 'subscription.paused':
-										await SubscriptionService.pauseSubscription(
-											payload.data.subscription_id
-										);
-										break;
-
-									case 'subscription.resumed':
-										await SubscriptionService.upsertSubscription({
-											subscriptionId: payload.data.subscription_id,
-											customerEmail: payload.data.customer.email,
-											productId: payload.data.product_id,
-											status: 'active',
-											endDate: payload.data.end_date || payload.data.next_billing_date,
-											autoRenew: payload.data.auto_renew ?? true,
-										});
-										break;
-
-									case 'subscription.renewed':
-										// Update end date on renewal
-										await SubscriptionService.upsertSubscription({
-											subscriptionId: payload.data.subscription_id,
-											customerEmail: payload.data.customer.email,
-											productId: payload.data.product_id,
-											status: 'active',
-											endDate: payload.data.next_billing_date,
-											autoRenew: true,
-										});
-										break;
-
+									
 									// Payment events (optional logging)
 									case 'payment.succeeded':
 										console.log('💰 Payment succeeded:', payload.data.payment_id);
+										await SubscriptionService.upsertSubscription({
+											subscriptionId: payload.data.payment_id,
+											customerEmail: payload.data.customer.email,
+											productId: payload.data.product_cart[0].product_id,
+											status: 'active',
+											startDate: payload.timestamp,
+											endDate: getEndingDate(getDurationMonthsFromProductId(payload.data.product_cart[0].product_id) || 0, new Date(payload.timestamp)).toISOString(),
+											autoRenew: false,
+										})
 										break;
 
 									case 'payment.failed':
-										console.warn('❌ Payment failed:', payload.data.payment_id);
-										// Optionally notify user or pause subscription
+										console.warn('Payment failed:', payload.data.payment_id);
 										break;
 
 									default:
-										console.log(`ℹ️ Unhandled webhook type: ${payload.type}`);
+										console.log(`Unhandled webhook type: ${payload.type}`);
 								}
 							} catch (error) {
-								console.error('❌ Error processing webhook:', error);
-								// In production, you might want to send this to an error tracking service
+								console.error('Error processing webhook:', error);
 								throw error; // Re-throw to let DodoPayments know webhook failed
 							}
 						},

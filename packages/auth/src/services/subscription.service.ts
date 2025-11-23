@@ -4,41 +4,8 @@ import { getProductConfig } from "../config/products";
 
 export class SubscriptionService {
 	/**
-	 * Create FREE subscription for new users
-	 */
-	static async createFreeSubscription(userId: string) {
-		// Check if user already has a subscription
-		const existingSubscription = await prisma.subscription.findFirst({
-			where: { userId }
-		});
-
-		if (existingSubscription) {
-			console.log(`⚠️ User ${userId} already has a subscription`);
-			return existingSubscription;
-		}
-
-		// Create FREE subscription with effectively permanent duration
-		const endDate = new Date();
-		endDate.setFullYear(endDate.getFullYear() + 100);
-
-		const subscription = await prisma.subscription.create({
-			data: {
-				userId,
-				status: SubscriptionStatus.ACTIVE,
-				plan: SubscriptionPlan.BASIC,
-				duration: SubscriptionDuration.YEARLY,
-				startDate: new Date(),
-				endDate: endDate,
-				autoRenew: false,
-			}
-		});
-
-		console.log(`✅ Created FREE subscription for user ${userId}`);
-		return subscription;
-	}
-	
-	/**
 	 * Create or update subscription based on webhook data
+	 * Only ONE subscription per user - uses email to find and update/create
 	 */
 	static async upsertSubscription(payload: {
 		subscriptionId: string;
@@ -49,7 +16,7 @@ export class SubscriptionService {
 		endDate?: string;
 		autoRenew?: boolean;
 	}) {
-		// 1. Find user by email
+		// find user by email
 		const user = await prisma.user.findFirst({
 			where: { email: payload.customerEmail },
 		});
@@ -59,192 +26,163 @@ export class SubscriptionService {
 			throw new Error(`User not found: ${payload.customerEmail}`);
 		}
 
-		// 2. Get product configuration
+		// get product configuration
 		const productConfig = getProductConfig(payload.productId);
 		if (!productConfig) {
 			console.error(`❌ Unknown product ID: ${payload.productId}`);
 			throw new Error(`Unknown product: ${payload.productId}`);
 		}
 
-		// 3. Map status
+		// map status
 		const dbStatus = this.mapStatus(payload.status);
 
-		// 4. Calculate dates
+		// calculate dates
 		const startDate = payload.startDate ? new Date(payload.startDate) : new Date();
 		let endDate: Date;
-		
+
 		if (payload.endDate) {
 			endDate = new Date(payload.endDate);
 		} else {
-			// Calculate end date based on duration
 			endDate = new Date(startDate);
 			endDate.setMonth(endDate.getMonth() + productConfig.durationMonths);
 		}
 
-		// 5. Cancel any existing FREE subscription
-		await prisma.subscription.updateMany({
-			where: {
-				userId: user.id,
-				plan: SubscriptionPlan.BASIC,
-				status: SubscriptionStatus.ACTIVE,
-			},
-			data: {
-				status: SubscriptionStatus.CANCELLED,
-				updatedAt: new Date(),
-			}
+		// check if user already has a subscription
+		const existingSubscription = await prisma.subscription.findFirst({
+			where: { userId: user.id },
 		});
 
-		// 6. Upsert paid subscription
-		const subscription = await prisma.subscription.upsert({
-			where: { dodopaymentsSub: payload.subscriptionId },
-			update: {
-				status: dbStatus,
-				plan: productConfig.plan as SubscriptionPlan,
-				duration: productConfig.duration as SubscriptionDuration,
-				endDate,
-				autoRenew: payload.autoRenew ?? false,
-				updatedAt: new Date(),
-			},
-			create: {
-				userId: user.id,
-				dodopaymentsSub: payload.subscriptionId,
-				status: dbStatus,
-				plan: productConfig.plan as SubscriptionPlan,
-				duration: productConfig.duration as SubscriptionDuration,
-				startDate,
-				endDate,
-				autoRenew: payload.autoRenew ?? false,
-			},
-		});
+		let subscription;
 
-		console.log(`✅ Subscription ${payload.subscriptionId} synced for user ${user.email}`);
+		if (existingSubscription) {
+			subscription = await prisma.subscription.update({
+				where: { id: existingSubscription.id },
+				data: {
+					dodopaymentsSub: payload.subscriptionId,
+					status: dbStatus,
+					plan: productConfig.plan as SubscriptionPlan,
+					duration: productConfig.duration as SubscriptionDuration,
+					startDate,
+					endDate,
+					autoRenew: payload.autoRenew ?? false,
+					updatedAt: new Date(),
+				},
+			});
+			console.log(`✅ Updated existing subscription for user ${user.email}`);
+		} else {
+			subscription = await prisma.subscription.create({
+				data: {
+					userId: user.id,
+					dodopaymentsSub: payload.subscriptionId,
+					status: dbStatus,
+					plan: productConfig.plan as SubscriptionPlan,
+					duration: productConfig.duration as SubscriptionDuration,
+					startDate,
+					endDate,
+					autoRenew: payload.autoRenew ?? false,
+				},
+			});
+			console.log(`✅ Created new subscription for user ${user.email}`);
+		}
+
 		return subscription;
 	}
 
 	/**
-	 * Cancel subscription
+	 * Cancel subscription - downgrade to FREE tier
 	 */
-	static async cancelSubscription(subscriptionId: string) {
+	static async cancelSubscription(customerEmail: string) {
+		// Find user by email
+		const user = await prisma.user.findFirst({
+			where: { email: customerEmail },
+		});
+
+		if (!user) {
+			console.warn(`⚠️ No user found for email=${customerEmail}`);
+			return;
+		}
+
+		// Find user's subscription
 		const subscription = await prisma.subscription.findFirst({
-			where: { dodopaymentsSub: subscriptionId },
+			where: { userId: user.id },
 		});
 
 		if (!subscription) {
-			console.warn(`⚠️ Subscription ${subscriptionId} not found`);
+			console.warn(`⚠️ No subscription found for user ${customerEmail}`);
 			return;
 		}
 
-		// Mark paid subscription as cancelled
+		// Downgrade to FREE tier
+		const endDate = new Date();
+		endDate.setFullYear(endDate.getFullYear() + 100); // Effectively permanent
+
 		await prisma.subscription.update({
-			where: { dodopaymentsSub: subscriptionId },
+			where: { id: subscription.id },
 			data: {
-				status: 'CANCELLED',
+				status: SubscriptionStatus.ACTIVE,
+				plan: SubscriptionPlan.BASIC,
+				duration: SubscriptionDuration.YEARLY,
+				startDate: new Date(),
+				endDate,
 				autoRenew: false,
 				updatedAt: new Date(),
 			},
 		});
 
-		// Reactivate FREE subscription if no other active paid subscriptions
-		const activePaidSubscription = await prisma.subscription.findFirst({
-			where: {
-				userId: subscription.userId,
-				status: 'ACTIVE',
-				plan: { not: 'BASIC' }
-			}
-		});
-
-		if (!activePaidSubscription) {
-			await this.createFreeSubscription(subscription.userId);
-		}
-
-		console.log(`✅ Subscription ${subscriptionId} cancelled`);
+		console.log(`✅ Downgraded user ${customerEmail} to FREE tier`);
 	}
 
 	/**
-	 * Mark subscription as expired
+	 * Check and expire all subscriptions that have passed their end date
+	 * Called by cron job
 	 */
-	static async expireSubscription(subscriptionId: string) {
-		const subscription = await prisma.subscription.findUnique({
-			where: { dodopaymentsSub: subscriptionId }
-		});
+	// Optimized for speed and minimal database transactions
+	static async checkAndExpireSubscriptions() {
+		const now = new Date();
 
-		if (!subscription) {
-			console.warn(`⚠️ Subscription ${subscriptionId} not found`);
-			return;
-		}
+		// --- 1. Define the end date for the BASIC/Free tier subscription ---
+		// Calculate a distant future date once to use for all updates
+		const futureEndDate = new Date();
+		futureEndDate.setFullYear(futureEndDate.getFullYear() + 100);
 
-		// Mark paid subscription as expired
-		await prisma.subscription.update({
-			where: { dodopaymentsSub: subscriptionId },
+		// --- 2. Perform the update in a single database query (updateMany) ---
+		// This query finds ALL matching records AND updates them atomically.
+		const result = await prisma.subscription.updateMany({
+			where: {
+				status: SubscriptionStatus.ACTIVE,
+				plan: { not: SubscriptionPlan.BASIC }, // Target paid, active subscriptions
+				endDate: {
+					lt: now, // Where the end date is less than 'now' (expired)
+				},
+			},
 			data: {
-				status: SubscriptionStatus.EXPIRED,
+				status: SubscriptionStatus.ACTIVE, // They remain 'active' on the free tier
+				plan: SubscriptionPlan.BASIC,
+				duration: SubscriptionDuration.YEARLY, // Set to a long default duration
+				startDate: new Date(), // Set the start date to the current timestamp
+				endDate: futureEndDate, // Use the pre-calculated future date
 				autoRenew: false,
-				updatedAt: new Date(),
+				// updatedAt is handled automatically by the @updatedAt directive, 
+				// but we can set it explicitly if needed:
+				// updatedAt: new Date(), 
 			},
 		});
 
-		// Reactivate FREE subscription if no other active paid subscriptions
-		const activePaidSubscription = await prisma.subscription.findFirst({
-			where: {
-				userId: subscription.userId,
-				status: SubscriptionStatus.ACTIVE,
-				plan: { not: SubscriptionPlan.BASIC }
-			}
-		});
+		// Note: updateMany returns an object containing only the count of records updated.
+		const expiredCount = result.count;
 
-		if (!activePaidSubscription) {
-			await this.createFreeSubscription(subscription.userId);
-		}
+		console.log(`Downgraded ${expiredCount} expired subscriptions to FREE tier via updateMany.`);
 
-		console.log(`✅ Subscription ${subscriptionId} expired`);
-	}
-
-	/**
-	 * Pause subscription
-	 */
-	static async pauseSubscription(subscriptionId: string) {
-		await prisma.subscription.update({
-			where: { dodopaymentsSub: subscriptionId },
-			data: {
-				status: SubscriptionStatus.PAUSED,
-				updatedAt: new Date(),
-			},
-		});
-		console.log(`✅ Subscription ${subscriptionId} paused`);
-	}
-
-	/**
-	 * Get active subscription for user
-	 */
-	static async getActiveSubscription(userId: string) {
-		return prisma.subscription.findFirst({
-			where: {
-				userId,
-				status: SubscriptionStatus.ACTIVE,
-				endDate: { gte: new Date() },
-			},
-			orderBy: { createdAt: 'desc' },
-		});
-	}
-
-	/**
-	 * Get all subscriptions for user
-	 */
-	static async getUserSubscriptions(userId: string) {
-		return prisma.subscription.findMany({
-			where: { userId },
-			orderBy: { createdAt: 'desc' },
-		});
-	}
-
-	/**
-	 * Get subscription by Dodo Payments subscription ID
-	 */
-	static async getSubscriptionByDodoId(subscriptionId: string) {
-		return prisma.subscription.findUnique({
-			where: { dodopaymentsSub: subscriptionId },
-			include: { user: true },
-		});
+		// NOTE: updateMany does not return the updated records, only the count.
+		// If you NEED the list of updated subscriptions (including user data),
+		// you will have to fall back to the findMany + Promise.all approach, 
+		// or perform a second findMany query based on the original criteria, 
+		// or use a raw SQL query with RETURNING (if supported by your database/Prisma extension).
+		return {
+			expiredCount: expiredCount,
+			// The list of subscriptions is removed because updateMany doesn't return it.
+			// subscriptions: [] 
+		};
 	}
 
 	/**
