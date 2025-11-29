@@ -72,6 +72,7 @@ export function PricingSection({
 			// Use Better Auth DodoPayments client-side checkout
 			await authClient.dodopayments.checkout({
 				slug: productSlug,
+				
 			});
 			// User will be automatically redirected to DodoPayments checkout
 		} catch (error) {
@@ -301,7 +302,7 @@ export function PricingCard({
 								onCheckout(currentSlug);
 							}
 						}}
-						disabled={plan.disabled || isLoading}
+						disabled={!!(plan.disabled || isLoading)}
 					>
 						{isLoading ? (
 							<>

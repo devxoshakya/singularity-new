@@ -74,7 +74,8 @@ export function PricingSection({
                 customer : {
                     email : session.user.email || "MAT.KAR.LALA@miet.ac.in",
                     name : session.user.name || "MIET KA DALLA",
-                }
+                },
+                allowed_payment_method_types : ['upi_collect', 'upi_intent', 'google_pay', 'apple_pay']
             });
             // User will be automatically redirected to DodoPayments checkout
         } catch (error) {
