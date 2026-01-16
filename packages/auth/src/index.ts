@@ -51,7 +51,13 @@ export const createBetterAuth = (env: AuthEnv) => {
 					required: true,
 					defaultValue: false,
 					input: false,
-				}
+				},
+				plan: {
+					type: "string",
+					required: false,
+					defaultValue: "free",
+					input: false,
+				},
 			}
 		},
 		trustedOrigins: [

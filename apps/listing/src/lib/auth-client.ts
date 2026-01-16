@@ -7,15 +7,22 @@ import { dodopaymentsClient } from "@dodopayments/better-auth";
 
 export const authClient = createAuthClient({
 	baseURL: process.env.NEXT_PUBLIC_SERVER_URL,
-	plugins: [inferAdditionalFields<typeof createBetterAuth>(), dodopaymentsClient()],
-	user : {
+	plugins: [inferAdditionalFields<
+		{
+			plan: string | null,
+			blocked: boolean,
+			rollNo: string | null
+		}
+	>(), dodopaymentsClient()],
+	user: {
 		additionalFields: {
 			rollNo: null as string | null,
 			blocked: null as boolean | null,
+			plan: null as string | null,
 		},
 	},
-	fetchOptions : {
-		credentials : "include",
+	fetchOptions: {
+		credentials: "include",
 	}
 });
 

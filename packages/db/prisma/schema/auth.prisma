@@ -8,6 +8,7 @@ model User {
   image         String?
   rollNo        String?   @unique
   blocked       Boolean   @default(false)
+  plan          String    @default("BASIC")
   sessions      Session[]
   accounts      Account[]
   subscriptions Subscription[]

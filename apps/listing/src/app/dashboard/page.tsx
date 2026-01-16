@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import Dashboard from "./dashboard";
 import { headers } from "next/headers";
 import { authClient } from "@/lib/auth-client";
+import Navbar from "@/components/dashboard/navbar";
 
 export default async function DashboardPage() {
 	const session = await authClient.getSession({
@@ -16,10 +17,11 @@ export default async function DashboardPage() {
 	}
 
 	return (
-		<div>
+		<div className="max-w-3xl mx-auto px-4">
+			<Navbar src={session.user.image!} name={session.user.name} email={session.user.email} plan={session.user.plan} />
 			<h1>Dashboard</h1>
 			<p>Welcome {session.user.name}</p>
-			<p>{JSON.stringify(session.user)}</p>
+			<p className="text-xs">{JSON.stringify(session.user)}</p>
 			{session.user.image && <img src={session.user.image} alt={session.user.name!} />}
 			<Dashboard session={session} />
 		</div>
