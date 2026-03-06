@@ -716,15 +716,15 @@ All apps deploy to **Cloudflare Workers** via Wrangler.
 
 ### Pre-Deployment Checklist
 
-1. Update environment variables to match your `*.workers.dev` domains:
+1. Update environment variables to match your `*.workers.dev` domains (include the full URL with protocol):
 
 ```bash
 # apps/listing/.env
-NEXT_PUBLIC_SERVER_URL={your-production-server-domain}
+NEXT_PUBLIC_SERVER_URL=https://singularity-server.<your-subdomain>.workers.dev
 
 # apps/server/.env
-CORS_ORIGIN={your-production-web-domain}
-BETTER_AUTH_URL={your-production-server-domain}
+CORS_ORIGIN=https://singularity-listing.<your-subdomain>.workers.dev
+BETTER_AUTH_URL=https://singularity-server.<your-subdomain>.workers.dev
 ```
 
 2. In `apps/server/src/lib/auth.ts`, uncomment the `session.cookieCache` and `advanced.crossSubDomainCookies` sections and replace `<your-workers-subdomain>` with your actual workers subdomain. These settings ensure cookies are transferred properly between your web and server domains.
