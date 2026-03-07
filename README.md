@@ -71,7 +71,8 @@ A full-stack monorepo for a web platform with a landing/docs site, a listing app
 │  │  • Docs      │  │  • Login     │  │  • /api/auth/*        │  │
 │  │  • Marketing │  │  • Onboard   │  │  • /api/onboarding    │  │
 │  │  • Pricing   │  │  • Dashboard │  │  • /api/subscriptions  │  │
-│  │  • Search    │  │  • Pricing   │  │  • /api/cron           │  │
+│  │  • Search    │  │  • Pricing   │  │  • /api/result         │  │
+│  │              │  │              │  │  • /api/cron           │  │
 │  │              │  │              │  │  • /api/me             │  │
 │  │  Port: 4000  │  │  Port: 3001  │  │  Port: 3000           │  │
 │  └──────────────┘  └──────┬───────┘  └───────────┬───────────┘  │
@@ -145,11 +146,15 @@ singularity/
 │           ├── routes/             # API route handlers
 │           │   ├── onboarding.route.ts
 │           │   ├── subscription.route.ts
+│           │   ├── result.route.ts
 │           │   └── cron.route.ts
 │           ├── controllers/        # Business logic
-│           │   └── onboarding.controller.ts
+│           │   ├── onboarding.controller.ts
+│           │   └── result.controller.ts
 │           ├── middleware/          # Auth, free-subscription middleware
 │           ├── schemas/            # Zod validation schemas
+│           │   ├── onboarding.schema.ts
+│           │   └── result.schema.ts
 │           ├── lib/                # Auth instance configuration
 │           ├── types/              # TypeScript type definitions
 │           └── utils/              # Cache strategy helpers
@@ -319,6 +324,7 @@ if (!session?.user) redirect("/login");
 - **Better Auth integration** — Full OAuth and session management at `/api/auth/*`
 - **Onboarding endpoint** — Validates and stores student roll numbers (13-digit numeric)
 - **Subscription management** — Fetches active subscriptions, checks status, provides checkout info
+- **Result endpoints** — Query student results by roll number or year with pagination
 - **Cron job** — Automatically expires outdated subscriptions and downgrades users to FREE tier
 - **Prisma Accelerate caching** — Multiple cache strategies (30-day default, 5-min session, 1-hour short, no-cache)
 - **CORS configuration** — Allows requests from the listing app (localhost:3001 and production domain)
@@ -333,6 +339,8 @@ if (!session?.user) redirect("/login");
 | `GET` | `/api/subscriptions/me` | ✅ | Get active subscription, all subscriptions, and Dodo customer portal URL |
 | `GET` | `/api/subscriptions/status` | ✅ | Check if user has active subscription, returns current plan (default: FREE) |
 | `GET` | `/api/subscriptions/checkout-info` | ✅ | Returns available product slugs for checkout (`pro-6m`, `pro-12m`, `premium-6m`, `premium-12m`) |
+| `GET` | `/api/result/by-rollno` | — | Get result by roll number (query: `rollNo`) |
+| `GET` | `/api/result/by-year` | — | Get paginated results by year (query: `year`, `page`, `perPage`) |
 | `GET` | `/api/cron/check-subscriptions` | — | Cron: expire outdated subscriptions, downgrade to FREE |
 | `GET` | `/api/me` | ✅ | Get authenticated user profile |
 | `GET` | `/users` | ✅ | Get all users (cached) |
@@ -360,16 +368,19 @@ if (!session?.user) redirect("/login");
 
 #### Directory Highlights
 
-- **`src/index.ts`** — App entry point; mounts logger, CORS, auth routes, onboarding, subscriptions, cron, and user endpoints
+- **`src/index.ts`** — App entry point; mounts logger, CORS, auth routes, onboarding, subscriptions, cron, result, and user endpoints
 - **`src/routes/onboarding.route.ts`** — Roll number submission route with auth middleware
 - **`src/routes/subscription.route.ts`** — Subscription status, checkout info, and user subscription details
+- **`src/routes/result.route.ts`** — Result endpoints: by roll number and by year with pagination
 - **`src/routes/cron.route.ts`** — Scheduled job to expire old subscriptions
 - **`src/controllers/onboarding.controller.ts`** — Business logic: validates roll number uniqueness, updates user record
+- **`src/controllers/result.controller.ts`** — Result queries: by roll number, by year with pagination
 - **`src/middleware/auth.middleware.ts`** — Extracts and validates session from request headers
 - **`src/middleware/free-subscription.middleware.ts`** — Creates default FREE subscription on user signup
 - **`src/lib/auth.ts`** — Instantiates Better Auth with Cloudflare Worker environment variables
 - **`src/utils/cache.ts`** — Prisma Accelerate cache strategies (default: 30d, session: 5m, short: 1h, no-cache: 0s)
 - **`src/schemas/onboarding.schema.ts`** — Zod schema for onboarding input (13-digit numeric roll number)
+- **`src/schemas/result.schema.ts`** — Zod schemas for result queries (roll number, year with pagination)
 
 #### Cache Strategies (Prisma Accelerate)
 
@@ -585,10 +596,164 @@ All auth routes are handled by Better Auth at `/api/auth/*`:
 | `GET` | `/api/subscriptions/me` | ✅ | — | Active subscription + all subscriptions + portal URL |
 | `GET` | `/api/subscriptions/status` | ✅ | — | `{ hasActive, plan }` |
 | `GET` | `/api/subscriptions/checkout-info` | ✅ | — | Available product slugs |
+| `GET` | `/api/result/by-rollno` | — | Query: `rollNo` | Student result with subjects |
+| `GET` | `/api/result/by-year` | — | Query: `year`, `page`, `perPage` | Paginated results by year |
 | `GET` | `/api/cron/check-subscriptions` | — | — | Expires outdated subscriptions |
 | `GET` | `/api/me` | ✅ | — | Authenticated user profile |
 | `GET` | `/users` | ✅ | — | All users (cached) |
 | `GET` | `/` | — | — | Health check (`"OK JI"`) |
+
+### Result API
+
+**Base URL:** `https://singularity-server.devxoshakya.workers.dev`
+
+#### Get Result by Roll Number
+
+Returns detailed result information for a specific student by their roll number.
+
+**Endpoint:** `GET /api/result/by-rollno`
+
+**Query Parameters:**
+- `rollNo` (required) - Student's roll number (must be numeric digits only)
+
+**Example Request:**
+```bash
+GET https://singularity-server.devxoshakya.workers.dev/api/result/by-rollno?rollNo=1234567890123
+```
+
+**Success Response (200 OK):**
+```json
+{
+  "success": true,
+  "data": {
+    "id": "507f1f77bcf86cd799439011",
+    "rollNo": "1234567890123",
+    "enrollmentNo": "EN123456789",
+    "fullName": "John Doe",
+    "blocked": false,
+    "fatherName": "Father Name",
+    "course": "B.Tech",
+    "branch": "Computer Science",
+    "year": 2,
+    "SGPA": [8.5, 8.7],
+    "CarryOvers": [],
+    "divison": "First Division",
+    "cgpa": "8.6",
+    "instituteName": "MIET",
+    "latestResultStatus": "Pass",
+    "totalMarksObtained": 850,
+    "latestCOP": "8.7",
+    "Subjects": [
+      {
+        "id": "507f1f77bcf86cd799439012",
+        "subject": "Data Structures",
+        "code": "CS201",
+        "type": "Theory",
+        "internal": "20",
+        "external": "75",
+        "resultId": "507f1f77bcf86cd799439011"
+      }
+    ]
+  }
+}
+```
+
+**Error Responses:**
+- `400 Bad Request` - Invalid or missing roll number
+  ```json
+  { "error": "Roll number is required" }
+  ```
+- `404 Not Found` - Result not found
+  ```json
+  { "error": "Result not found for the provided roll number" }
+  ```
+- `500 Internal Server Error` - Server error
+  ```json
+  { "error": "Internal server error" }
+  ```
+
+---
+
+#### Get Results by Year (Paginated)
+
+Returns all student results for a specific year with pagination support.
+
+**Endpoint:** `GET /api/result/by-year`
+
+**Query Parameters:**
+- `year` (required) - Academic year (1-4)
+- `page` (optional) - Page number (default: 1, minimum: 1)
+- `perPage` (optional) - Results per page (default: 10, minimum: 1, maximum: 100)
+
+**Example Request:**
+```bash
+GET https://singularity-server.devxoshakya.workers.dev/api/result/by-year?year=2&page=1&perPage=20
+```
+
+**Success Response (200 OK):**
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "id": "507f1f77bcf86cd799439011",
+      "rollNo": "1234567890123",
+      "enrollmentNo": "EN123456789",
+      "fullName": "John Doe",
+      "blocked": false,
+      "fatherName": "Father Name",
+      "course": "B.Tech",
+      "branch": "Computer Science",
+      "year": 2,
+      "SGPA": [8.5, 8.7],
+      "CarryOvers": [],
+      "divison": "First Division",
+      "cgpa": "8.6",
+      "instituteName": "MIET",
+      "latestResultStatus": "Pass",
+      "totalMarksObtained": 850,
+      "latestCOP": "8.7",
+      "Subjects": [...]
+    }
+  ],
+  "pagination": {
+    "currentPage": 1,
+    "perPage": 20,
+    "totalCount": 150,
+    "totalPages": 8,
+    "hasNextPage": true,
+    "hasPreviousPage": false
+  }
+}
+```
+
+**Pagination Metadata:**
+- `currentPage` - Current page number
+- `perPage` - Number of results per page
+- `totalCount` - Total number of results available
+- `totalPages` - Total number of pages
+- `hasNextPage` - Boolean indicating if next page exists
+- `hasPreviousPage` - Boolean indicating if previous page exists
+
+**Error Responses:**
+- `400 Bad Request` - Invalid parameters
+  ```json
+  {
+    "error": "Validation failed",
+    "details": [
+      { "message": "Year must be between 1 and 4", "path": ["year"] }
+    ]
+  }
+  ```
+- `500 Internal Server Error` - Server error
+  ```json
+  { "error": "Internal server error" }
+  ```
+
+**Notes:**
+- Results are ordered by roll number in ascending order
+- Maximum `perPage` value is 100 to prevent performance issues
+- Both endpoints use Prisma Accelerate caching for optimized performance
 
 ---
 
