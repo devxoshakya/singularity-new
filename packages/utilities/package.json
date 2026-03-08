@@ -1,0 +1,24 @@
+{
+  "name": "@singularity/utilities",
+  "module": "index.ts",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "solve": "bun --bun core/solver.ts",
+    "update": "bun --bun update/run-updater.ts",
+    "checkpoint": "bun --bun update/checkpoint-cli.ts"
+  },
+  "devDependencies": {
+    "@types/bun": "latest"
+  },
+  "peerDependencies": {
+    "typescript": "^5"
+  },
+  "dependencies": {
+    "@singularity/db": "workspace:*",
+    "@types/cheerio": "^1.0.0",
+    "@types/qs": "^6.15.0",
+    "cheerio": "^1.2.0",
+    "qs": "^6.15.0"
+  }
+}

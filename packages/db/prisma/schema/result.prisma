@@ -1,6 +1,6 @@
 model Result {
   id                 String    @id @default(auto()) @map("_id") @db.ObjectId
-  rollNo             String
+  rollNo             String    @unique
   enrollmentNo       String
   fullName           String
   blocked            Boolean   @default(false)
