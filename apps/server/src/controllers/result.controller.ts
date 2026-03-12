@@ -5,7 +5,77 @@ import {
 	getResultsByYearSchema,
 } from "@/schemas/result.schema";
 import type { HonoContext } from "@/types/context";
-import { defaultCacheStrategy } from "@/utils/cache";
+
+/**
+ * GET /api/result/cache
+ * Get all student records with minimal fields (id, fullName, rollNo, branch)
+ * Sorted by latest semester SGPA in descending order
+ * Used for quick lookups (no server-side caching)
+ */
+export const getStudentsCacheController = async (c: Context<HonoContext>) => {
+	try {
+		// Get all students with SGPA and year for sorting
+		const students = await prisma.result.findMany({
+			select: {
+				id: true,
+				fullName: true,
+				rollNo: true,
+				branch: true,
+				SGPA: true,
+				year: true,
+			},
+		});
+
+		// Helper function to get the latest semester SGPA (checking all semesters)
+		const getLatestSGPA = (sgpaData: any): number | null => {
+			if (!sgpaData) return null;
+			
+			// Check all semesters from sem8 down to sem1 to find the latest available
+			for (let sem = 8; sem >= 1; sem--) {
+				const semKey = `sem${sem}`;
+				if (sgpaData[semKey] !== undefined && sgpaData[semKey] !== null) {
+					return Number(sgpaData[semKey]);
+				}
+			}
+			return null;
+		};
+
+		// Calculate latest SGPA for sorting
+		const studentsWithSGPA = students.map(student => ({
+			student: {
+				id: student.id,
+				fullName: student.fullName,
+				rollNo: student.rollNo,
+				branch: student.branch,
+				year: student.year,
+			},
+			sortSGPA: getLatestSGPA(student.SGPA),
+		}));
+
+		// Sort by latest SGPA (descending), null values at the end
+		studentsWithSGPA.sort((a, b) => {
+			if (a.sortSGPA === null && b.sortSGPA === null) return 0;
+			if (a.sortSGPA === null) return 1;
+			if (b.sortSGPA === null) return -1;
+			return b.sortSGPA - a.sortSGPA;
+		});
+
+		// Extract only student data (without SGPA)
+		const sortedStudents = studentsWithSGPA.map(item => item.student);
+
+		return c.json(
+			{
+				success: true,
+				data: sortedStudents,
+				count: sortedStudents.length,
+			},
+			200,
+		);
+	} catch (error: any) {
+		console.error("Get students cache error:", error);
+		return c.json({ error: "Internal server error" }, 500);
+	}
+};
 
 /**
  * GET /api/result/by-rollno?rollNo=XXX
@@ -29,7 +99,6 @@ export const getResultByRollNoController = async (c: Context<HonoContext>) => {
 			include: {
 				Subjects: true,
 			},
-			cacheStrategy: defaultCacheStrategy,
 		});
 
 		if (!result) {
@@ -64,15 +133,13 @@ export const getResultByRollNoController = async (c: Context<HonoContext>) => {
 };
 
 /**
- * GET /api/result/by-year?year=1&page=1&perPage=10
- * Get all students by year with pagination
+ * GET /api/result/by-year?year=1
+ * Get all students by year
  */
 export const getResultsByYearController = async (c: Context<HonoContext>) => {
 	try {
 		// Get query parameters
 		const year = c.req.query("year");
-		const page = c.req.query("page") || "1";
-		const perPage = c.req.query("perPage") || "10";
 
 		if (!year) {
 			return c.json({ error: "Year is required" }, 400);
@@ -81,51 +148,24 @@ export const getResultsByYearController = async (c: Context<HonoContext>) => {
 		// Validate input
 		const validatedData = getResultsByYearSchema.parse({
 			year,
-			page,
-			perPage,
 		});
 
-		// Calculate pagination
-		const skip = (validatedData.page - 1) * validatedData.perPage;
-		const take = validatedData.perPage;
-
-		// Get total count for the year
-		const totalCount = await prisma.result.count({
-			where: { year: validatedData.year },
-			cacheStrategy: defaultCacheStrategy,
-		});
-
-		// Get paginated results
+		// Get all results for the year
 		const results = await prisma.result.findMany({
 			where: { year: validatedData.year },
 			include: {
 				Subjects: true,
 			},
-			skip,
-			take,
 			orderBy: {
 				rollNo: "asc",
 			},
-			cacheStrategy: defaultCacheStrategy,
 		});
-
-		// Calculate pagination metadata
-		const totalPages = Math.ceil(totalCount / validatedData.perPage);
-		const hasNextPage = validatedData.page < totalPages;
-		const hasPreviousPage = validatedData.page > 1;
 
 		return c.json(
 			{
 				success: true,
 				data: results,
-				pagination: {
-					currentPage: validatedData.page,
-					perPage: validatedData.perPage,
-					totalCount,
-					totalPages,
-					hasNextPage,
-					hasPreviousPage,
-				},
+				totalCount: results.length,
 			},
 			200,
 		);

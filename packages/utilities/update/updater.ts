@@ -25,7 +25,15 @@ export async function updateStudentResult(rollNo: number) {
       return { success: false, rollNo, error: "No data returned from solver" };
     }
 
-    const year = extractYearFromRollNo(resultData.rollNo);
+    // Check if student already exists to preserve their year
+    const existingStudent = await prisma.result.findFirst({
+      where: { rollNo: resultData.rollNo },
+      select: { year: true },
+    });
+
+    // Use existing year if available, otherwise extract from roll number as fallback
+    // Note: Year should be updated separately using the update-years.ts script with correct data
+    const year = existingStudent?.year ?? extractYearFromRollNo(resultData.rollNo);
 
     // Upsert the result (create or update)
     const result = await prisma.result.upsert({

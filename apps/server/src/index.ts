@@ -6,6 +6,8 @@ import onboardingRouter from "./routes/onboarding.route";
 import subscriptionRouter from "./routes/subscription.route";
 import cronRouter from "./routes/cron.route";
 import resultRouter from "./routes/result.route";
+import cacheRouter from "./routes/cache.route";
+import analyticsRouter from "./routes/analytics.route";
 import type { HonoContext } from "./types/context";
 import { defaultCacheStrategy } from "./utils/cache";
 import { auth } from "./lib/auth";
@@ -57,6 +59,8 @@ app.route("/api/onboarding", onboardingRouter);
 app.route("/api/subscriptions", subscriptionRouter);
 app.route("/api/cron", cronRouter);
 app.route("/api/result", resultRouter);
+app.route("/api/cache", cacheRouter);
+app.route("/api/analytics", analyticsRouter);
 
 app.get("/", (c: Context) => {
   return c.text("OK Jhunnu <3");
