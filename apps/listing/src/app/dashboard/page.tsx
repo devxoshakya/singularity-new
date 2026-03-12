@@ -3,6 +3,7 @@ import Dashboard from "./dashboard";
 import { headers } from "next/headers";
 import { authClient } from "@/lib/auth-client";
 import Navbar from "@/components/dashboard/navbar";
+import { StudentAccordion } from "@/components/dashboard/student-accordian";
 
 export default async function DashboardPage() {
 	const session = await authClient.getSession({
@@ -17,12 +18,13 @@ export default async function DashboardPage() {
 	}
 
 	return (
-		<div className="max-w-3xl mx-auto px-4">
+		<div className="max-w-3xl mx-auto px-4 py-6">
 			<Navbar src={session.user.image!} name={session.user.name} email={session.user.email} plan={session.user.plan} />
-			<h1>Dashboard</h1>
-			<p>Welcome {session.user.name}</p>
-			<p className="text-xs">{JSON.stringify(session.user)}</p>
-			{session.user.image && <img src={session.user.image} alt={session.user.name!} />}
+			<div className="mt-8">
+				<h1 className="text-3xl font-bold mb-2">Student Dashboard</h1>
+				<p className="text-muted-foreground mb-6">View and manage student results</p>
+				<StudentAccordion />
+			</div>
 			<Dashboard session={session} />
 		</div>
 	);

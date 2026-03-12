@@ -128,7 +128,33 @@ body {
   * {
     @apply border-border outline-ring/50;
   }
-  body {
+  body, html {
     @apply bg-background text-foreground;
+  }
+  
+  /* Remove scrollbars globally */
+  body, html {
+    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none; /* IE and Edge */
+  }
+  
+  body::-webkit-scrollbar,
+  html::-webkit-scrollbar {
+    display: none; /* Chrome, Safari, Edge */
+  }
+}
+
+/* Custom thin scrollbar styles */
+@layer utilities {
+  .scrollbar-thin {
+    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none; /* IE and Edge */
+  }
+
+  /* WebKit browsers (Chrome, Safari, Edge) */
+  .scrollbar-thin::-webkit-scrollbar {
+    display: none;
+    width: 0;
+    height: 0;
   }
 }

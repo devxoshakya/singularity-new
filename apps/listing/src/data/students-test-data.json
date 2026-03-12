@@ -1,0 +1,1367 @@
+{
+  "success": true,
+  "data": [
+    {
+      "id": "6918de4877edf8f4fcf94a67",
+      "rollNo": "2400680000001",
+      "enrollmentNo": "240068000000471",
+      "fullName": "AAMIR",
+      "blocked": false,
+      "fatherName": "ISLAM",
+      "course": "B.TECH",
+      "branch": "CIVIL ENGINEERING",
+      "year": 2024,
+      "SGPA": {
+        "sem1": 4.41,
+        "sem2": 4.5,
+        "sem3": 2.4
+      },
+      "CarryOvers": [
+        {
+          "session": "2024-25(REGULAR)",
+          "sem": "1,2",
+          "cop": "COP : BAS103,BEC201"
+        },
+        {
+          "session": "2025-26(REGULAR)",
+          "sem": "3",
+          "cop": "COP : BAS302,BCE301,BCE302,BCC302"
+        }
+      ],
+      "divison": "",
+      "cgpa": "",
+      "instituteName": "MEERUT INSTITUTE OF ENGINEERING & TECHNOLOGY,MEERUT",
+      "latestResultStatus": "",
+      "totalMarksObtained": 484,
+      "latestCOP": "COP : BAS302,BCE301,BCE302,BCC302",
+      "Subjects": [
+        {
+          "id": "69adc5b7b3af7c98d1b221de",
+          "subject": "Mathematics-III",
+          "code": "BAS302",
+          "type": "Theory",
+          "internal": "19",
+          "external": "09",
+          "resultId": "6918de4877edf8f4fcf94a67"
+        },
+        {
+          "id": "69adc5b7b3af7c98d1b221df",
+          "subject": "Technical Communication",
+          "code": "BAS301",
+          "type": "Theory",
+          "internal": "20",
+          "external": "21",
+          "resultId": "6918de4877edf8f4fcf94a67"
+        },
+        {
+          "id": "69adc5b7b3af7c98d1b221e0",
+          "subject": "Engineering Mechanics",
+          "code": "BCE301",
+          "type": "Theory",
+          "internal": "19",
+          "external": "13",
+          "resultId": "6918de4877edf8f4fcf94a67"
+        },
+        {
+          "id": "69adc5b7b3af7c98d1b221e1",
+          "subject": "Surveying and Geomatics",
+          "code": "BCE302",
+          "type": "Theory",
+          "internal": "19",
+          "external": "17",
+          "resultId": "6918de4877edf8f4fcf94a67"
+        },
+        {
+          "id": "69adc5b7b3af7c98d1b221e2",
+          "subject": "Fluid Mechanics",
+          "code": "BCE303",
+          "type": "Theory",
+          "internal": "19",
+          "external": "22",
+          "resultId": "6918de4877edf8f4fcf94a67"
+        },
+        {
+          "id": "69adc5b7b3af7c98d1b221e3",
+          "subject": "Python programming",
+          "code": "BCC302",
+          "type": "Theory",
+          "internal": "19",
+          "external": "17",
+          "resultId": "6918de4877edf8f4fcf94a67"
+        },
+        {
+          "id": "69adc5b7b3af7c98d1b221e4",
+          "subject": "Building Planning & Drawing Lab",
+          "code": "BCE351",
+          "type": "Practical",
+          "internal": "32",
+          "external": "39",
+          "resultId": "6918de4877edf8f4fcf94a67"
+        },
+        {
+          "id": "69adc5b7b3af7c98d1b221e5",
+          "subject": "Surveying and Geomatics Lab",
+          "code": "BCE352",
+          "type": "Practical",
+          "internal": "33",
+          "external": "34",
+          "resultId": "6918de4877edf8f4fcf94a67"
+        },
+        {
+          "id": "69adc5b7b3af7c98d1b221e6",
+          "subject": "Fluid Mechanics Lab",
+          "code": "BCE353",
+          "type": "Practical",
+          "internal": "34",
+          "external": "34",
+          "resultId": "6918de4877edf8f4fcf94a67"
+        },
+        {
+          "id": "69adc5b7b3af7c98d1b221e7",
+          "subject": "Internship Assessment /Mini Project",
+          "code": "BCC351",
+          "type": "Practical",
+          "internal": "64",
+          "external": "",
+          "resultId": "6918de4877edf8f4fcf94a67"
+        }
+      ]
+    },
+    {
+      "id": "6918de4977edf8f4fcf94a71",
+      "rollNo": "2400680000002",
+      "enrollmentNo": "240068000006400",
+      "fullName": "ADITYA KUMAR",
+      "blocked": false,
+      "fatherName": "KAMAL SINGH",
+      "course": "B.TECH",
+      "branch": "CIVIL ENGINEERING",
+      "year": 2024,
+      "SGPA": {
+        "sem1": 8.09,
+        "sem2": 7.64,
+        "sem3": 7.2
+      },
+      "CarryOvers": [
+        [
+          "No Backlogs"
+        ]
+      ],
+      "divison": "",
+      "cgpa": "",
+      "instituteName": "MEERUT INSTITUTE OF ENGINEERING & TECHNOLOGY,MEERUT",
+      "latestResultStatus": "",
+      "totalMarksObtained": 727,
+      "latestCOP": "COP :",
+      "Subjects": [
+        {
+          "id": "69adc474b3af7c98d1b21f68",
+          "subject": "Mathematics-III",
+          "code": "BAS302",
+          "type": "Theory",
+          "internal": "28",
+          "external": "26",
+          "resultId": "6918de4977edf8f4fcf94a71"
+        },
+        {
+          "id": "69adc474b3af7c98d1b21f69",
+          "subject": "Technical Communication",
+          "code": "BAS301",
+          "type": "Theory",
+          "internal": "29",
+          "external": "37",
+          "resultId": "6918de4977edf8f4fcf94a71"
+        },
+        {
+          "id": "69adc474b3af7c98d1b21f6a",
+          "subject": "Engineering Mechanics",
+          "code": "BCE301",
+          "type": "Theory",
+          "internal": "28",
+          "external": "32",
+          "resultId": "6918de4977edf8f4fcf94a71"
+        },
+        {
+          "id": "69adc474b3af7c98d1b21f6b",
+          "subject": "Surveying and Geomatics",
+          "code": "BCE302",
+          "type": "Theory",
+          "internal": "28",
+          "external": "29",
+          "resultId": "6918de4977edf8f4fcf94a71"
+        },
+        {
+          "id": "69adc474b3af7c98d1b21f6c",
+          "subject": "Fluid Mechanics",
+          "code": "BCE303",
+          "type": "Theory",
+          "internal": "29",
+          "external": "38",
+          "resultId": "6918de4977edf8f4fcf94a71"
+        },
+        {
+          "id": "69adc474b3af7c98d1b21f6d",
+          "subject": "Python programming",
+          "code": "BCC302",
+          "type": "Theory",
+          "internal": "28",
+          "external": "26",
+          "resultId": "6918de4977edf8f4fcf94a71"
+        },
+        {
+          "id": "69adc474b3af7c98d1b21f6e",
+          "subject": "Building Planning & Drawing Lab",
+          "code": "BCE351",
+          "type": "Practical",
+          "internal": "46",
+          "external": "47",
+          "resultId": "6918de4977edf8f4fcf94a71"
+        },
+        {
+          "id": "69adc474b3af7c98d1b21f6f",
+          "subject": "Surveying and Geomatics Lab",
+          "code": "BCE352",
+          "type": "Practical",
+          "internal": "47",
+          "external": "46",
+          "resultId": "6918de4977edf8f4fcf94a71"
+        },
+        {
+          "id": "69adc474b3af7c98d1b21f70",
+          "subject": "Fluid Mechanics Lab",
+          "code": "BCE353",
+          "type": "Practical",
+          "internal": "46",
+          "external": "45",
+          "resultId": "6918de4977edf8f4fcf94a71"
+        },
+        {
+          "id": "69adc474b3af7c98d1b21f71",
+          "subject": "Internship Assessment /Mini Project",
+          "code": "BCC351",
+          "type": "Practical",
+          "internal": "92",
+          "external": "",
+          "resultId": "6918de4977edf8f4fcf94a71"
+        }
+      ]
+    },
+    {
+      "id": "6918de4a77edf8f4fcf94a7b",
+      "rollNo": "2400680000003",
+      "enrollmentNo": "240068000026366",
+      "fullName": "ASTITVA YADAV",
+      "blocked": false,
+      "fatherName": "NIRANKAR SINGH",
+      "course": "B.TECH",
+      "branch": "CIVIL ENGINEERING",
+      "year": 2024,
+      "SGPA": {
+        "sem1": 4.73,
+        "sem2": 5.64,
+        "sem3": 6.12
+      },
+      "CarryOvers": [
+        {
+          "session": "2024-25(REGULAR)",
+          "sem": "1,2",
+          "cop": "COP : BAS101,BAS103,BAS203"
+        }
+      ],
+      "divison": "",
+      "cgpa": "",
+      "instituteName": "MEERUT INSTITUTE OF ENGINEERING & TECHNOLOGY,MEERUT",
+      "latestResultStatus": "",
+      "totalMarksObtained": 668,
+      "latestCOP": "COP :",
+      "Subjects": [
+        {
+          "id": "69adc488b3af7c98d1b21f90",
+          "subject": "Mathematics-III",
+          "code": "BAS302",
+          "type": "Theory",
+          "internal": "22",
+          "external": "22",
+          "resultId": "6918de4a77edf8f4fcf94a7b"
+        },
+        {
+          "id": "69adc488b3af7c98d1b21f91",
+          "subject": "Technical Communication",
+          "code": "BAS301",
+          "type": "Theory",
+          "internal": "24",
+          "external": "36",
+          "resultId": "6918de4a77edf8f4fcf94a7b"
+        },
+        {
+          "id": "69adc488b3af7c98d1b21f92",
+          "subject": "Engineering Mechanics",
+          "code": "BCE301",
+          "type": "Theory",
+          "internal": "23",
+          "external": "21",
+          "resultId": "6918de4a77edf8f4fcf94a7b"
+        },
+        {
+          "id": "69adc488b3af7c98d1b21f93",
+          "subject": "Surveying and Geomatics",
+          "code": "BCE302",
+          "type": "Theory",
+          "internal": "23",
+          "external": "23",
+          "resultId": "6918de4a77edf8f4fcf94a7b"
+        },
+        {
+          "id": "69adc488b3af7c98d1b21f94",
+          "subject": "Fluid Mechanics",
+          "code": "BCE303",
+          "type": "Theory",
+          "internal": "24",
+          "external": "34",
+          "resultId": "6918de4a77edf8f4fcf94a7b"
+        },
+        {
+          "id": "69adc488b3af7c98d1b21f95",
+          "subject": "Python programming",
+          "code": "BCC302",
+          "type": "Theory",
+          "internal": "23",
+          "external": "28",
+          "resultId": "6918de4a77edf8f4fcf94a7b"
+        },
+        {
+          "id": "69adc488b3af7c98d1b21f96",
+          "subject": "Building Planning & Drawing Lab",
+          "code": "BCE351",
+          "type": "Practical",
+          "internal": "46",
+          "external": "45",
+          "resultId": "6918de4a77edf8f4fcf94a7b"
+        },
+        {
+          "id": "69adc488b3af7c98d1b21f97",
+          "subject": "Surveying and Geomatics Lab",
+          "code": "BCE352",
+          "type": "Practical",
+          "internal": "45",
+          "external": "46",
+          "resultId": "6918de4a77edf8f4fcf94a7b"
+        },
+        {
+          "id": "69adc488b3af7c98d1b21f98",
+          "subject": "Fluid Mechanics Lab",
+          "code": "BCE353",
+          "type": "Practical",
+          "internal": "45",
+          "external": "46",
+          "resultId": "6918de4a77edf8f4fcf94a7b"
+        },
+        {
+          "id": "69adc488b3af7c98d1b21f99",
+          "subject": "Internship Assessment /Mini Project",
+          "code": "BCC351",
+          "type": "Practical",
+          "internal": "92",
+          "external": "",
+          "resultId": "6918de4a77edf8f4fcf94a7b"
+        }
+      ]
+    },
+    {
+      "id": "6918de4a77edf8f4fcf94a85",
+      "rollNo": "2400680000004",
+      "enrollmentNo": "240068000030222",
+      "fullName": "BHOOMI SINGH",
+      "blocked": false,
+      "fatherName": "BHUSHAN SINGH",
+      "course": "B.TECH",
+      "branch": "CIVIL ENGINEERING",
+      "year": 2024,
+      "SGPA": {
+        "sem1": 5.73,
+        "sem2": 3.77,
+        "sem3": 6
+      },
+      "CarryOvers": [
+        {
+          "session": "2024-25(REGULAR)",
+          "sem": "1,2",
+          "cop": "COP : BAS101,BCS101,BAS202,BAS203,BME201"
+        },
+        {
+          "session": "2025-26(BACK)",
+          "sem": "1,2",
+          "cop": "COP : BCS101,BAS202,BAS203,BME201"
+        }
+      ],
+      "divison": "",
+      "cgpa": "",
+      "instituteName": "MEERUT INSTITUTE OF ENGINEERING & TECHNOLOGY,MEERUT",
+      "latestResultStatus": "",
+      "totalMarksObtained": 604,
+      "latestCOP": "COP :",
+      "Subjects": [
+        {
+          "id": "69adc5c5b3af7c98d1b221fc",
+          "subject": "Mathematics-III",
+          "code": "BAS302",
+          "type": "Theory",
+          "internal": "21",
+          "external": "36",
+          "resultId": "6918de4a77edf8f4fcf94a85"
+        },
+        {
+          "id": "69adc5c5b3af7c98d1b221fd",
+          "subject": "Technical Communication",
+          "code": "BAS301",
+          "type": "Theory",
+          "internal": "20",
+          "external": "48",
+          "resultId": "6918de4a77edf8f4fcf94a85"
+        },
+        {
+          "id": "69adc5c5b3af7c98d1b221fe",
+          "subject": "Engineering Mechanics",
+          "code": "BCE301",
+          "type": "Theory",
+          "internal": "20",
+          "external": "25",
+          "resultId": "6918de4a77edf8f4fcf94a85"
+        },
+        {
+          "id": "69adc5c5b3af7c98d1b221ff",
+          "subject": "Surveying and Geomatics",
+          "code": "BCE302",
+          "type": "Theory",
+          "internal": "20",
+          "external": "36",
+          "resultId": "6918de4a77edf8f4fcf94a85"
+        },
+        {
+          "id": "69adc5c5b3af7c98d1b22200",
+          "subject": "Fluid Mechanics",
+          "code": "BCE303",
+          "type": "Theory",
+          "internal": "20",
+          "external": "21",
+          "resultId": "6918de4a77edf8f4fcf94a85"
+        },
+        {
+          "id": "69adc5c5b3af7c98d1b22201",
+          "subject": "Python programming",
+          "code": "BCC302",
+          "type": "Theory",
+          "internal": "20",
+          "external": "25",
+          "resultId": "6918de4a77edf8f4fcf94a85"
+        },
+        {
+          "id": "69adc5c5b3af7c98d1b22202",
+          "subject": "Building Planning & Drawing Lab",
+          "code": "BCE351",
+          "type": "Practical",
+          "internal": "34",
+          "external": "45",
+          "resultId": "6918de4a77edf8f4fcf94a85"
+        },
+        {
+          "id": "69adc5c5b3af7c98d1b22203",
+          "subject": "Surveying and Geomatics Lab",
+          "code": "BCE352",
+          "type": "Practical",
+          "internal": "33",
+          "external": "35",
+          "resultId": "6918de4a77edf8f4fcf94a85"
+        },
+        {
+          "id": "69adc5c5b3af7c98d1b22204",
+          "subject": "Fluid Mechanics Lab",
+          "code": "BCE353",
+          "type": "Practical",
+          "internal": "35",
+          "external": "38",
+          "resultId": "6918de4a77edf8f4fcf94a85"
+        },
+        {
+          "id": "69adc5c5b3af7c98d1b22205",
+          "subject": "Internship Assessment /Mini Project",
+          "code": "BCC351",
+          "type": "Practical",
+          "internal": "72",
+          "external": "",
+          "resultId": "6918de4a77edf8f4fcf94a85"
+        }
+      ]
+    },
+    {
+      "id": "6918de4b77edf8f4fcf94a8f",
+      "rollNo": "2400680000005",
+      "enrollmentNo": "240068000038521",
+      "fullName": "GULSHAN KUMAR",
+      "blocked": false,
+      "fatherName": "ASHOK RAM",
+      "course": "B.TECH",
+      "branch": "CIVIL ENGINEERING",
+      "year": 2024,
+      "SGPA": {
+        "sem1": 1.64,
+        "sem2": 0.55
+      },
+      "CarryOvers": [
+        {
+          "session": "2024-25(REGULAR)",
+          "sem": "1,2",
+          "cop": "COP : BAS101,BAS103,BEE101,BCS101,BAS104,BAS202,BAS203,BEC201,BME201,BAS252,BEC251,BAS255,BWS251"
+        }
+      ],
+      "divison": "",
+      "cgpa": "",
+      "instituteName": "MEERUT INSTITUTE OF ENGINEERING & TECHNOLOGY,MEERUT",
+      "latestResultStatus": "FAIL",
+      "totalMarksObtained": 246,
+      "latestCOP": "COP : BAS101,BAS103,BEE101,BCS101,BAS104,BAS202,BAS203,BEC201,BME201,BAS252,BEC251,BAS255,BWS251",
+      "Subjects": [
+        {
+          "id": "69adc58cb3af7c98d1b22184",
+          "subject": "Engineering Chemistry",
+          "code": "BAS202",
+          "type": "Theory",
+          "internal": "15",
+          "external": "01",
+          "resultId": "6918de4b77edf8f4fcf94a8f"
+        },
+        {
+          "id": "69adc58cb3af7c98d1b22185",
+          "subject": "Engineering Mathematics-II",
+          "code": "BAS203",
+          "type": "Theory",
+          "internal": "12",
+          "external": "00",
+          "resultId": "6918de4b77edf8f4fcf94a8f"
+        },
+        {
+          "id": "69adc58cb3af7c98d1b22186",
+          "subject": "Fundamentals of Electronics Engineering",
+          "code": "BEC201",
+          "type": "Theory",
+          "internal": "13",
+          "external": "11",
+          "resultId": "6918de4b77edf8f4fcf94a8f"
+        },
+        {
+          "id": "69adc58cb3af7c98d1b22187",
+          "subject": "Fundamentals of Mechanical Engineering",
+          "code": "BME201",
+          "type": "Theory",
+          "internal": "13",
+          "external": "13",
+          "resultId": "6918de4b77edf8f4fcf94a8f"
+        },
+        {
+          "id": "69adc58cb3af7c98d1b22188",
+          "subject": "Soft Skills",
+          "code": "BAS205",
+          "type": "Theory",
+          "internal": "19",
+          "external": "23",
+          "resultId": "6918de4b77edf8f4fcf94a8f"
+        },
+        {
+          "id": "69adc58cb3af7c98d1b22189",
+          "subject": "Engineering Chemistry Lab",
+          "code": "BAS252",
+          "type": "Practical",
+          "internal": "30",
+          "external": "ABS",
+          "resultId": "6918de4b77edf8f4fcf94a8f"
+        },
+        {
+          "id": "69adc58cb3af7c98d1b2218a",
+          "subject": "Basic Electronics Engineering Lab",
+          "code": "BEC251",
+          "type": "Practical",
+          "internal": "30",
+          "external": "ABS",
+          "resultId": "6918de4b77edf8f4fcf94a8f"
+        },
+        {
+          "id": "69adc58cb3af7c98d1b2218b",
+          "subject": "English Language Lab",
+          "code": "BAS255",
+          "type": "Practical",
+          "internal": "36",
+          "external": "ABS",
+          "resultId": "6918de4b77edf8f4fcf94a8f"
+        },
+        {
+          "id": "69adc58cb3af7c98d1b2218c",
+          "subject": "Workshop Practice Lab",
+          "code": "BWS251",
+          "type": "Practical",
+          "internal": "30",
+          "external": "ABS",
+          "resultId": "6918de4b77edf8f4fcf94a8f"
+        },
+        {
+          "id": "69adc58cb3af7c98d1b2218d",
+          "subject": "Sports and Yoga",
+          "code": "BVA251",
+          "type": "CA",
+          "internal": "81",
+          "external": "",
+          "resultId": "6918de4b77edf8f4fcf94a8f"
+        }
+      ]
+    },
+    {
+      "id": "6918de4b77edf8f4fcf94a90",
+      "rollNo": "2400680000006",
+      "enrollmentNo": "240068000040603",
+      "fullName": "HARSHIT BHATI",
+      "blocked": false,
+      "fatherName": "SATYAVEER SINGH",
+      "course": "B.TECH",
+      "branch": "CIVIL ENGINEERING",
+      "year": 2024,
+      "SGPA": {
+        "sem1": 6.82,
+        "sem2": 6.36,
+        "sem3": 6.24
+      },
+      "CarryOvers": [
+        [
+          "No Backlogs"
+        ]
+      ],
+      "divison": "",
+      "cgpa": "",
+      "instituteName": "MEERUT INSTITUTE OF ENGINEERING & TECHNOLOGY,MEERUT",
+      "latestResultStatus": "",
+      "totalMarksObtained": 638,
+      "latestCOP": "COP :",
+      "Subjects": [
+        {
+          "id": "69adc52bb3af7c98d1b220bc",
+          "subject": "Mathematics-III",
+          "code": "BAS302",
+          "type": "Theory",
+          "internal": "20",
+          "external": "24",
+          "resultId": "6918de4b77edf8f4fcf94a90"
+        },
+        {
+          "id": "69adc52bb3af7c98d1b220bd",
+          "subject": "Technical Communication",
+          "code": "BAS301",
+          "type": "Theory",
+          "internal": "23",
+          "external": "44",
+          "resultId": "6918de4b77edf8f4fcf94a90"
+        },
+        {
+          "id": "69adc52bb3af7c98d1b220be",
+          "subject": "Engineering Mechanics",
+          "code": "BCE301",
+          "type": "Theory",
+          "internal": "23",
+          "external": "31",
+          "resultId": "6918de4b77edf8f4fcf94a90"
+        },
+        {
+          "id": "69adc52bb3af7c98d1b220bf",
+          "subject": "Surveying and Geomatics",
+          "code": "BCE302",
+          "type": "Theory",
+          "internal": "20",
+          "external": "42",
+          "resultId": "6918de4b77edf8f4fcf94a90"
+        },
+        {
+          "id": "69adc52bb3af7c98d1b220c0",
+          "subject": "Fluid Mechanics",
+          "code": "BCE303",
+          "type": "Theory",
+          "internal": "21",
+          "external": "24",
+          "resultId": "6918de4b77edf8f4fcf94a90"
+        },
+        {
+          "id": "69adc52bb3af7c98d1b220c1",
+          "subject": "Python programming",
+          "code": "BCC302",
+          "type": "Theory",
+          "internal": "20",
+          "external": "24",
+          "resultId": "6918de4b77edf8f4fcf94a90"
+        },
+        {
+          "id": "69adc52bb3af7c98d1b220c2",
+          "subject": "Building Planning & Drawing Lab",
+          "code": "BCE351",
+          "type": "Practical",
+          "internal": "40",
+          "external": "38",
+          "resultId": "6918de4b77edf8f4fcf94a90"
+        },
+        {
+          "id": "69adc52bb3af7c98d1b220c3",
+          "subject": "Surveying and Geomatics Lab",
+          "code": "BCE352",
+          "type": "Practical",
+          "internal": "42",
+          "external": "38",
+          "resultId": "6918de4b77edf8f4fcf94a90"
+        },
+        {
+          "id": "69adc52bb3af7c98d1b220c4",
+          "subject": "Fluid Mechanics Lab",
+          "code": "BCE353",
+          "type": "Practical",
+          "internal": "42",
+          "external": "38",
+          "resultId": "6918de4b77edf8f4fcf94a90"
+        },
+        {
+          "id": "69adc52bb3af7c98d1b220c5",
+          "subject": "Internship Assessment /Mini Project",
+          "code": "BCC351",
+          "type": "Practical",
+          "internal": "84",
+          "external": "",
+          "resultId": "6918de4b77edf8f4fcf94a90"
+        }
+      ]
+    },
+    {
+      "id": "6918de4c77edf8f4fcf94a9a",
+      "rollNo": "2400680000007",
+      "enrollmentNo": "240068000046705",
+      "fullName": "KARTIK TYAGI",
+      "blocked": false,
+      "fatherName": "SANJEEV TYAGI",
+      "course": "B.TECH",
+      "branch": "CIVIL ENGINEERING",
+      "year": 2024,
+      "SGPA": {
+        "sem1": 7.55,
+        "sem2": 7.14,
+        "sem3": 7.44
+      },
+      "CarryOvers": [
+        [
+          "No Backlogs"
+        ]
+      ],
+      "divison": "",
+      "cgpa": "",
+      "instituteName": "MEERUT INSTITUTE OF ENGINEERING & TECHNOLOGY,MEERUT",
+      "latestResultStatus": "",
+      "totalMarksObtained": 768,
+      "latestCOP": "COP :",
+      "Subjects": [
+        {
+          "id": "69adc48eb3af7c98d1b21f9a",
+          "subject": "Mathematics-III",
+          "code": "BAS302",
+          "type": "Theory",
+          "internal": "29",
+          "external": "28",
+          "resultId": "6918de4c77edf8f4fcf94a9a"
+        },
+        {
+          "id": "69adc48eb3af7c98d1b21f9b",
+          "subject": "Technical Communication",
+          "code": "BAS301",
+          "type": "Theory",
+          "internal": "29",
+          "external": "49",
+          "resultId": "6918de4c77edf8f4fcf94a9a"
+        },
+        {
+          "id": "69adc48eb3af7c98d1b21f9c",
+          "subject": "Engineering Mechanics",
+          "code": "BCE301",
+          "type": "Theory",
+          "internal": "29",
+          "external": "38",
+          "resultId": "6918de4c77edf8f4fcf94a9a"
+        },
+        {
+          "id": "69adc48eb3af7c98d1b21f9d",
+          "subject": "Surveying and Geomatics",
+          "code": "BCE302",
+          "type": "Theory",
+          "internal": "29",
+          "external": "49",
+          "resultId": "6918de4c77edf8f4fcf94a9a"
+        },
+        {
+          "id": "69adc48eb3af7c98d1b21f9e",
+          "subject": "Fluid Mechanics",
+          "code": "BCE303",
+          "type": "Theory",
+          "internal": "29",
+          "external": "27",
+          "resultId": "6918de4c77edf8f4fcf94a9a"
+        },
+        {
+          "id": "69adc48eb3af7c98d1b21f9f",
+          "subject": "Python programming",
+          "code": "BCC302",
+          "type": "Theory",
+          "internal": "28",
+          "external": "21",
+          "resultId": "6918de4c77edf8f4fcf94a9a"
+        },
+        {
+          "id": "69adc48eb3af7c98d1b21fa0",
+          "subject": "Building Planning & Drawing Lab",
+          "code": "BCE351",
+          "type": "Practical",
+          "internal": "48",
+          "external": "47",
+          "resultId": "6918de4c77edf8f4fcf94a9a"
+        },
+        {
+          "id": "69adc48eb3af7c98d1b21fa1",
+          "subject": "Surveying and Geomatics Lab",
+          "code": "BCE352",
+          "type": "Practical",
+          "internal": "48",
+          "external": "49",
+          "resultId": "6918de4c77edf8f4fcf94a9a"
+        },
+        {
+          "id": "69adc48eb3af7c98d1b21fa2",
+          "subject": "Fluid Mechanics Lab",
+          "code": "BCE353",
+          "type": "Practical",
+          "internal": "47",
+          "external": "48",
+          "resultId": "6918de4c77edf8f4fcf94a9a"
+        },
+        {
+          "id": "69adc48eb3af7c98d1b21fa3",
+          "subject": "Internship Assessment /Mini Project",
+          "code": "BCC351",
+          "type": "Practical",
+          "internal": "96",
+          "external": "",
+          "resultId": "6918de4c77edf8f4fcf94a9a"
+        }
+      ]
+    },
+    {
+      "id": "6918de4c77edf8f4fcf94aa4",
+      "rollNo": "2400680000008",
+      "enrollmentNo": "240068000070868",
+      "fullName": "PRATUSH GOEL",
+      "blocked": false,
+      "fatherName": "AMIT KUMAR GOEL",
+      "course": "B.TECH",
+      "branch": "CIVIL ENGINEERING",
+      "year": 2024,
+      "SGPA": {
+        "sem1": 6.73,
+        "sem2": 4.82,
+        "sem3": 4.56
+      },
+      "CarryOvers": [
+        {
+          "session": "2024-25(REGULAR)",
+          "sem": "1,2",
+          "cop": "COP : ,BAS203"
+        },
+        {
+          "session": "2025-26(REGULAR)",
+          "sem": "3",
+          "cop": "COP : BCE301,BCC302"
+        }
+      ],
+      "divison": "",
+      "cgpa": "",
+      "instituteName": "MEERUT INSTITUTE OF ENGINEERING & TECHNOLOGY,MEERUT",
+      "latestResultStatus": "",
+      "totalMarksObtained": 526,
+      "latestCOP": "COP : BCE301,BCC302",
+      "Subjects": [
+        {
+          "id": "69adc494b3af7c98d1b21fa4",
+          "subject": "Mathematics-III",
+          "code": "BAS302",
+          "type": "Theory",
+          "internal": "18",
+          "external": "40",
+          "resultId": "6918de4c77edf8f4fcf94aa4"
+        },
+        {
+          "id": "69adc494b3af7c98d1b21fa5",
+          "subject": "Technical Communication",
+          "code": "BAS301",
+          "type": "Theory",
+          "internal": "20",
+          "external": "28",
+          "resultId": "6918de4c77edf8f4fcf94aa4"
+        },
+        {
+          "id": "69adc494b3af7c98d1b21fa6",
+          "subject": "Engineering Mechanics",
+          "code": "BCE301",
+          "type": "Theory",
+          "internal": "19",
+          "external": "ABS",
+          "resultId": "6918de4c77edf8f4fcf94aa4"
+        },
+        {
+          "id": "69adc494b3af7c98d1b21fa7",
+          "subject": "Surveying and Geomatics",
+          "code": "BCE302",
+          "type": "Theory",
+          "internal": "18",
+          "external": "41",
+          "resultId": "6918de4c77edf8f4fcf94aa4"
+        },
+        {
+          "id": "69adc494b3af7c98d1b21fa8",
+          "subject": "Fluid Mechanics",
+          "code": "BCE303",
+          "type": "Theory",
+          "internal": "18",
+          "external": "29",
+          "resultId": "6918de4c77edf8f4fcf94aa4"
+        },
+        {
+          "id": "69adc494b3af7c98d1b21fa9",
+          "subject": "Python programming",
+          "code": "BCC302",
+          "type": "Theory",
+          "internal": "19",
+          "external": "ABS",
+          "resultId": "6918de4c77edf8f4fcf94aa4"
+        },
+        {
+          "id": "69adc494b3af7c98d1b21faa",
+          "subject": "Building Planning & Drawing Lab",
+          "code": "BCE351",
+          "type": "Practical",
+          "internal": "34",
+          "external": "35",
+          "resultId": "6918de4c77edf8f4fcf94aa4"
+        },
+        {
+          "id": "69adc494b3af7c98d1b21fab",
+          "subject": "Surveying and Geomatics Lab",
+          "code": "BCE352",
+          "type": "Practical",
+          "internal": "35",
+          "external": "35",
+          "resultId": "6918de4c77edf8f4fcf94aa4"
+        },
+        {
+          "id": "69adc494b3af7c98d1b21fac",
+          "subject": "Fluid Mechanics Lab",
+          "code": "BCE353",
+          "type": "Practical",
+          "internal": "34",
+          "external": "35",
+          "resultId": "6918de4c77edf8f4fcf94aa4"
+        },
+        {
+          "id": "69adc494b3af7c98d1b21fad",
+          "subject": "Internship Assessment /Mini Project",
+          "code": "BCC351",
+          "type": "Practical",
+          "internal": "68",
+          "external": "",
+          "resultId": "6918de4c77edf8f4fcf94aa4"
+        }
+      ]
+    },
+    {
+      "id": "6918de4d77edf8f4fcf94aae",
+      "rollNo": "2400680000009",
+      "enrollmentNo": "240068000073443",
+      "fullName": "PRIYANSHU PRAJAPATI",
+      "blocked": false,
+      "fatherName": "RAJKUMAR PRAJAPATI",
+      "course": "B.TECH",
+      "branch": "CIVIL ENGINEERING",
+      "year": 2024,
+      "SGPA": {
+        "sem1": 2.86,
+        "sem2": 4.64,
+        "sem3": 3.04
+      },
+      "CarryOvers": [
+        {
+          "session": "2024-25(REGULAR)",
+          "sem": "1,2",
+          "cop": "COP : BAS101,BAS103,BCS101,BAS104,BAS203,BME201"
+        },
+        {
+          "session": "2025-26(BACK)",
+          "sem": "1,2",
+          "cop": "COP : BAS101,BAS103,BCS101,BAS203,BME201"
+        },
+        {
+          "session": "2025-26(REGULAR)",
+          "sem": "3",
+          "cop": "COP : BAS302,BCE301,BCE351,BCE352,BCE353"
+        }
+      ],
+      "divison": "",
+      "cgpa": "",
+      "instituteName": "MEERUT INSTITUTE OF ENGINEERING & TECHNOLOGY,MEERUT",
+      "latestResultStatus": "",
+      "totalMarksObtained": 411,
+      "latestCOP": "COP : BAS302,BCE301,BCE351,BCE352,BCE353",
+      "Subjects": [
+        {
+          "id": "69adc5f4b3af7c98d1b22260",
+          "subject": "Mathematics-III",
+          "code": "BAS302",
+          "type": "Theory",
+          "internal": "20",
+          "external": "00",
+          "resultId": "6918de4d77edf8f4fcf94aae"
+        },
+        {
+          "id": "69adc5f4b3af7c98d1b22261",
+          "subject": "Technical Communication",
+          "code": "BAS301",
+          "type": "Theory",
+          "internal": "19",
+          "external": "32",
+          "resultId": "6918de4d77edf8f4fcf94aae"
+        },
+        {
+          "id": "69adc5f4b3af7c98d1b22262",
+          "subject": "Engineering Mechanics",
+          "code": "BCE301",
+          "type": "Theory",
+          "internal": "19",
+          "external": "12",
+          "resultId": "6918de4d77edf8f4fcf94aae"
+        },
+        {
+          "id": "69adc5f4b3af7c98d1b22263",
+          "subject": "Surveying and Geomatics",
+          "code": "BCE302",
+          "type": "Theory",
+          "internal": "19",
+          "external": "21",
+          "resultId": "6918de4d77edf8f4fcf94aae"
+        },
+        {
+          "id": "69adc5f4b3af7c98d1b22264",
+          "subject": "Fluid Mechanics",
+          "code": "BCE303",
+          "type": "Theory",
+          "internal": "19",
+          "external": "38",
+          "resultId": "6918de4d77edf8f4fcf94aae"
+        },
+        {
+          "id": "69adc5f4b3af7c98d1b22265",
+          "subject": "Python programming",
+          "code": "BCC302",
+          "type": "Theory",
+          "internal": "18",
+          "external": "31",
+          "resultId": "6918de4d77edf8f4fcf94aae"
+        },
+        {
+          "id": "69adc5f4b3af7c98d1b22266",
+          "subject": "Building Planning & Drawing Lab",
+          "code": "BCE351",
+          "type": "Practical",
+          "internal": "31",
+          "external": "ABS",
+          "resultId": "6918de4d77edf8f4fcf94aae"
+        },
+        {
+          "id": "69adc5f4b3af7c98d1b22267",
+          "subject": "Surveying and Geomatics Lab",
+          "code": "BCE352",
+          "type": "Practical",
+          "internal": "35",
+          "external": "ABS",
+          "resultId": "6918de4d77edf8f4fcf94aae"
+        },
+        {
+          "id": "69adc5f4b3af7c98d1b22268",
+          "subject": "Fluid Mechanics Lab",
+          "code": "BCE353",
+          "type": "Practical",
+          "internal": "33",
+          "external": "ABS",
+          "resultId": "6918de4d77edf8f4fcf94aae"
+        },
+        {
+          "id": "69adc5f4b3af7c98d1b22269",
+          "subject": "Internship Assessment /Mini Project",
+          "code": "BCC351",
+          "type": "Practical",
+          "internal": "64",
+          "external": "",
+          "resultId": "6918de4d77edf8f4fcf94aae"
+        }
+      ]
+    },
+    {
+      "id": "6918de4d77edf8f4fcf94ab8",
+      "rollNo": "2400680000010",
+      "enrollmentNo": "240068000074305",
+      "fullName": "RACHIT PAL",
+      "blocked": false,
+      "fatherName": "SUBHASH CHAND PAL",
+      "course": "B.TECH",
+      "branch": "CIVIL ENGINEERING",
+      "year": 2024,
+      "SGPA": {
+        "sem1": 5.5,
+        "sem2": 4.73,
+        "sem3": 5.16
+      },
+      "CarryOvers": [
+        {
+          "session": "2024-25(REGULAR)",
+          "sem": "1,2",
+          "cop": "COP : ,BAS203"
+        },
+        {
+          "session": "2025-26(REGULAR)",
+          "sem": "3",
+          "cop": "COP : BAS302"
+        }
+      ],
+      "divison": "",
+      "cgpa": "",
+      "instituteName": "MEERUT INSTITUTE OF ENGINEERING & TECHNOLOGY,MEERUT",
+      "latestResultStatus": "",
+      "totalMarksObtained": 585,
+      "latestCOP": "COP : BAS302",
+      "Subjects": [
+        {
+          "id": "69adc45fb3af7c98d1b21f40",
+          "subject": "Mathematics-III",
+          "code": "BAS302",
+          "type": "Theory",
+          "internal": "20",
+          "external": "01",
+          "resultId": "6918de4d77edf8f4fcf94ab8"
+        },
+        {
+          "id": "69adc45fb3af7c98d1b21f41",
+          "subject": "Technical Communication",
+          "code": "BAS301",
+          "type": "Theory",
+          "internal": "20",
+          "external": "35",
+          "resultId": "6918de4d77edf8f4fcf94ab8"
+        },
+        {
+          "id": "69adc45fb3af7c98d1b21f42",
+          "subject": "Engineering Mechanics",
+          "code": "BCE301",
+          "type": "Theory",
+          "internal": "20",
+          "external": "31",
+          "resultId": "6918de4d77edf8f4fcf94ab8"
+        },
+        {
+          "id": "69adc45fb3af7c98d1b21f43",
+          "subject": "Surveying and Geomatics",
+          "code": "BCE302",
+          "type": "Theory",
+          "internal": "20",
+          "external": "36",
+          "resultId": "6918de4d77edf8f4fcf94ab8"
+        },
+        {
+          "id": "69adc45fb3af7c98d1b21f44",
+          "subject": "Fluid Mechanics",
+          "code": "BCE303",
+          "type": "Theory",
+          "internal": "20",
+          "external": "27",
+          "resultId": "6918de4d77edf8f4fcf94ab8"
+        },
+        {
+          "id": "69adc45fb3af7c98d1b21f45",
+          "subject": "Python programming",
+          "code": "BCC302",
+          "type": "Theory",
+          "internal": "19",
+          "external": "23",
+          "resultId": "6918de4d77edf8f4fcf94ab8"
+        },
+        {
+          "id": "69adc45fb3af7c98d1b21f46",
+          "subject": "Building Planning & Drawing Lab",
+          "code": "BCE351",
+          "type": "Practical",
+          "internal": "39",
+          "external": "40",
+          "resultId": "6918de4d77edf8f4fcf94ab8"
+        },
+        {
+          "id": "69adc45fb3af7c98d1b21f47",
+          "subject": "Surveying and Geomatics Lab",
+          "code": "BCE352",
+          "type": "Practical",
+          "internal": "40",
+          "external": "39",
+          "resultId": "6918de4d77edf8f4fcf94ab8"
+        },
+        {
+          "id": "69adc45fb3af7c98d1b21f48",
+          "subject": "Fluid Mechanics Lab",
+          "code": "BCE353",
+          "type": "Practical",
+          "internal": "39",
+          "external": "38",
+          "resultId": "6918de4d77edf8f4fcf94ab8"
+        },
+        {
+          "id": "69adc45fb3af7c98d1b21f49",
+          "subject": "Internship Assessment /Mini Project",
+          "code": "BCC351",
+          "type": "Practical",
+          "internal": "78",
+          "external": "",
+          "resultId": "6918de4d77edf8f4fcf94ab8"
+        }
+      ]
+    },
+    {
+      "id": "6918d65577edf8f4fcf8d009",
+      "rollNo": "2300680100103",
+      "enrollmentNo": "230068010030808",
+      "fullName": "DEEPANSHU RAJPUT",
+      "blocked": false,
+      "fatherName": "JITENDRA KUMAR",
+      "course": "B.TECH",
+      "branch": "COMPUTER SCIENCE AND ENGINEERING",
+      "year": 2023,
+      "SGPA": {
+        "sem1": 8.59,
+        "sem2": 8.64,
+        "sem3": 7.96,
+        "sem4": 8.3,
+        "sem5": 7.78
+      },
+      "CarryOvers": [
+        [
+          "No Backlogs"
+        ]
+      ],
+      "divison": "",
+      "cgpa": "",
+      "instituteName": "MEERUT INSTITUTE OF ENGINEERING & TECHNOLOGY,MEERUT",
+      "latestResultStatus": "",
+      "totalMarksObtained": 703,
+      "latestCOP": "COP :",
+      "Subjects": [
+        {
+          "id": "69ad73d5b3af7c98d1b1cbd8",
+          "subject": "Database Management System",
+          "code": "BCS501",
+          "type": "Theory",
+          "internal": "27",
+          "external": "47",
+          "resultId": "6918d65577edf8f4fcf8d009"
+        },
+        {
+          "id": "69ad73d5b3af7c98d1b1cbd9",
+          "subject": "Web Technology",
+          "code": "BCS502",
+          "type": "Theory",
+          "internal": "29",
+          "external": "41",
+          "resultId": "6918d65577edf8f4fcf8d009"
+        },
+        {
+          "id": "69ad73d5b3af7c98d1b1cbda",
+          "subject": "Design and Analysis of Algorithm",
+          "code": "BCS503",
+          "type": "Theory",
+          "internal": "30",
+          "external": "29",
+          "resultId": "6918d65577edf8f4fcf8d009"
+        },
+        {
+          "id": "69ad73d5b3af7c98d1b1cbdb",
+          "subject": "Data Analytics",
+          "code": "BCS052",
+          "type": "Theory",
+          "internal": "28",
+          "external": "46",
+          "resultId": "6918d65577edf8f4fcf8d009"
+        },
+        {
+          "id": "69ad73d5b3af7c98d1b1cbdc",
+          "subject": "Machine Learning Techniques",
+          "code": "BCS055",
+          "type": "Theory",
+          "internal": "26",
+          "external": "31",
+          "resultId": "6918d65577edf8f4fcf8d009"
+        },
+        {
+          "id": "69ad73d5b3af7c98d1b1cbdd",
+          "subject": "Database Management System Lab",
+          "code": "BCS551",
+          "type": "Practical",
+          "internal": "44",
+          "external": "45",
+          "resultId": "6918d65577edf8f4fcf8d009"
+        },
+        {
+          "id": "69ad73d5b3af7c98d1b1cbde",
+          "subject": "Web Technology Lab",
+          "code": "BCS552",
+          "type": "Practical",
+          "internal": "46",
+          "external": "47",
+          "resultId": "6918d65577edf8f4fcf8d009"
+        },
+        {
+          "id": "69ad73d5b3af7c98d1b1cbdf",
+          "subject": "Design and Analysis of Algorithm Lab",
+          "code": "BCS553",
+          "type": "Practical",
+          "internal": "46",
+          "external": "47",
+          "resultId": "6918d65577edf8f4fcf8d009"
+        },
+        {
+          "id": "69ad73d5b3af7c98d1b1cbe0",
+          "subject": "Mini Project or Internship Assessment",
+          "code": "BCS554",
+          "type": "Practical",
+          "internal": "94",
+          "external": "",
+          "resultId": "6918d65577edf8f4fcf8d009"
+        },
+        {
+          "id": "69ad73d5b3af7c98d1b1cbe1",
+          "subject": "Constitution of India",
+          "code": "BNC501",
+          "type": "CA",
+          "internal": "22",
+          "external": "39",
+          "resultId": "6918d65577edf8f4fcf8d009"
+        }
+      ]
+    }
+  ],
+  "pagination": {
+    "currentPage": 1,
+    "perPage": 10,
+    "totalCount": 1439,
+    "totalPages": 144,
+    "hasNextPage": true,
+    "hasPreviousPage": false
+  }
+}
