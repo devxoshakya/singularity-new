@@ -340,7 +340,7 @@ if (!session?.user) redirect("/login");
 | `GET` | `/api/subscriptions/status` | ✅ | Check if user has active subscription, returns current plan (default: FREE) |
 | `GET` | `/api/subscriptions/checkout-info` | ✅ | Returns available product slugs for checkout (`pro-6m`, `pro-12m`, `premium-6m`, `premium-12m`) |
 | `GET` | `/api/result/by-rollno` | — | Get result by roll number (query: `rollNo`) |
-| `GET` | `/api/result/by-year` | — | Get paginated results by year (query: `year`, `page`, `perPage`) |
+| `GET` | `/api/result/by-year` | — | Get all results by year (query: `year`) |
 | `GET` | `/api/cron/check-subscriptions` | — | Cron: expire outdated subscriptions, downgrade to FREE |
 | `GET` | `/api/me` | ✅ | Get authenticated user profile |
 | `GET` | `/users` | ✅ | Get all users (cached) |
@@ -597,7 +597,7 @@ All auth routes are handled by Better Auth at `/api/auth/*`:
 | `GET` | `/api/subscriptions/status` | ✅ | — | `{ hasActive, plan }` |
 | `GET` | `/api/subscriptions/checkout-info` | ✅ | — | Available product slugs |
 | `GET` | `/api/result/by-rollno` | — | Query: `rollNo` | Student result with subjects |
-| `GET` | `/api/result/by-year` | — | Query: `year`, `page`, `perPage` | Paginated results by year |
+| `GET` | `/api/result/by-year` | — | Query: `year` | All results for the year |
 | `GET` | `/api/cron/check-subscriptions` | — | — | Expires outdated subscriptions |
 | `GET` | `/api/me` | ✅ | — | Authenticated user profile |
 | `GET` | `/users` | ✅ | — | All users (cached) |
@@ -676,18 +676,16 @@ GET https://singularity-server.devxoshakya.workers.dev/api/result/by-rollno?roll
 
 #### Get Results by Year (Paginated)
 
-Returns all student results for a specific year with pagination support.
+Returns all student results for a specific year.
 
 **Endpoint:** `GET /api/result/by-year`
 
 **Query Parameters:**
 - `year` (required) - Academic year (1-4)
-- `page` (optional) - Page number (default: 1, minimum: 1)
-- `perPage` (optional) - Results per page (default: 10, minimum: 1, maximum: 100)
 
 **Example Request:**
 ```bash
-GET https://singularity-server.devxoshakya.workers.dev/api/result/by-year?year=2&page=1&perPage=20
+GET https://singularity-server.devxoshakya.workers.dev/api/result/by-year?year=2
 ```
 
 **Success Response (200 OK):**
@@ -716,24 +714,9 @@ GET https://singularity-server.devxoshakya.workers.dev/api/result/by-year?year=2
       "Subjects": [...]
     }
   ],
-  "pagination": {
-    "currentPage": 1,
-    "perPage": 20,
-    "totalCount": 150,
-    "totalPages": 8,
-    "hasNextPage": true,
-    "hasPreviousPage": false
-  }
+  "totalCount": 150
 }
 ```
-
-**Pagination Metadata:**
-- `currentPage` - Current page number
-- `perPage` - Number of results per page
-- `totalCount` - Total number of results available
-- `totalPages` - Total number of pages
-- `hasNextPage` - Boolean indicating if next page exists
-- `hasPreviousPage` - Boolean indicating if previous page exists
 
 **Error Responses:**
 - `400 Bad Request` - Invalid parameters

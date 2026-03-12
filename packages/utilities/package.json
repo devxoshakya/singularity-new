@@ -6,7 +6,8 @@
   "scripts": {
     "solve": "bun --bun core/solver.ts",
     "update": "bun --bun update/run-updater.ts",
-    "checkpoint": "bun --bun update/checkpoint-cli.ts"
+    "checkpoint": "bun --bun update/checkpoint-cli.ts",
+    "update-years": "bun --bun update/update-years.ts"
   },
   "devDependencies": {
     "@types/bun": "latest"

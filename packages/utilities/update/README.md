@@ -10,12 +10,16 @@ A robust system for updating student results with automatic checkpoint/resume fu
 ✅ **Flexible Options** - Multiple update modes (single, batch, range, all users)  
 ✅ **Rate Limiting** - 1-second delay between requests to avoid overwhelming servers  
 ✅ **Progress Tracking** - Detailed statistics and logging  
+✅ **Year Updates** - Update student years from JSON data
 
 ## Quick Start
 
 ```bash
 # Update all results from the database
 bun run update
+
+# Update student years from karuna.students.json
+bun run update-years
 
 # Check checkpoint status
 bun run checkpoint status
@@ -29,15 +33,33 @@ bun run checkpoint retry
 
 ## Usage
 
-### 1. Update All Results (Recommended)
+### 1. Update Student Years
+
+Update the year field for all students using data from `karuna.students.json`:
+
+```bash
+bun run update-years
+```
+
+This script:
+- Reads student data from `karuna.students.json` in the project root
+- Matches students by roll number
+- Updates the year field in the database
+- Provides detailed progress reporting
+
+**Important**: Run this after importing new student data to ensure year values are correct.
+
+### 2. Update All Results (Recommended)
 
 This will fetch all roll numbers from the Result table and update them with the latest data. If interrupted, run again to resume.
+
+**Note**: The updater now preserves existing year values. It only uses roll number-based year extraction as a fallback for new records.
 
 ```bash
 bun run update
 ```
 
-### 2. Check Checkpoint Status
+### 3. Check Checkpoint Status
 
 View current progress and statistics:
 
