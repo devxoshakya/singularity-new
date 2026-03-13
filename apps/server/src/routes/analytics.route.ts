@@ -9,7 +9,6 @@ import {
 	getBacklogAnalysisController,
 	getBranchPerformanceRadarController,
 	getTopPerformersController,
-	getAnalyticsQueryController,
 } from "../controllers/analytics.controller";
 
 const analyticsRouter = new Hono();
@@ -40,8 +39,5 @@ analyticsRouter.get("/branch-performance-radar", getBranchPerformanceRadarContro
 
 // GET /api/analytics/top-performers - Top N performing students for radial bar chart or leaderboard
 analyticsRouter.get("/top-performers", getTopPerformersController);
-
-// POST /api/analytics/query - LLM-powered natural language analytics query endpoint
-analyticsRouter.post("/query", getAnalyticsQueryController);
 
 export default analyticsRouter;
