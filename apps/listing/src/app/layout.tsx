@@ -44,10 +44,8 @@ html {
         `}</style>
             </head>
 
-            <body className={`${figtree.variable} ${instrumentSerif.variable}`}>
-                <Providers>
-                    {children}
-                </Providers>
+            <body suppressHydrationWarning className={`${figtree.variable} ${instrumentSerif.variable}`}>
+                <Providers>{children}</Providers>
             </body>
         </html>
     );

@@ -3,34 +3,138 @@ import prisma from "@singularity/db";
 import type { HonoContext } from "@/types/context";
 
 /**
- * Helper function to classify student status
- * @param latestResultStatus - "Clear", "PCP", or "Fail"
- * @param carryOvers - Array of carry over subjects
- * @param latestCOP - Latest Carry Over Position
- * @returns "Pass" | "PCP" | "Fail"
+ * Normalize carry over payload and return active carry over count.
+ * Data may be [{ session, sem, cop }, ...] OR [["No Backlogs"]].
  */
-const classifyStudentStatus = (
-	latestResultStatus: string,
-	carryOvers: any[],
-	latestCOP: string,
-): "Pass" | "PCP" | "Fail" => {
-	// Fail: latestResultStatus === "Fail" OR latestCOP === "FAIL"
-	if (latestResultStatus === "Fail" || latestCOP === "FAIL") {
-		return "Fail";
+const getCarryOverCount = (carryOvers: any[] | null | undefined): number => {
+	if (!Array.isArray(carryOvers) || carryOvers.length === 0) {
+		return 0;
 	}
 
-	// Pass: latestResultStatus === "Clear" OR CarryOvers.length === 0
-	if (latestResultStatus === "Clear" || carryOvers.length === 0) {
-		return "Pass";
+	let count = 0;
+
+	for (const entry of carryOvers) {
+		if (Array.isArray(entry)) {
+			const normalized = entry
+				.map((item) => String(item).trim().toLowerCase())
+				.join(" ");
+			if (normalized.includes("no backlogs")) {
+				continue;
+			}
+			if (entry.length > 0) {
+				count += 1;
+			}
+			continue;
+		}
+
+		if (typeof entry === "object" && entry !== null) {
+			const copValue = String((entry as any).cop ?? "").trim();
+			const codes = copValue.replace(/COP\s*:/i, "").trim();
+
+			if (codes.length === 0) {
+				continue;
+			}
+
+			if (codes.toLowerCase().includes("no backlogs")) {
+				continue;
+			}
+
+			count += 1;
+			continue;
+		}
+
+		const normalized = String(entry).trim().toLowerCase();
+		if (!normalized || normalized.includes("no backlogs")) {
+			continue;
+		}
+		count += 1;
 	}
 
-	// PCP: latestResultStatus === "PCP" OR (CarryOvers.length > 0 AND latestCOP !== "FAIL")
-	if (latestResultStatus === "PCP" || (carryOvers.length > 0 && latestCOP !== "FAIL")) {
-		return "PCP";
+	return count;
+};
+
+/**
+ * Student status rules (updated):
+ * - Pass: 0 carry overs
+ * - PCP: <= 2 carry overs
+ * - Fail: >= 3 carry overs
+ */
+const classifyStudentStatus = (carryOvers: any[]): "Pass" | "PCP" | "Fail" => {
+	const carryOverCount = getCarryOverCount(carryOvers);
+
+	if (carryOverCount === 0) return "Pass";
+	if (carryOverCount <= 2) return "PCP";
+	return "Fail";
+};
+
+const parseCopCodes = (copValue: string | null | undefined): string[] => {
+	if (!copValue) return [];
+	const normalized = String(copValue).replace(/COP\s*:/i, "").trim();
+	if (!normalized || normalized.toLowerCase().includes("no backlogs")) {
+		return [];
+	}
+	return normalized
+		.split(",")
+		.map((code) => code.trim())
+		.filter(Boolean);
+};
+
+const parseSemesterList = (semValue: string | null | undefined): number[] => {
+	if (!semValue) return [];
+	return Array.from(
+		new Set(
+			String(semValue)
+				.split(",")
+				.map((v) => parseInt(v.trim(), 10))
+				.filter((v) => !Number.isNaN(v) && v >= 1 && v <= 8),
+		),
+	).sort((a, b) => a - b);
+};
+
+const getLatestCopCodeSet = (latestCOP: string | null | undefined): Set<string> => {
+	return new Set(parseCopCodes(latestCOP));
+};
+
+type CarryOverHistoryRecord = {
+	session: string;
+	sems: number[];
+	codes: string[];
+};
+
+const getCarryOverHistoryRecords = (carryOvers: any[] | null | undefined): CarryOverHistoryRecord[] => {
+	if (!Array.isArray(carryOvers) || carryOvers.length === 0) {
+		return [];
 	}
 
-	// Default to Pass if none of the above conditions match
-	return "Pass";
+	const records: CarryOverHistoryRecord[] = [];
+
+	carryOvers.forEach((entry) => {
+		if (Array.isArray(entry)) {
+			const normalized = entry.map((item) => String(item).toLowerCase()).join(" ");
+			if (normalized.includes("no backlogs")) return;
+			const codes = entry.map((item) => String(item).trim()).filter(Boolean);
+			if (codes.length > 0) {
+				records.push({
+					session: "Unknown",
+					sems: [],
+					codes,
+				});
+			}
+			return;
+		}
+
+		if (typeof entry === "object" && entry !== null) {
+			const codes = parseCopCodes((entry as any).cop);
+			if (codes.length === 0) return;
+			records.push({
+				session: String((entry as any).session ?? "Unknown"),
+				sems: parseSemesterList((entry as any).sem),
+				codes,
+			});
+		}
+	});
+
+	return records;
 };
 
 /**
@@ -165,11 +269,7 @@ export const getStudentStatusDistributionController = async (
 		};
 
 		filteredStudents.forEach((student) => {
-			const status = classifyStudentStatus(
-				student.latestResultStatus,
-				student.CarryOvers as any[],
-				student.latestCOP,
-			);
+			const status = classifyStudentStatus(student.CarryOvers as any[]);
 			statusCounts[status]++;
 		});
 
@@ -263,11 +363,7 @@ export const getBranchStatusBreakdownController = async (
 
 		students.forEach((student) => {
 			const normalizedBranch = normalizeBranchName(student.branch);
-			const status = classifyStudentStatus(
-				student.latestResultStatus,
-				student.CarryOvers as any[],
-				student.latestCOP,
-			);
+			const status = classifyStudentStatus(student.CarryOvers as any[]);
 
 			if (!branchData[normalizedBranch]) {
 				branchData[normalizedBranch] = {
@@ -398,11 +494,7 @@ export const getYearBranchComparisonController = async (
 				} else if (metric === "passRate") {
 					// Calculate pass rate
 					const passCount = branchStudents.filter((s) => {
-						const status = classifyStudentStatus(
-							s.latestResultStatus,
-							s.CarryOvers as any[],
-							s.latestCOP,
-						);
+						const status = classifyStudentStatus(s.CarryOvers as any[]);
 						return status === "Pass";
 					}).length;
 
@@ -453,223 +545,169 @@ export const getYearBranchComparisonController = async (
  * Returns key performance indicators for dashboard stats cards
  * 
  * Query Params:
- * - year (optional): Filter by year
+ * - years (required): Two comma-separated years, e.g. "1,2"
+ *   (backward compatible fallback: year + compareWith)
  * - branch (optional): Filter by branch
- * - compareWith (optional): Year or branch to compare with
  */
 export const getPerformanceMetricsController = async (
 	c: Context<HonoContext>,
 ) => {
 	try {
-		const year = c.req.query("year");
 		const branch = c.req.query("branch");
+		const yearsParam = c.req.query("years");
+		const year = c.req.query("year");
 		const compareWith = c.req.query("compareWith");
 
-		// Build filter for current data
-		const where: any = {};
-		if (year && year !== "all") {
-			const yearNum = parseInt(year, 10);
-			if (!isNaN(yearNum)) {
-				where.year = yearNum;
+		let years: number[] = [];
+		if (yearsParam) {
+			years = yearsParam
+				.split(",")
+				.map((y) => parseInt(y.trim(), 10))
+				.filter((y) => !Number.isNaN(y));
+		} else if (year && compareWith) {
+			const y1 = parseInt(year, 10);
+			const y2 = parseInt(compareWith, 10);
+			if (!Number.isNaN(y1) && !Number.isNaN(y2)) {
+				years = [y1, y2];
 			}
 		}
 
-		// Get current students
-		let students = await prisma.result.findMany({
-			where,
+		const uniqueYears = Array.from(new Set(years));
+		if (uniqueYears.length !== 2) {
+			return c.json(
+				{
+					success: false,
+					error: "Please provide exactly 2 years using `years=Y1,Y2` (or `year` and `compareWith`).",
+				},
+				400,
+			);
+		}
+
+		const [baseYear, compareYear] = uniqueYears;
+
+		const allStudents = await prisma.result.findMany({
+			where: {
+				year: {
+					in: uniqueYears,
+				},
+			},
 			select: {
 				branch: true,
 				year: true,
 				SGPA: true,
 				totalMarksObtained: true,
-				latestResultStatus: true,
 				CarryOvers: true,
-				latestCOP: true,
 			},
 		});
 
-		// Filter by branch if provided
-		if (branch && branch !== "all") {
-			students = students.filter(
-				(s) => normalizeBranchName(s.branch) === branch,
-			);
-		}
+		const branchFilter = branch && branch !== "all" ? branch : null;
+		const filtered = branchFilter
+			? allStudents.filter((s) => normalizeBranchName(s.branch) === branchFilter)
+			: allStudents;
 
-		// Calculate current metrics
-		const totalStudents = students.length;
+		const baseStudents = filtered.filter((s) => s.year === baseYear);
+		const compareStudents = filtered.filter((s) => s.year === compareYear);
 
-		// Calculate average SGPA
-		const sgpaValues: number[] = [];
-		students.forEach((s) => {
-			const avgSgpa = calculateAverageSGPA(s.SGPA);
-			if (avgSgpa !== null) sgpaValues.push(avgSgpa);
-		});
-		const avgSgpa =
-			sgpaValues.length > 0
+		const buildMetrics = (students: typeof baseStudents) => {
+			const totalStudents = students.length;
+			const sgpaValues = students
+				.map((s) => calculateAverageSGPA(s.SGPA))
+				.filter((v): v is number => v !== null);
+
+			const avgSgpa = sgpaValues.length > 0
 				? sgpaValues.reduce((acc, val) => acc + val, 0) / sgpaValues.length
 				: 0;
 
-		// Calculate average total marks
-		const validMarks = students
-			.map((s) => s.totalMarksObtained)
-			.filter((m) => m > 0);
-		const avgMarks =
-			validMarks.length > 0
+			const validMarks = students
+				.map((s) => Number(s.totalMarksObtained || 0))
+				.filter((m) => m > 0);
+			const avgMarks = validMarks.length > 0
 				? validMarks.reduce((acc, val) => acc + val, 0) / validMarks.length
 				: 0;
 
-		// Classify students
-		let passCount = 0;
-		let pcpCount = 0;
-		let failCount = 0;
-		let topPerformers = 0;
-		let withBacklogs = 0;
+			let passCount = 0;
+			let pcpCount = 0;
+			let failCount = 0;
+			let topPerformers = 0;
+			let withBacklogs = 0;
 
-		students.forEach((s) => {
-			const status = classifyStudentStatus(
-				s.latestResultStatus,
-				s.CarryOvers as any[],
-				s.latestCOP,
-			);
+			students.forEach((s) => {
+				const status = classifyStudentStatus(s.CarryOvers as any[]);
+				if (status === "Pass") passCount++;
+				else if (status === "PCP") pcpCount++;
+				else failCount++;
 
-			if (status === "Pass") passCount++;
-			else if (status === "PCP") pcpCount++;
-			else if (status === "Fail") failCount++;
+				const studentAvgSgpa = calculateAverageSGPA(s.SGPA);
+				if (studentAvgSgpa !== null && studentAvgSgpa > 9.0) {
+					topPerformers++;
+				}
 
-			// Top performers (SGPA > 9.0)
-			const avgStudentSgpa = calculateAverageSGPA(s.SGPA);
-			if (avgStudentSgpa && avgStudentSgpa > 9.0) topPerformers++;
+				if (getCarryOverCount(s.CarryOvers as any[]) > 0) {
+					withBacklogs++;
+				}
+			});
 
-			// With backlogs
-			const carryOvers = s.CarryOvers as any[];
-			if (carryOvers && carryOvers.length > 0) withBacklogs++;
-		});
+			const passRate = totalStudents > 0 ? (passCount / totalStudents) * 100 : 0;
 
-		const passRate = totalStudents > 0 ? (passCount / totalStudents) * 100 : 0;
-
-		const currentMetrics = {
-			avgSgpa: Math.round(avgSgpa * 100) / 100,
-			avgMarks: Math.round(avgMarks * 100) / 100,
-			passRate: Math.round(passRate * 100) / 100,
-			totalStudents,
-			topPerformers,
-			withBacklogs,
+			return {
+				year: students[0]?.year ?? null,
+				avgSgpa: Math.round(avgSgpa * 100) / 100,
+				avgMarks: Math.round(avgMarks * 100) / 100,
+				passRate: Math.round(passRate * 100) / 100,
+				totalStudents,
+				topPerformers,
+				withBacklogs,
+				statusDistribution: {
+					Pass: passCount,
+					PCP: pcpCount,
+					Fail: failCount,
+				},
+			};
 		};
 
-		// Comparison logic (if compareWith is provided)
-		let comparison: any = null;
-		let insights: string[] = [];
+		const baseMetrics = buildMetrics(baseStudents);
+		const compareMetrics = buildMetrics(compareStudents);
 
-		if (compareWith) {
-			// Get comparison data
-			const compareWhere: any = {};
-			const compareNum = parseInt(compareWith, 10);
+		const sgpaChange = compareMetrics.avgSgpa > 0
+			? ((baseMetrics.avgSgpa - compareMetrics.avgSgpa) / compareMetrics.avgSgpa) * 100
+			: 0;
+		const passRateChange = compareMetrics.passRate > 0
+			? ((baseMetrics.passRate - compareMetrics.passRate) / compareMetrics.passRate) * 100
+			: 0;
 
-			if (!isNaN(compareNum)) {
-				// Assume it's a year comparison
-				compareWhere.year = compareNum;
-			}
-
-			let compareStudents = await prisma.result.findMany({
-				where: compareWhere,
-				select: {
-					branch: true,
-					year: true,
-					SGPA: true,
-					totalMarksObtained: true,
-					latestResultStatus: true,
-					CarryOvers: true,
-					latestCOP: true,
-				},
-			});
-
-			// Filter by branch if provided
-			if (branch && branch !== "all") {
-				compareStudents = compareStudents.filter(
-					(s) => normalizeBranchName(s.branch) === branch,
-				);
-			}
-
-			// Calculate comparison metrics
-			const compareSgpaValues: number[] = [];
-			compareStudents.forEach((s) => {
-				const avgSgpa = calculateAverageSGPA(s.SGPA);
-				if (avgSgpa !== null) compareSgpaValues.push(avgSgpa);
-			});
-			const compareAvgSgpa =
-				compareSgpaValues.length > 0
-					? compareSgpaValues.reduce((acc, val) => acc + val, 0) /
-						compareSgpaValues.length
-					: 0;
-
-			const comparePassCount = compareStudents.filter((s) => {
-				const status = classifyStudentStatus(
-					s.latestResultStatus,
-					s.CarryOvers as any[],
-					s.latestCOP,
-				);
-				return status === "Pass";
-			}).length;
-
-			const comparePassRate =
-				compareStudents.length > 0
-					? (comparePassCount / compareStudents.length) * 100
-					: 0;
-
-			// Calculate percentage changes
-			const sgpaChange = compareAvgSgpa > 0
-				? ((avgSgpa - compareAvgSgpa) / compareAvgSgpa) * 100
-				: 0;
-			const passRateChange = comparePassRate > 0
-				? ((passRate - comparePassRate) / comparePassRate) * 100
-				: 0;
-
-			comparison = {
+		const comparison = {
+			baseYear,
+			compareYear,
+			metrics: {
 				avgSgpa: `${sgpaChange > 0 ? "+" : ""}${Math.round(sgpaChange * 10) / 10}%`,
 				passRate: `${passRateChange > 0 ? "+" : ""}${Math.round(passRateChange * 10) / 10}%`,
 				trend: sgpaChange > 0 ? "up" : sgpaChange < 0 ? "down" : "stable",
-			};
+			},
+		};
 
-			// Generate insights
-			if (sgpaChange > 0) {
-				insights.push(
-					`Average SGPA improved by ${Math.round(sgpaChange * 10) / 10}% compared to year ${compareWith}`,
-				);
-			} else if (sgpaChange < 0) {
-				insights.push(
-					`Average SGPA decreased by ${Math.round(Math.abs(sgpaChange) * 10) / 10}% compared to year ${compareWith}`,
-				);
-			}
+		const insights: string[] = [];
+		if (sgpaChange > 0) {
+			insights.push(`Average SGPA improved by ${Math.round(sgpaChange * 10) / 10}% from ${compareYear} to ${baseYear}.`);
+		} else if (sgpaChange < 0) {
+			insights.push(`Average SGPA decreased by ${Math.round(Math.abs(sgpaChange) * 10) / 10}% from ${compareYear} to ${baseYear}.`);
+		}
 
-			if (passRateChange > 0) {
-				insights.push(
-					`Pass rate increased by ${Math.round(passRateChange * 10) / 10}%`,
-				);
-			} else if (passRateChange < 0) {
-				insights.push(
-					`Pass rate decreased by ${Math.round(Math.abs(passRateChange) * 10) / 10}%`,
-				);
-			}
-		} else {
-			// Default insights without comparison
-			insights.push(
-				`Overall pass rate: ${Math.round(passRate * 10) / 10}%`,
-			);
-			insights.push(
-				`${topPerformers} students scoring above 9.0 SGPA`,
-			);
-			if (withBacklogs > 0) {
-				insights.push(
-					`${withBacklogs} students have active backlogs`,
-				);
-			}
+		if (passRateChange > 0) {
+			insights.push(`Pass rate increased by ${Math.round(passRateChange * 10) / 10}% from ${compareYear} to ${baseYear}.`);
+		} else if (passRateChange < 0) {
+			insights.push(`Pass rate decreased by ${Math.round(Math.abs(passRateChange) * 10) / 10}% from ${compareYear} to ${baseYear}.`);
+		}
+
+		if (insights.length === 0) {
+			insights.push(`Performance remained stable between ${compareYear} and ${baseYear}.`);
 		}
 
 		return c.json(
 			{
 				success: true,
 				data: {
-					current: currentMetrics,
+					current: baseMetrics,
+					compare: compareMetrics,
 					comparison,
 					insights,
 				},
@@ -930,7 +968,7 @@ export const getSgpaRangeDistributionController = async (
  * Returns backlog statistics for stacked bar chart
  * 
  * Query Params:
- * - year (optional): Filter by year
+ * - year (required): Filter by year (required to avoid heavy full-dataset scans)
  * - branch (optional): Filter by branch
  * - groupBy (optional): "semester" | "subject" | "branch" (default: "semester")
  */
@@ -942,14 +980,29 @@ export const getBacklogAnalysisController = async (
 		const branch = c.req.query("branch");
 		const groupBy = c.req.query("groupBy") || "semester";
 
-		// Build filter
-		const where: any = {};
-		if (year && year !== "all") {
-			const yearNum = parseInt(year, 10);
-			if (!isNaN(yearNum)) {
-				where.year = yearNum;
-			}
+		if (!year || year === "all") {
+			return c.json(
+				{
+					success: false,
+					error: "`year` query param is required for backlog analysis.",
+				},
+				400,
+			);
 		}
+
+		const yearNum = parseInt(year, 10);
+		if (Number.isNaN(yearNum)) {
+			return c.json(
+				{
+					success: false,
+					error: "Invalid `year` query param.",
+				},
+				400,
+			);
+		}
+
+		// Build filter
+		const where: any = { year: yearNum };
 
 		// Get students with subjects
 		let students = await prisma.result.findMany({
@@ -971,30 +1024,57 @@ export const getBacklogAnalysisController = async (
 		}
 
 		let analysisData: any[] = [];
+		let totals = {
+			students: students.length,
+			studentsWithBacklogs: 0,
+			activeBacklogs: 0,
+			clearedBacklogs: 0,
+			totalBacklogs: 0,
+		};
+
+		const studentBacklogSummaries = students.map((s) => {
+			const records = getCarryOverHistoryRecords(s.CarryOvers as any[]);
+			const latestActiveCodes = getLatestCopCodeSet(s.latestCOP);
+
+			let active = 0;
+			let cleared = 0;
+
+			records.forEach((record) => {
+				record.codes.forEach((code) => {
+					if (latestActiveCodes.has(code)) active += 1;
+					else cleared += 1;
+				});
+			});
+
+			const total = active + cleared;
+			if (total > 0) {
+				totals.studentsWithBacklogs += 1;
+			}
+
+			totals.activeBacklogs += active;
+			totals.clearedBacklogs += cleared;
+			totals.totalBacklogs += total;
+
+			return {
+				branch: normalizeBranchName(s.branch),
+				records,
+				latestActiveCodes,
+				active,
+				cleared,
+				total,
+			};
+		});
 
 		if (groupBy === "branch") {
-			// Group by branch
 			const branchData: Record<string, { active: number; cleared: number; total: number }> = {};
 
-			students.forEach((s) => {
-				const normalizedBranch = normalizeBranchName(s.branch);
-				const carryOvers = s.CarryOvers as any[];
-				
-				if (!branchData[normalizedBranch]) {
-					branchData[normalizedBranch] = { active: 0, cleared: 0, total: 0 };
+			studentBacklogSummaries.forEach((summary) => {
+				if (!branchData[summary.branch]) {
+					branchData[summary.branch] = { active: 0, cleared: 0, total: 0 };
 				}
-
-				if (carryOvers && carryOvers.length > 0) {
-					branchData[normalizedBranch].total += carryOvers.length;
-					
-					// Active backlogs (student still has them)
-					if (s.latestResultStatus === "PCP" || s.latestResultStatus === "Fail") {
-						branchData[normalizedBranch].active += carryOvers.length;
-					} else {
-						// Cleared backlogs
-						branchData[normalizedBranch].cleared += carryOvers.length;
-					}
-				}
+				branchData[summary.branch].active += summary.active;
+				branchData[summary.branch].cleared += summary.cleared;
+				branchData[summary.branch].total += summary.total;
 			});
 
 			analysisData = Object.entries(branchData).map(([branchName, data]) => ({
@@ -1008,37 +1088,26 @@ export const getBacklogAnalysisController = async (
 			}));
 
 		} else if (groupBy === "semester") {
-			// Group by semester (estimate from student year)
 			const semesterData: Record<number, { active: number; cleared: number; total: number }> = {};
 
-			students.forEach((s) => {
-				const carryOvers = s.CarryOvers as any[];
-				
-				if (carryOvers && carryOvers.length > 0) {
-					// Estimate semester from carry over subjects
-					// This is a simplified approach - in real scenario, you'd extract semester from subject data
-					carryOvers.forEach((_co: any) => {
-						// For now, we'll distribute backlogs across semesters 1-8
-						// You can enhance this based on your actual data structure
-						for (let sem = 1; sem <= 8; sem++) {
+			studentBacklogSummaries.forEach((summary) => {
+				summary.records.forEach((record) => {
+					const sems = record.sems.length > 0 ? record.sems : [1];
+					record.codes.forEach((code) => {
+						sems.forEach((sem) => {
 							if (!semesterData[sem]) {
 								semesterData[sem] = { active: 0, cleared: 0, total: 0 };
 							}
-						}
-						
-						// Simplified: add to current year's relevant semesters
-						const relevantSem = 1; // You can enhance this logic
-						if (semesterData[relevantSem]) {
-							semesterData[relevantSem].total += 1;
-							
-							if (s.latestResultStatus === "PCP" || s.latestResultStatus === "Fail") {
-								semesterData[relevantSem].active += 1;
+
+							semesterData[sem].total += 1;
+							if (summary.latestActiveCodes.has(code)) {
+								semesterData[sem].active += 1;
 							} else {
-								semesterData[relevantSem].cleared += 1;
+								semesterData[sem].cleared += 1;
 							}
-						}
+						});
 					});
-				}
+				});
 			});
 
 			analysisData = Object.entries(semesterData)
@@ -1054,29 +1123,19 @@ export const getBacklogAnalysisController = async (
 				}));
 
 		} else if (groupBy === "subject") {
-			// Group by subject (if subject data is available)
 			const subjectData: Record<string, { active: number; cleared: number; total: number }> = {};
 
-			students.forEach((s) => {
-				const carryOvers = s.CarryOvers as any[];
-				
-				if (carryOvers && Array.isArray(carryOvers)) {
-					carryOvers.forEach((co: any) => {
-						const subjectName = typeof co === 'string' ? co : co.subject || "Unknown";
-						
-						if (!subjectData[subjectName]) {
-							subjectData[subjectName] = { active: 0, cleared: 0, total: 0 };
+			studentBacklogSummaries.forEach((summary) => {
+				summary.records.forEach((record) => {
+					record.codes.forEach((code) => {
+						if (!subjectData[code]) {
+							subjectData[code] = { active: 0, cleared: 0, total: 0 };
 						}
-
-						subjectData[subjectName].total += 1;
-						
-						if (s.latestResultStatus === "PCP" || s.latestResultStatus === "Fail") {
-							subjectData[subjectName].active += 1;
-						} else {
-							subjectData[subjectName].cleared += 1;
-						}
+						subjectData[code].total += 1;
+						if (summary.latestActiveCodes.has(code)) subjectData[code].active += 1;
+						else subjectData[code].cleared += 1;
 					});
-				}
+				});
 			});
 
 			analysisData = Object.entries(subjectData)
@@ -1097,6 +1156,15 @@ export const getBacklogAnalysisController = async (
 			{
 				success: true,
 				data: analysisData,
+				meta: {
+					year: yearNum,
+					groupBy,
+					...totals,
+					clearanceRate:
+						totals.totalBacklogs > 0
+							? Math.round((totals.clearedBacklogs / totals.totalBacklogs) * 1000) / 10
+							: 0,
+				},
 			},
 			200,
 		);
@@ -1172,19 +1240,15 @@ export const getBranchPerformanceRadarController = async (
 			branchData[normalizedBranch].totalStudents++;
 
 			// Count passes
-			const status = classifyStudentStatus(
-				s.latestResultStatus,
-				s.CarryOvers,
-				s.latestCOP,
-			);
+			const status = classifyStudentStatus(s.CarryOvers as any[]);
 			if (status === "Pass") {
 				branchData[normalizedBranch].passCount++;
 			}
 
 			// Add backlogs
-			const carryOvers = s.CarryOvers as any[];
-			if (carryOvers && carryOvers.length > 0) {
-				branchData[normalizedBranch].backlogCount += carryOvers.length;
+			const carryOverCount = getCarryOverCount(s.CarryOvers as any[]);
+			if (carryOverCount > 0) {
+				branchData[normalizedBranch].backlogCount += carryOverCount;
 			}
 		});
 
@@ -1301,13 +1365,8 @@ export const getTopPerformersController = async (
 			const avgSgpa = calculateAverageSGPA(s.SGPA);
 			const latestSgpa = getLatestSGPA(s.SGPA);
 			const marks = s.totalMarksObtained ? Number(s.totalMarksObtained) : 0;
-			const status = classifyStudentStatus(
-				s.latestResultStatus,
-				s.CarryOvers,
-				s.latestCOP,
-			);
-			const carryOvers = s.CarryOvers as any[];
-			const backlogCount = carryOvers ? carryOvers.length : 0;
+			const status = classifyStudentStatus(s.CarryOvers as any[]);
+			const backlogCount = getCarryOverCount(s.CarryOvers as any[]);
 
 			return {
 				rollNo: s.rollNo,
@@ -1368,253 +1427,3 @@ export const getTopPerformersController = async (
 	}
 };
 
-/**
- * POST /api/analytics/query
- * LLM-powered analytics query endpoint that returns insights based on natural language
- * 
- * Body:
- * - query: Natural language query string
- * - year (optional): Filter by year
- * - branch (optional): Filter by branch
- */
-export const getAnalyticsQueryController = async (
-	c: Context<HonoContext>,
-) => {
-	try {
-		const { query, year, branch } = await c.req.json();
-
-		if (!query || typeof query !== "string") {
-			return c.json(
-				{ success: false, error: "Query parameter is required" },
-				400,
-			);
-		}
-
-		// Build filter
-		const where: any = {};
-		if (year && year !== "all") {
-			const yearNum = parseInt(year, 10);
-			if (!isNaN(yearNum)) {
-				where.year = yearNum;
-			}
-		}
-
-		// Get students based on filters
-		let students = await prisma.result.findMany({
-			where,
-			select: {
-				rollNo: true,
-				enrollmentNo: true,
-				fullName: true,
-				branch: true,
-				year: true,
-				SGPA: true,
-				CarryOvers: true,
-				latestResultStatus: true,
-				latestCOP: true,
-				totalMarksObtained: true,
-			},
-		});
-
-		// Filter by branch if provided
-		if (branch && branch !== "all") {
-			students = students.filter(
-				(s) => normalizeBranchName(s.branch) === branch,
-			);
-		}
-
-		// Parse query and determine what analytics to return
-		const queryLower = query.toLowerCase();
-		let response: any = {};
-
-		// Query patterns and corresponding analytics
-		if (queryLower.includes("pass") && (queryLower.includes("rate") || queryLower.includes("percentage"))) {
-			// Pass rate query
-			const totalStudents = students.length;
-			const passCount = students.filter((s) =>
-				classifyStudentStatus(s.latestResultStatus, s.CarryOvers, s.latestCOP) === "Pass"
-			).length;
-			const passRate = (passCount / totalStudents) * 100;
-
-			response = {
-				type: "pass_rate",
-				data: {
-					totalStudents,
-					passCount,
-					passRate: Math.round(passRate * 10) / 10,
-				},
-				insight: `Out of ${totalStudents} students, ${passCount} have passed with a pass rate of ${Math.round(passRate * 10) / 10}%.`,
-			};
-
-		} else if (queryLower.includes("average") && queryLower.includes("sgpa")) {
-			// Average SGPA query
-			const sgpaValues: number[] = [];
-			students.forEach((s) => {
-				const avgSgpa = calculateAverageSGPA(s.SGPA);
-				if (avgSgpa !== null) {
-					sgpaValues.push(avgSgpa);
-				}
-			});
-
-			const avgSgpa = sgpaValues.length > 0
-				? sgpaValues.reduce((acc, val) => acc + val, 0) / sgpaValues.length
-				: 0;
-
-			response = {
-				type: "average_sgpa",
-				data: {
-					totalStudents: students.length,
-					studentsWithSgpa: sgpaValues.length,
-					averageSgpa: Math.round(avgSgpa * 100) / 100,
-				},
-				insight: `The average SGPA across ${sgpaValues.length} students is ${Math.round(avgSgpa * 100) / 100}.`,
-			};
-
-		} else if (queryLower.includes("backlog") || queryLower.includes("carry over")) {
-			// Backlog analysis query
-			let totalBacklogs = 0;
-			let studentsWithBacklogs = 0;
-
-			students.forEach((s) => {
-				const carryOvers = s.CarryOvers as any[];
-				if (carryOvers && carryOvers.length > 0) {
-					totalBacklogs += carryOvers.length;
-					studentsWithBacklogs++;
-				}
-			});
-
-			const backlogRate = (studentsWithBacklogs / students.length) * 100;
-
-			response = {
-				type: "backlog_analysis",
-				data: {
-					totalStudents: students.length,
-					studentsWithBacklogs,
-					totalBacklogs,
-					backlogRate: Math.round(backlogRate * 10) / 10,
-					avgBacklogsPerStudent: studentsWithBacklogs > 0
-						? Math.round((totalBacklogs / studentsWithBacklogs) * 10) / 10
-						: 0,
-				},
-				insight: `${studentsWithBacklogs} students (${Math.round(backlogRate * 10) / 10}%) have backlogs, with a total of ${totalBacklogs} carry-over subjects.`,
-			};
-
-		} else if (queryLower.includes("branch") && (queryLower.includes("best") || queryLower.includes("top"))) {
-			// Best performing branch query
-			const branchData: Record<string, { sgpaValues: number[] }> = {};
-
-			students.forEach((s) => {
-				const normalizedBranch = normalizeBranchName(s.branch);
-				if (!branchData[normalizedBranch]) {
-					branchData[normalizedBranch] = { sgpaValues: [] };
-				}
-
-				const avgSgpa = calculateAverageSGPA(s.SGPA);
-				if (avgSgpa !== null) {
-					branchData[normalizedBranch].sgpaValues.push(avgSgpa);
-				}
-			});
-
-			const branchAverages = Object.entries(branchData)
-				.map(([branch, data]) => ({
-					branch,
-					avgSgpa: data.sgpaValues.length > 0
-						? data.sgpaValues.reduce((acc, val) => acc + val, 0) / data.sgpaValues.length
-						: 0,
-					students: data.sgpaValues.length,
-				}))
-				.sort((a, b) => b.avgSgpa - a.avgSgpa);
-
-			const topBranch = branchAverages[0];
-
-			if (!topBranch) {
-				response = {
-					type: "top_branch",
-					data: { message: "No branch data available" },
-					insight: "No branch performance data is available for the given filters.",
-				};
-			} else {
-				response = {
-					type: "top_branch",
-					data: {
-						topBranch: topBranch.branch,
-						avgSgpa: Math.round(topBranch.avgSgpa * 100) / 100,
-						students: topBranch.students,
-						allBranches: branchAverages.map((b) => ({
-							branch: b.branch,
-							avgSgpa: Math.round(b.avgSgpa * 100) / 100,
-							students: b.students,
-						})),
-					},
-					insight: `${topBranch.branch} is the best performing branch with an average SGPA of ${Math.round(topBranch.avgSgpa * 100) / 100}.`,
-				};
-			}
-
-		} else if (queryLower.includes("fail") && (queryLower.includes("how many") || queryLower.includes("count"))) {
-			// Fail count query
-			const failCount = students.filter((s) =>
-				classifyStudentStatus(s.latestResultStatus, s.CarryOvers, s.latestCOP) === "Fail"
-			).length;
-			const failRate = (failCount / students.length) * 100;
-
-			response = {
-				type: "fail_count",
-				data: {
-					totalStudents: students.length,
-					failCount,
-					failRate: Math.round(failRate * 10) / 10,
-				},
-				insight: `${failCount} students (${Math.round(failRate * 10) / 10}%) have failed.`,
-			};
-
-		} else {
-			// General summary for unrecognized queries
-			const statusCounts = { Pass: 0, PCP: 0, Fail: 0 };
-			const sgpaValues: number[] = [];
-
-			students.forEach((s) => {
-				const status = classifyStudentStatus(
-					s.latestResultStatus,
-					s.CarryOvers,
-					s.latestCOP,
-				);
-				statusCounts[status]++;
-
-				const avgSgpa = calculateAverageSGPA(s.SGPA);
-				if (avgSgpa !== null) {
-					sgpaValues.push(avgSgpa);
-				}
-			});
-
-			const avgSgpa = sgpaValues.length > 0
-				? sgpaValues.reduce((acc, val) => acc + val, 0) / sgpaValues.length
-				: 0;
-
-			response = {
-				type: "general_summary",
-				data: {
-					totalStudents: students.length,
-					statusDistribution: statusCounts,
-					averageSgpa: Math.round(avgSgpa * 100) / 100,
-				},
-				insight: `Summary of ${students.length} students: ${statusCounts.Pass} passed, ${statusCounts.PCP} with carry-overs, ${statusCounts.Fail} failed. Average SGPA is ${Math.round(avgSgpa * 100) / 100}.`,
-				suggestion: "Try asking about 'pass rate', 'average SGPA', 'backlogs', 'best branch', or 'fail count'.",
-			};
-		}
-
-		return c.json(
-			{
-				success: true,
-				query,
-				...response,
-			},
-			200,
-		);
-	} catch (error: any) {
-		console.error("Analytics query error:", error);
-		return c.json(
-			{ success: false, error: "Internal server error" },
-			500,
-		);
-	}
-};

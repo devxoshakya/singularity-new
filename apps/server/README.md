@@ -228,326 +228,181 @@ GET https://singularity-server.devxoshakya.workers.dev/api/result/by-year?year=2
 
 ## Analytics Endpoints
 
-Comprehensive analytics API for student performance visualization and insights. All endpoints support optional filtering by year and branch.
+Comprehensive analytics API for student performance visualization.
 
-### Phase 1: Core Analytics
+### Status Rules Used Across Analytics
 
-#### 1. Student Status Distribution
+Student status is now derived from carry-over count only:
 
-Returns Pass/PCP/Fail distribution for pie chart visualization.
+- `Pass`: `0` carry overs
+- `PCP`: `1` to `2` carry overs
+- `Fail`: `>= 3` carry overs
+
+Carry-over parsing supports both payload shapes:
+
+- Historical object records: `{ session, sem, cop }`
+- No-backlog marker: `["No Backlogs"]`
+
+---
+
+### 1. Student Status Distribution
 
 **Endpoint:** `GET /api/analytics/student-status-distribution`
 
-**Query Parameters:**
-- `year` (optional) - Filter by year (1-4)
-- `branch` (optional) - Filter by normalized branch name (e.g., "CSE", "ECE")
+**Query Params:**
 
-**Example Request:**
-```bash
-GET https://singularity-server.devxoshakya.workers.dev/api/analytics/student-status-distribution?year=2
-```
+- `year` (optional)
+- `branch` (optional, normalized branch code such as `CSE`, `ECE`)
 
-**Success Response (200 OK):**
+**Response shape:**
+
 ```json
 {
   "success": true,
   "data": {
-    "totalStudents": 1500,
+    "total": 1500,
     "distribution": [
-      {
-        "status": "Pass",
-        "count": 1200,
-        "percentage": 80.0,
-        "fill": "var(--chart-1)"
-      },
-      {
-        "status": "PCP",
-        "count": 250,
-        "percentage": 16.67,
-        "fill": "var(--chart-2)"
-      },
-      {
-        "status": "Fail",
-        "count": 50,
-        "percentage": 3.33,
-        "fill": "var(--chart-3)"
-      }
+      { "status": "Pass", "count": 1200, "percentage": 80, "fill": "var(--chart-1)" },
+      { "status": "PCP", "count": 250, "percentage": 16.67, "fill": "var(--chart-2)" },
+      { "status": "Fail", "count": 50, "percentage": 3.33, "fill": "var(--chart-3)" }
     ]
   }
 }
 ```
 
----
-
-#### 2. Branch Status Breakdown
-
-Returns branch-wise Pass/PCP/Fail breakdown for grouped bar chart.
+### 2. Branch Status Breakdown
 
 **Endpoint:** `GET /api/analytics/branch-status-breakdown`
 
-**Query Parameters:**
-- `year` (optional) - Filter by year (1-4)
+**Query Params:**
 
-**Example Request:**
-```bash
-GET https://singularity-server.devxoshakya.workers.dev/api/analytics/branch-status-breakdown?year=2
-```
+- `year` (optional)
 
-**Success Response (200 OK):**
-```json
-{
-  "success": true,
-  "data": [
-    {
-      "branch": "CSE",
-      "totalStudents": 500,
-      "pass": 420,
-      "pcp": 70,
-      "fail": 10,
-      "passRate": 84.0
-    },
-    {
-      "branch": "ECE",
-      "totalStudents": 300,
-      "pass": 250,
-      "pcp": 40,
-      "fail": 10,
-      "passRate": 83.33
-    }
-  ]
-}
-```
+Returns branch-wise pass/pcp/fail counts and pass rate.
 
----
-
-#### 3. Year-Branch Comparison
-
-Returns multi-year branch comparison data for area chart visualization.
+### 3. Year-Branch Comparison
 
 **Endpoint:** `GET /api/analytics/year-branch-comparison`
 
-**Query Parameters:**
-- `metric` (optional) - Comparison metric: "avgSgpa" | "passRate" | "avgMarks" (default: "avgSgpa")
+**Query Params:**
 
-**Example Request:**
-```bash
-GET https://singularity-server.devxoshakya.workers.dev/api/analytics/year-branch-comparison?metric=avgSgpa
-```
+- `years` (optional, default `1,2,3,4`)
+- `branches` (optional)
+- `metric` (optional: `avgSgpa` | `passRate` | `avgMarks`)
 
-**Success Response (200 OK):**
-```json
-{
-  "success": true,
-  "data": {
-    "years": [1, 2, 3, 4],
-    "branches": [
-      {
-        "branch": "CSE",
-        "data": [
-          { "year": 1, "value": 7.8, "students": 500 },
-          { "year": 2, "value": 8.1, "students": 480 },
-          { "year": 3, "value": 8.3, "students": 460 },
-          { "year": 4, "value": 8.5, "students": 450 }
-        ]
-      },
-      {
-        "branch": "ECE",
-        "data": [
-          { "year": 1, "value": 7.5, "students": 300 },
-          { "year": 2, "value": 7.8, "students": 290 }
-        ]
-      }
-    ],
-    "metric": "avgSgpa"
-  }
-}
-```
-
----
-
-#### 4. Performance Metrics
-
-Returns key performance indicators for dashboard stats cards with optional year-over-year comparison.
+### 4. Performance Metrics
 
 **Endpoint:** `GET /api/analytics/performance-metrics`
 
-**Query Parameters:**
-- `year` (optional) - Filter by specific year
-- `branch` (optional) - Filter by branch
-- `compareYear` (optional) - Previous year for comparison
+**Important:** this endpoint now requires exactly two years for comparison.
 
-**Example Request:**
-```bash
-GET https://singularity-server.devxoshakya.workers.dev/api/analytics/performance-metrics?year=2&compareYear=1
+**Accepted query formats:**
+
+- Preferred: `years=2,1`
+- Backward compatible: `year=2&compareWith=1`
+
+**Query Params:**
+
+- `years` (required unless using backward-compatible pair)
+- `year` + `compareWith` (backward-compatible pair)
+- `branch` (optional)
+
+**Error response:**
+
+```json
+{
+  "success": false,
+  "error": "Please provide exactly 2 years using `years=Y1,Y2` (or `year` and `compareWith`)."
+}
 ```
 
-**Success Response (200 OK):**
+**Success response includes both years:**
+
 ```json
 {
   "success": true,
   "data": {
-    "totalStudents": 1500,
-    "passRate": 84.5,
-    "averageSgpa": 7.85,
-    "averageMarks": 685,
-    "studentsWithBacklogs": 320,
-    "backlogRate": 21.33,
-    "totalBacklogs": 450,
-    "comparison": {
-      "sgpaChange": "+5.2%",
-      "passRateChange": "+3.1%",
-      "trend": "up"
+    "current": {
+      "year": 2,
+      "avgSgpa": 7.82,
+      "avgMarks": 684.2,
+      "passRate": 81.4,
+      "totalStudents": 1400,
+      "topPerformers": 120,
+      "withBacklogs": 322,
+      "statusDistribution": { "Pass": 1078, "PCP": 250, "Fail": 72 }
     },
-    "insights": [
-      "Pass rate increased by 3.1% compared to previous year",
-      "Average SGPA improved to 7.85",
-      "21.33% students have active backlogs"
-    ]
+    "compare": {
+      "year": 1,
+      "avgSgpa": 7.55,
+      "avgMarks": 663.1,
+      "passRate": 78.9,
+      "totalStudents": 1360,
+      "topPerformers": 98,
+      "withBacklogs": 351,
+      "statusDistribution": { "Pass": 1073, "PCP": 210, "Fail": 77 }
+    },
+    "comparison": {
+      "baseYear": 2,
+      "compareYear": 1,
+      "metrics": {
+        "avgSgpa": "+3.6%",
+        "passRate": "+3.2%",
+        "trend": "up"
+      }
+    },
+    "insights": ["..."]
   }
 }
 ```
 
----
-
-### Phase 2: Advanced Visualizations
-
-#### 5. Semester Progression
-
-Returns semester-wise SGPA progression for line chart visualization.
+### 5. Semester Progression
 
 **Endpoint:** `GET /api/analytics/semester-progression`
 
-**Query Parameters:**
-- `year` (optional) - Filter by year (1-4)
-- `branch` (optional) - Filter by branch
+**Query Params:**
 
-**Example Request:**
-```bash
-GET https://singularity-server.devxoshakya.workers.dev/api/analytics/semester-progression?branch=CSE
-```
+- `year` (optional)
+- `branch` (optional)
 
-**Success Response (200 OK):**
-```json
-{
-  "success": true,
-  "data": {
-    "semesters": [
-      {
-        "semester": 1,
-        "avgSgpa": 7.45,
-        "maxSgpa": 9.82,
-        "minSgpa": 5.12,
-        "students": 500,
-        "passRate": 92.5
-      },
-      {
-        "semester": 2,
-        "avgSgpa": 7.68,
-        "maxSgpa": 9.85,
-        "minSgpa": 5.34,
-        "students": 498,
-        "passRate": 93.8
-      },
-      {
-        "semester": 3,
-        "avgSgpa": 7.89,
-        "maxSgpa": 9.91,
-        "minSgpa": 5.45,
-        "students": 495,
-        "passRate": 94.2
-      }
-    ],
-    "improvement": "+5.9%"
-  }
-}
-```
-
----
-
-#### 6. SGPA Range Distribution
-
-Returns SGPA distribution across ranges for histogram visualization.
+### 6. SGPA Range Distribution
 
 **Endpoint:** `GET /api/analytics/sgpa-range-distribution`
 
-**Query Parameters:**
-- `year` (optional) - Filter by year (1-4)
-- `branch` (optional) - Filter by branch
-- `semester` (optional) - "latest" or semester number (1-8, default: "latest")
+**Query Params:**
 
-**Example Request:**
-```bash
-GET https://singularity-server.devxoshakya.workers.dev/api/analytics/sgpa-range-distribution?semester=latest
-```
+- `year` (optional)
+- `branch` (optional)
+- `semester` (optional: `latest` or `1..8`)
 
-**Success Response (200 OK):**
-```json
-{
-  "success": true,
-  "data": {
-    "ranges": [
-      {
-        "range": "9.0-10.0",
-        "count": 150,
-        "label": "Outstanding",
-        "fill": "var(--chart-1)"
-      },
-      {
-        "range": "8.0-8.9",
-        "count": 320,
-        "label": "Excellent",
-        "fill": "var(--chart-2)"
-      },
-      {
-        "range": "7.0-7.9",
-        "count": 580,
-        "label": "Very Good",
-        "fill": "var(--chart-3)"
-      },
-      {
-        "range": "6.0-6.9",
-        "count": 280,
-        "label": "Good",
-        "fill": "var(--chart-4)"
-      },
-      {
-        "range": "5.0-5.9",
-        "count": 120,
-        "label": "Average",
-        "fill": "var(--chart-5)"
-      },
-      {
-        "range": "0.0-4.9",
-        "count": 50,
-        "label": "Below Average",
-        "fill": "var(--chart-6)"
-      }
-    ],
-    "median": 7.65,
-    "mode": "7.0-7.9"
-  }
-}
-```
-
----
-
-#### 7. Backlog Analysis
-
-Returns backlog statistics grouped by semester, branch, or subject for stacked bar chart.
+### 7. Backlog Analysis
 
 **Endpoint:** `GET /api/analytics/backlog-analysis`
 
-**Query Parameters:**
-- `year` (optional) - Filter by year (1-4)
-- `branch` (optional) - Filter by branch
-- `groupBy` (optional) - "semester" | "subject" | "branch" (default: "semester")
+**Important:** `year` is now mandatory to avoid expensive full-dataset scans.
 
-**Example Request:**
-```bash
-GET https://singularity-server.devxoshakya.workers.dev/api/analytics/backlog-analysis?groupBy=branch
+**Query Params:**
+
+- `year` (required)
+- `branch` (optional)
+- `groupBy` (optional: `semester` | `subject` | `branch`, default `semester`)
+
+Backlog active/cleared computation now uses carry-over history + latest COP codes:
+
+- Active backlog code: still present in `latestCOP`
+- Cleared backlog code: present in history but not in `latestCOP`
+
+**Error response:**
+
+```json
+{
+  "success": false,
+  "error": "`year` query param is required for backlog analysis."
+}
 ```
 
-**Success Response (200 OK):**
+**Success response now includes `meta`:**
+
 ```json
 {
   "success": true,
@@ -557,348 +412,40 @@ GET https://singularity-server.devxoshakya.workers.dev/api/analytics/backlog-ana
       "activeBacklogs": 120,
       "clearedBacklogs": 280,
       "totalBacklogs": 400,
-      "clearanceRate": 70.0
-    },
-    {
-      "category": "ECE",
-      "activeBacklogs": 80,
-      "clearedBacklogs": 150,
-      "totalBacklogs": 230,
-      "clearanceRate": 65.22
-    },
-    {
-      "category": "ME",
-      "activeBacklogs": 45,
-      "clearedBacklogs": 95,
-      "totalBacklogs": 140,
-      "clearanceRate": 67.86
+      "clearanceRate": 70
     }
-  ]
-}
-```
-
-**With groupBy=subject (Top 10 subjects):**
-```json
-{
-  "success": true,
-  "data": [
-    {
-      "category": "Data Structures",
-      "activeBacklogs": 45,
-      "clearedBacklogs": 89,
-      "totalBacklogs": 134,
-      "clearanceRate": 66.42
-    },
-    {
-      "category": "Analog Electronics",
-      "activeBacklogs": 38,
-      "clearedBacklogs": 72,
-      "totalBacklogs": 110,
-      "clearanceRate": 65.45
-    }
-  ]
-}
-```
-
----
-
-### Phase 3: AI-Powered & Advanced Analytics
-
-#### 8. Branch Performance Radar
-
-Returns multi-dimensional performance metrics for each branch for radar chart visualization.
-
-**Endpoint:** `GET /api/analytics/branch-performance-radar`
-
-**Query Parameters:**
-- `year` (optional) - Filter by year (1-4)
-
-**Example Request:**
-```bash
-GET https://singularity-server.devxoshakya.workers.dev/api/analytics/branch-performance-radar
-```
-
-**Success Response (200 OK):**
-```json
-{
-  "success": true,
-  "data": [
-    {
-      "branch": "CSE",
-      "passRate": 85.5,
-      "academicPerformance": 78.2,
-      "backlogManagement": 92.0,
-      "totalStudents": 1200,
-      "avgSgpa": 7.82,
-      "avgMarks": 689
-    },
-    {
-      "branch": "ECE",
-      "passRate": 82.3,
-      "academicPerformance": 75.8,
-      "backlogManagement": 88.5,
-      "totalStudents": 800,
-      "avgSgpa": 7.58,
-      "avgMarks": 672
-    },
-    {
-      "branch": "ME",
-      "passRate": 79.1,
-      "academicPerformance": 72.4,
-      "backlogManagement": 85.3,
-      "totalStudents": 600,
-      "avgSgpa": 7.24,
-      "avgMarks": 658
-    }
-  ]
-}
-```
-
-**Metrics Explanation:**
-- `passRate`: Percentage of students who passed (0-100)
-- `academicPerformance`: SGPA normalized to 0-100 scale
-- `backlogManagement`: Inverse backlog rate (higher is better, 0-100)
-
----
-
-#### 9. Top Performers
-
-Returns top N performing students for radial bar chart or leaderboard.
-
-**Endpoint:** `GET /api/analytics/top-performers`
-
-**Query Parameters:**
-- `limit` (optional) - Number of students (default: 10, max: 100)
-- `year` (optional) - Filter by year (1-4)
-- `branch` (optional) - Filter by branch
-- `metric` (optional) - "sgpa" | "marks" (default: "sgpa")
-
-**Example Request:**
-```bash
-GET https://singularity-server.devxoshakya.workers.dev/api/analytics/top-performers?limit=5&metric=sgpa
-```
-
-**Success Response (200 OK):**
-```json
-{
-  "success": true,
-  "data": {
-    "topPerformers": [
-      {
-        "rank": 1,
-        "rollNo": "2400680100123",
-        "enrollmentNo": "EN2024001",
-        "name": "Rahul Kumar",
-        "branch": "CSE",
-        "year": 3,
-        "avgSgpa": 9.45,
-        "latestSgpa": 9.52,
-        "totalMarks": 892,
-        "status": "Pass",
-        "backlogCount": 0,
-        "performanceScore": 9.45,
-        "chartValue": 94.5
-      },
-      {
-        "rank": 2,
-        "rollNo": "2400680100245",
-        "enrollmentNo": "EN2024002",
-        "name": "Priya Sharma",
-        "branch": "CSE-AI",
-        "year": 3,
-        "avgSgpa": 9.38,
-        "latestSgpa": 9.41,
-        "totalMarks": 885,
-        "status": "Pass",
-        "backlogCount": 0,
-        "performanceScore": 9.38,
-        "chartValue": 93.8
-      },
-      {
-        "rank": 3,
-        "rollNo": "2400681540067",
-        "enrollmentNo": "EN2024003",
-        "name": "Arjun Patel",
-        "branch": "CSE-DS",
-        "year": 2,
-        "avgSgpa": 9.32,
-        "latestSgpa": 9.35,
-        "totalMarks": 878,
-        "status": "Pass",
-        "backlogCount": 0,
-        "performanceScore": 9.32,
-        "chartValue": 93.2
-      }
-    ],
-    "metric": "sgpa",
-    "totalStudents": 5724
+  ],
+  "meta": {
+    "year": 2,
+    "groupBy": "branch",
+    "students": 1500,
+    "studentsWithBacklogs": 325,
+    "activeBacklogs": 240,
+    "clearedBacklogs": 510,
+    "totalBacklogs": 750,
+    "clearanceRate": 68
   }
 }
 ```
 
----
+### 8. Branch Performance Radar
 
-#### 10. Natural Language Query (LLM-Powered)
+**Endpoint:** `GET /api/analytics/branch-performance-radar`
 
-AI-powered endpoint that accepts natural language queries and returns contextual analytics insights.
+**Query Params:**
 
-**Endpoint:** `POST /api/analytics/query`
+- `year` (optional)
 
-**Request Body:**
-```json
-{
-  "query": "What is the pass rate for CSE students?",
-  "year": "2",
-  "branch": "CSE"
-}
-```
+### 9. Top Performers
 
-**Supported Query Patterns:**
-- Pass rate queries: "What is the pass rate?", "How many students passed?"
-- Average SGPA: "What is the average SGPA?", "Show me average performance"
-- Backlog analysis: "Tell me about backlogs", "How many carry overs?"
-- Best branch: "Which branch is best?", "Top performing branch"
-- Fail count: "How many students failed?"
-- General summary: Any other query returns comprehensive summary
+**Endpoint:** `GET /api/analytics/top-performers`
 
-**Example Request:**
-```bash
-POST https://singularity-server.devxoshakya.workers.dev/api/analytics/query
-Content-Type: application/json
+**Query Params:**
 
-{
-  "query": "What is the pass rate for CSE students in year 2?",
-  "year": "2",
-  "branch": "CSE"
-}
-```
-
-**Success Response (200 OK):**
-```json
-{
-  "success": true,
-  "query": "What is the pass rate for CSE students in year 2?",
-  "type": "pass_rate",
-  "data": {
-    "totalStudents": 500,
-    "passCount": 427,
-    "passRate": 85.4
-  },
-  "insight": "Out of 500 students, 427 have passed with a pass rate of 85.4%."
-}
-```
-
-**Example: Average SGPA Query**
-```bash
-POST /api/analytics/query
-{
-  "query": "Show me the average SGPA"
-}
-```
-
-**Response:**
-```json
-{
-  "success": true,
-  "query": "Show me the average SGPA",
-  "type": "average_sgpa",
-  "data": {
-    "totalStudents": 5724,
-    "studentsWithSgpa": 5680,
-    "averageSgpa": 7.65
-  },
-  "insight": "The average SGPA across 5680 students is 7.65."
-}
-```
-
-**Example: Best Branch Query**
-```bash
-POST /api/analytics/query
-{
-  "query": "Which branch is performing best?"
-}
-```
-
-**Response:**
-```json
-{
-  "success": true,
-  "query": "Which branch is performing best?",
-  "type": "top_branch",
-  "data": {
-    "topBranch": "CSE",
-    "avgSgpa": 7.94,
-    "students": 1200,
-    "allBranches": [
-      { "branch": "CSE", "avgSgpa": 7.94, "students": 1200 },
-      { "branch": "CSE-AI", "avgSgpa": 7.88, "students": 450 },
-      { "branch": "ECE", "avgSgpa": 7.62, "students": 800 }
-    ]
-  },
-  "insight": "CSE is the best performing branch with an average SGPA of 7.94."
-}
-```
-
-**Example: Backlog Analysis Query**
-```bash
-POST /api/analytics/query
-{
-  "query": "Tell me about carry overs and backlogs"
-}
-```
-
-**Response:**
-```json
-{
-  "success": true,
-  "query": "Tell me about carry overs and backlogs",
-  "type": "backlog_analysis",
-  "data": {
-    "totalStudents": 5724,
-    "studentsWithBacklogs": 1245,
-    "totalBacklogs": 2890,
-    "backlogRate": 21.75,
-    "avgBacklogsPerStudent": 2.3
-  },
-  "insight": "1245 students (21.75%) have backlogs, with a total of 2890 carry-over subjects."
-}
-```
-
-**Example: General Summary (Unrecognized Query)**
-```bash
-POST /api/analytics/query
-{
-  "query": "Give me a summary"
-}
-```
-
-**Response:**
-```json
-{
-  "success": true,
-  "query": "Give me a summary",
-  "type": "general_summary",
-  "data": {
-    "totalStudents": 5724,
-    "statusDistribution": {
-      "Pass": 4850,
-      "PCP": 780,
-      "Fail": 94
-    },
-    "averageSgpa": 7.65
-  },
-  "insight": "Summary of 5724 students: 4850 passed, 780 with carry-overs, 94 failed. Average SGPA is 7.65.",
-  "suggestion": "Try asking about 'pass rate', 'average SGPA', 'backlogs', 'best branch', or 'fail count'."
-}
-```
-
-**Error Response (400 Bad Request):**
-```json
-{
-  "success": false,
-  "error": "Query parameter is required"
-}
-```
+- `limit` (optional, default `10`)
+- `year` (optional)
+- `branch` (optional)
+- `metric` (optional: `sgpa` | `marks`)
 
 ---
 
@@ -907,15 +454,14 @@ POST /api/analytics/query
 | Endpoint | Method | Purpose | Chart Type |
 |----------|--------|---------|------------|
 | `/api/analytics/student-status-distribution` | GET | Pass/PCP/Fail counts | Pie Chart |
-| `/api/analytics/branch-status-breakdown` | GET | Branch-wise performance | Grouped Bar Chart |
-| `/api/analytics/year-branch-comparison` | GET | Multi-year comparison | Area Chart |
-| `/api/analytics/performance-metrics` | GET | Dashboard KPIs | Stats Cards |
-| `/api/analytics/semester-progression` | GET | Semester-wise trends | Line Chart |
+| `/api/analytics/branch-status-breakdown` | GET | Branch-wise status breakdown | Grouped Bar Chart |
+| `/api/analytics/year-branch-comparison` | GET | Multi-year branch comparison | Area Chart |
+| `/api/analytics/performance-metrics` | GET | KPI cards + mandatory 2-year comparison | Stats Cards |
+| `/api/analytics/semester-progression` | GET | Semester trends | Line Chart |
 | `/api/analytics/sgpa-range-distribution` | GET | SGPA distribution | Histogram |
-| `/api/analytics/backlog-analysis` | GET | Backlog statistics | Stacked Bar Chart |
-| `/api/analytics/branch-performance-radar` | GET | Multi-dimensional metrics | Radar Chart |
+| `/api/analytics/backlog-analysis` | GET | Backlog active/cleared analysis | Stacked Bar Chart |
+| `/api/analytics/branch-performance-radar` | GET | Multi-dimensional branch metrics | Radar Chart |
 | `/api/analytics/top-performers` | GET | Top students leaderboard | Radial Bar / Table |
-| `/api/analytics/query` | POST | Natural language analytics | AI-Powered Insights |
 
 ---
 
