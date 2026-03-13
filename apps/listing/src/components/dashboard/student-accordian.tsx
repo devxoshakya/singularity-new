@@ -3,7 +3,7 @@
 import * as React from "react"
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
 import { Button } from "@/components/ui/button"
-import { Dialog } from "@/components/ui/dialog"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Pagination, PaginationContent, PaginationEllipsis, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination"
@@ -90,6 +90,8 @@ export function StudentAccordion() {
   const [isLoading, setIsLoading] = React.useState(true)
   const [isLoadingResult, setIsLoadingResult] = React.useState(false)
   const [error, setError] = React.useState<string | null>(null)
+  const [isConfirmOpen, setIsConfirmOpen] = React.useState(false)
+  const [pendingStudent, setPendingStudent] = React.useState<{ rollNo: string; fullName: string } | null>(null)
   const itemsPerPage = 10
 
   // Fetch students cache on mount with localStorage caching
@@ -165,30 +167,34 @@ export function StudentAccordion() {
     fetchStudents()
   }, [])
 
-  const handleViewResults = async (e: React.MouseEvent, rollNo: string) => {
+  const handleViewResults = (e: React.MouseEvent, rollNo: string, fullName: string) => {
     e.stopPropagation()
+    setPendingStudent({ rollNo, fullName })
+    setIsConfirmOpen(true)
+  }
+
+  const handleConfirm = async () => {
+    if (!pendingStudent) return
     setIsLoadingResult(true)
-    setIsOpen(true)
-    setSelectedResult(null) // Reset previous result
-    
     try {
-      const response = await fetch(`${API_BASE_URL}/api/result/by-rollno?rollNo=${rollNo}`)
-      
+      const response = await fetch(`${API_BASE_URL}/api/result/by-rollno?rollNo=${pendingStudent.rollNo}`)
+
       if (!response.ok) {
         throw new Error("Failed to fetch student result")
       }
-      
+
       const data: ResultApiResponse = await response.json()
-      
+
       if (data.success) {
         setSelectedResult(data.data)
+        setIsConfirmOpen(false)
+        setIsOpen(true)
       } else {
         throw new Error("Failed to load result")
       }
     } catch (err) {
       console.error("Error fetching result:", err)
       setSelectedResult(null)
-      setIsOpen(false) // Close dialog on error
     } finally {
       setIsLoadingResult(false)
     }
@@ -253,25 +259,26 @@ export function StudentAccordion() {
     return branch
   }
 
-  // Filter students based on search and year, then recalculate ranks
-  const filteredStudents = React.useMemo(() => {
-    const filtered = studentsData.filter((student) => {
-      const matchesSearch = searchTerm === "" ||
-        student.fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        student.rollNo.toLowerCase().includes(searchTerm.toLowerCase())
-      
-      const matchesYear = selectedYear === "all" || student.year === parseInt(selectedYear)
-      
-      return matchesSearch && matchesYear
-    })
-    
-    // Recalculate ranks based on filtered data
-    // Ranks are already sorted by latest semester SGPA from backend
+  // Assign ranks based on year filter only (ranks stay stable during search)
+  const rankedByYear = React.useMemo(() => {
+    const filtered = studentsData.filter((student) =>
+      selectedYear === "all" || student.year === parseInt(selectedYear)
+    )
     return filtered.map((student, index) => ({
       ...student,
       rank: index + 1
     }))
-  }, [searchTerm, selectedYear, studentsData])
+  }, [selectedYear, studentsData])
+
+  // Further filter by search term without changing ranks
+  const filteredStudents = React.useMemo(() => {
+    if (searchTerm === "") return rankedByYear
+    const lower = searchTerm.toLowerCase()
+    return rankedByYear.filter((student) =>
+      student.fullName.toLowerCase().includes(lower) ||
+      student.rollNo.toLowerCase().includes(lower)
+    )
+  }, [searchTerm, rankedByYear])
 
   // Calculate pagination
   const totalPages = Math.ceil(filteredStudents.length / itemsPerPage)
@@ -375,7 +382,7 @@ export function StudentAccordion() {
                         <p className="font-medium text-foreground">{shortenBranchName(student.branch)}</p>
                       </div>
                     </div>
-                    <Button onClick={(e) => handleViewResults(e, student.rollNo)} className="w-full sm:w-auto">
+                    <Button onClick={(e) => handleViewResults(e, student.rollNo, student.fullName)} className="w-full sm:w-auto">
                       View Results
                     </Button>
                   </div>
@@ -465,18 +472,43 @@ export function StudentAccordion() {
         </Pagination>
       )}
 
+      {/* Confirmation Dialog */}
+      <Dialog open={isConfirmOpen} onOpenChange={(open) => { if (!isLoadingResult) setIsConfirmOpen(open) }}>
+        <DialogContent showCloseButton={!isLoadingResult}>
+          <DialogHeader>
+            <DialogTitle>View Student Results</DialogTitle>
+          </DialogHeader>
+          <p className="text-sm text-muted-foreground">
+            Are you sure you want to fetch results for{" "}
+            <span className="font-medium text-foreground">{pendingStudent?.fullName}</span>?
+          </p>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setIsConfirmOpen(false)}
+              disabled={isLoadingResult}
+            >
+              Cancel
+            </Button>
+            <Button onClick={handleConfirm} disabled={isLoadingResult}>
+              {isLoadingResult ? (
+                <span className="flex items-center gap-2">
+                  <Loader size="sm" intent="current" />
+                  Fetching...
+                </span>
+              ) : (
+                "Confirm"
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Results Dialog */}
       <Dialog open={isOpen} onOpenChange={setIsOpen}>
-        {isLoadingResult ? (
-          <div className="flex items-center justify-center p-12">
-            <Loader size="md" intent="primary" />
-          </div>
-        ) : selectedResult ? (
+        {selectedResult ? (
           <StudentResultsDialog results={selectedResult} />
-        ) : (
-          <div className="text-center p-12">
-            <p className="text-destructive">Failed to load student result</p>
-          </div>
-        )}
+        ) : null}
       </Dialog>
     </>
   )
