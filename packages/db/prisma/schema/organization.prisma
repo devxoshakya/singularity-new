@@ -1,0 +1,71 @@
+
+enum Role {
+    ADMIN
+    MEMBER // student
+}
+
+enum MembershipStatus {
+    PENDING
+    ACTIVE
+    REJECTED
+}
+
+enum Plan {
+    FREE //nothing for you gareebo
+    BASIC // 1,000 students  | 1,000 total members
+    PRO // 2,500 students  | 2,500 total members
+    PRO_PLUS // 4,000 students | 4,000 total members
+    PREMIUM // 6,000 students  | 6,000 total members
+    PREMIUM_PLUS // 8,000 students | 8,000 total members
+}
+
+
+model OrgUser {
+    id        String   @id @map("_id") // Clerk user ID
+    email     String   @unique
+    createdAt DateTime @default(now())
+    memberships OrgMembership[]
+    ownedOrgs   Org[]           @relation("OrgOwner")
+}
+
+model Org {
+    id          String  @id @default(auto()) @map("_id") @db.ObjectId
+    name        String
+    slug        String  @unique
+    isPublic    Boolean @default(true)
+    description String?
+
+    ownerId String
+    owner   OrgUser @relation("OrgOwner", fields: [ownerId], references: [id])
+
+    // Plan & limits
+    plan         Plan @default(FREE)
+    studentLimit Int  @default(0) // derived from plan, stored for fast queries
+    memberLimit  Int  @default(0) // student + faculty combined
+    studentCount Int  @default(0) // live counter — increment on ACTIVE member
+    memberCount  Int  @default(0) // live counter
+
+    // DodoPayments
+    dodoCustomerId     String?
+    dodoSubscriptionId String?
+    planExpiresAt      DateTime?
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+    members OrgMembership[]
+}
+
+model OrgMembership {
+    id     String           @id @default(auto()) @map("_id") @db.ObjectId
+    orgId  String           @db.ObjectId
+    userId String // Clerk user ID (string, not ObjectId)
+    role   Role             @default(MEMBER)
+    status MembershipStatus @default(PENDING)
+
+    requestedAt DateTime  @default(now())
+    acceptedAt  DateTime?
+
+    org  Org     @relation(fields: [orgId], references: [id])
+    user OrgUser @relation(fields: [userId], references: [id])
+
+    @@unique([orgId, userId])
+}
