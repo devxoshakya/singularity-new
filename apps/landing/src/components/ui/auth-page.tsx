@@ -3,12 +3,16 @@
 import { useState } from "react";
 import { useSignIn } from "@clerk/nextjs/legacy";
 import Link from "next/link";
+import dynamic from "next/dynamic";
 import { ChevronLeftIcon } from "lucide-react";
 import { toast } from "sonner";
 
-import ColorBends from "@/components/ColorBends";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
+
+const ColorBends = dynamic(() => import("@/components/ColorBends"), {
+  ssr: false,
+});
 
 export function AuthPage() {
   const [acceptedTerms, setAcceptedTerms] = useState(false);

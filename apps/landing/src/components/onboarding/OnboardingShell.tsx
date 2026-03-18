@@ -1,14 +1,24 @@
 "use client";
 
 import { useState } from "react";
-import ColorBends from "@/components/ColorBends";
-import Dither from "@/components/Dither";
-import PrismaticBurst from "@/components/PrismaticBurst";
+import dynamic from "next/dynamic";
 import StepChoose from "./StepChoose";
 import StepCreate from "./StepCreate";
 import StepJoin from "./StepJoin";
 import StepPending from "./StepPending";
 import { cn } from "@/lib/utils";
+
+const ColorBends = dynamic(() => import("@/components/ColorBends"), {
+  ssr: false,
+});
+
+const Dither = dynamic(() => import("@/components/Dither"), {
+  ssr: false,
+});
+
+const PrismaticBurst = dynamic(() => import("@/components/PrismaticBurst"), {
+  ssr: false,
+});
 
 export type Step = "choose" | "create" | "join" | "pending";
 
