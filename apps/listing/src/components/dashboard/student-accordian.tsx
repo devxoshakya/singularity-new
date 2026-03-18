@@ -7,9 +7,17 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Pagination, PaginationContent, PaginationEllipsis, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination"
-import { StudentResultsDialog } from "@/components/ui/student-results-dialog"
 import { Search } from "lucide-react"
 import { Loader } from "@/components/ui/loader"
+import dynamic from "next/dynamic"
+
+const StudentResultsDialog = dynamic(
+  () => import("@/components/ui/student-results-dialog").then((mod) => mod.StudentResultsDialog),
+  {
+    ssr: false,
+    loading: () => <div className="p-4 text-sm text-muted-foreground">Loading results chart...</div>,
+  }
+)
 
 export type Subject = {
   id: string
