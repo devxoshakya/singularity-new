@@ -18,13 +18,13 @@ jobs:
         uses: oven-sh/setup-bun@v2
         with:
           bun-version: latest
-      
+
       - name: Cache Bun Dependencies
         uses: actions/cache@v4
         with:
           path: |
             ~/.bun/install/cache
-            bun.lock 
+            bun.lock
           key: ${{ runner.os }}-bun-${{ hashFiles('bun.lock') }}
           restore-keys: |
             ${{ runner.os }}-bun-
@@ -33,14 +33,12 @@ jobs:
         run: bun install
 
       - name: Generate Prisma Client
-              working-directory: packages/db
-              run: |
-                  bun run db:generate
+        working-directory: packages/db
+        run: bun run db:generate
 
       - name: Build the landing app
         working-directory: apps/landing
-        run: |
-          bun run cf:build
+        run: bun run cf:build
 
       - name: Deploy to Cloudflare Workers
         uses: cloudflare/wrangler-action@v3
