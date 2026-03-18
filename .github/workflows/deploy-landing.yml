@@ -10,6 +10,16 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 60
 
+    env:
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      DIRECT_URL: ${{ secrets.DIRECT_URL }}
+      NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }}
+      CLERK_SECRET_KEY: ${{ secrets.CLERK_SECRET_KEY }}
+      DODO_PAYMENTS_API_KEY: ${{ secrets.DODO_PAYMENTS_API_KEY }}
+      DODO_PAYMENTS_WEBHOOK_SECRET: ${{ secrets.LANDING_DODO_PAYMENTS_WEBHOOK_SECRET }}
+      DODO_PAYMENTS_ENVIRONMENT: ${{ secrets.DODO_PAYMENTS_ENVIRONMENT }}
+      DODO_PAYMENTS_RETURN_URL: ${{ secrets.LANDING_DODO_PAYMENTS_RETURN_URL }}
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -47,3 +57,22 @@ jobs:
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           workingDirectory: apps/landing
           command: deploy
+          secrets: |
+            DATABASE_URL
+            DIRECT_URL
+            NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY
+            CLERK_SECRET_KEY
+            DODO_PAYMENTS_API_KEY
+            DODO_PAYMENTS_WEBHOOK_SECRET
+            DODO_PAYMENTS_ENVIRONMENT
+            DODO_PAYMENTS_RETURN_URL
+
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          DIRECT_URL: ${{ secrets.DIRECT_URL }}
+          NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }}
+          CLERK_SECRET_KEY: ${{ secrets.CLERK_SECRET_KEY }}
+          DODO_PAYMENTS_API_KEY: ${{ secrets.DODO_PAYMENTS_API_KEY }}
+          DODO_PAYMENTS_WEBHOOK_SECRET: ${{ secrets.LANDING_DODO_PAYMENTS_WEBHOOK_SECRET }}
+          DODO_PAYMENTS_ENVIRONMENT: ${{ secrets.DODO_PAYMENTS_ENVIRONMENT }}
+          DODO_PAYMENTS_RETURN_URL: ${{ secrets.LANDING_DODO_PAYMENTS_RETURN_URL }}
