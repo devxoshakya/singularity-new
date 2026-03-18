@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { CheckCircle2, ChevronLeftIcon, Mail } from "lucide-react";
+import { Check, CheckCheck, CheckCircle2, ChevronLeftIcon, Mail } from "lucide-react";
 import { PLAN_LIMITS, type PlanKey } from "@/lib/plans";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -94,14 +94,14 @@ export default function StepCreate({ onBack }: { onBack: () => void }) {
           <div className="space-y-2">
             <label className="text-xs text-muted-foreground">Slug</label>
             <div className="relative">
-              <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">
+              <span className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">
                 singularity.app/
               </span>
               <Input
                 placeholder="acme-university"
                 value={orgSlug}
                 onChange={(e) => setOrgSlug(e.target.value)}
-                className="bg-background/70 pl-28"
+                className="bg-background/70 pl-29"
               />
             </div>
           </div>
@@ -165,7 +165,7 @@ export default function StepCreate({ onBack }: { onBack: () => void }) {
                       selected ? "border-primary bg-primary text-primary-foreground" : "border-muted"
                     )}
                   >
-                    {selected ? <CheckCircle2 className="size-3.5" /> : null}
+                    {selected ? <CheckCheck className="size-3.5" /> : null}
                   </span>
                   <div>
                     <p className="text-sm font-medium text-foreground">{limits.label}</p>
