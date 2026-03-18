@@ -32,6 +32,11 @@ jobs:
       - name: Install dependencies
         run: bun install
 
+      - name: Generate Prisma Client
+              working-directory: packages/db
+              run: |
+                  bun run db:generate
+
       - name: Build the landing app
         working-directory: apps/landing
         run: |
