@@ -1,111 +1,62 @@
 "use client";
 
-import type React from "react";
-import { Step } from "./OnboardingShell";
-
-const card: React.CSSProperties = {
-  background: "#111",
-  border: "1px solid #1f1f1f",
-  borderRadius: 16,
-  padding: "32px 28px",
-  cursor: "pointer",
-  transition: "border-color 0.2s, transform 0.2s",
-  flex: 1,
-};
+import { ArrowRight, Building2, Users } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { type Step } from "./OnboardingShell";
 
 export default function StepChoose({ onSelect }: { onSelect: (s: Step) => void }) {
   return (
-    <div>
-      <h1 style={{ color: "#fff", fontSize: 28, fontWeight: 700, marginBottom: 8, letterSpacing: "-0.03em" }}>
-        Welcome aboard.
-      </h1>
-      <p style={{ color: "#555", fontSize: 15, marginBottom: 36 }}>
-        Get started by creating your organisation or joining an existing one.
-      </p>
+    <>
+      <div className="mx-auto max-w-xl space-y-8">
+        <div className="space-y-2 text-center">
+          <h1 className="font-heading text-2xl font-bold tracking-wide text-white sm:text-3xl">
+            Welcome aboard.
+          </h1>
+          <p className="text-sm text-muted-foreground sm:text-base">
+            Get started by creating your organisation or joining an existing one.
+          </p>
+        </div>
 
-      <div style={{ display: "flex", gap: 16 }}>
-        <div
-          style={card}
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+        <button
+          type="button"
           onClick={() => onSelect("create")}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.borderColor = "#635bff";
-            e.currentTarget.style.transform = "translateY(-2px)";
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.borderColor = "#1f1f1f";
-            e.currentTarget.style.transform = "translateY(0)";
-          }}
+          className="group rounded-xl border border-border/60 bg-background/80 p-5 text-left transition hover:-translate-y-0.5 hover:border-primary/60"
         >
-          <div
-            style={{
-              width: 40,
-              height: 40,
-              borderRadius: 10,
-              background: "rgba(99,91,255,0.15)",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              marginBottom: 20,
-            }}
-          >
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#635bff" strokeWidth="1.8" strokeLinecap="round">
-              <path d="M12 5v14M5 12h14" />
-            </svg>
-          </div>
-          <h2 style={{ color: "#fff", fontSize: 17, fontWeight: 600, marginBottom: 8 }}>Create an org</h2>
-          <p style={{ color: "#555", fontSize: 14, lineHeight: 1.6 }}>
+          <span className="mb-4 flex size-10 items-center justify-center rounded-lg bg-primary/15 text-primary">
+            <Building2 className="size-5" />
+          </span>
+          <h2 className="mb-2 text-lg font-semibold text-foreground">Create an org</h2>
+          <p className="text-sm text-muted-foreground">
             Set up your organisation, pick a plan, and invite your team.
           </p>
-          <div style={{ marginTop: 24, display: "flex", alignItems: "center", gap: 6, color: "#635bff", fontSize: 13 }}>
-            <span>Get started</span>
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-              <path d="M5 12h14M13 6l6 6-6 6" />
-            </svg>
-          </div>
-        </div>
+          <Badge variant="secondary" className="mt-3">Paid plans</Badge>
+          <span className="mt-5 inline-flex items-center gap-1 text-sm font-medium text-primary">
+            Get started
+            <ArrowRight className="size-4" />
+          </span>
+        </button>
 
-        <div
-          style={card}
+        <button
+          type="button"
           onClick={() => onSelect("join")}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.borderColor = "#14b8a6";
-            e.currentTarget.style.transform = "translateY(-2px)";
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.borderColor = "#1f1f1f";
-            e.currentTarget.style.transform = "translateY(0)";
-          }}
+          className="group rounded-xl border border-border/60 bg-background/80 p-5 text-left transition hover:-translate-y-0.5 hover:border-cyan-400/60"
         >
-          <div
-            style={{
-              width: 40,
-              height: 40,
-              borderRadius: 10,
-              background: "rgba(20,184,166,0.12)",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              marginBottom: 20,
-            }}
-          >
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#14b8a6" strokeWidth="1.8" strokeLinecap="round">
-              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
-              <circle cx="9" cy="7" r="4" />
-              <path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" />
-            </svg>
-          </div>
-          <h2 style={{ color: "#fff", fontSize: 17, fontWeight: 600, marginBottom: 8 }}>Join an org</h2>
-          <p style={{ color: "#555", fontSize: 14, lineHeight: 1.6 }}>
+          <span className="mb-4 flex size-10 items-center justify-center rounded-lg bg-cyan-400/15 text-cyan-400">
+            <Users className="size-5" />
+          </span>
+          <h2 className="mb-2 text-lg font-semibold text-foreground">Join an org</h2>
+          <p className="text-sm text-muted-foreground">
             Browse public organisations and send a request to join.
           </p>
-          <div style={{ marginTop: 24, display: "flex", alignItems: "center", gap: 6, color: "#14b8a6", fontSize: 13 }}>
-            <span>Browse orgs</span>
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-              <path d="M5 12h14M13 6l6 6-6 6" />
-            </svg>
-          </div>
-        </div>
+          <Badge variant="outline" className="mt-3 border-cyan-400/50 text-cyan-300">Public orgs</Badge>
+          <span className="mt-5 inline-flex items-center gap-1 text-sm font-medium text-cyan-400">
+            Browse orgs
+            <ArrowRight className="size-4" />
+          </span>
+        </button>
       </div>
-    </div>
+      </div>
+    </>
   );
 }

@@ -1,33 +1,37 @@
 "use client";
 
+import { Clock3, ChevronLeftIcon } from "lucide-react";
+import Link from "next/link";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+
 export default function StepPending({ orgName }: { orgName: string | null }) {
   return (
-    <div style={{ textAlign: "center", padding: "20px 0" }}>
-      <div
-        style={{
-          width: 56,
-          height: 56,
-          borderRadius: "50%",
-          background: "rgba(20,184,166,0.1)",
-          border: "1px solid rgba(20,184,166,0.2)",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          margin: "0 auto 24px",
-        }}
-      >
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#14b8a6" strokeWidth="1.8" strokeLinecap="round">
-          <circle cx="12" cy="12" r="10" />
-          <path d="M12 6v6l4 2" />
-        </svg>
+    <>
+      <Button variant="ghost" className="absolute top-7 left-5 z-20" asChild>
+        <Link href="/">
+          <ChevronLeftIcon className="me-2 size-4" />
+          Back
+        </Link>
+      </Button>
+      <div className="mx-auto max-w-xl space-y-4 text-center">
+        <div className="mx-auto mb-5 flex size-14 items-center justify-center rounded-full border border-cyan-300/30 bg-cyan-400/10 text-cyan-400">
+          <Clock3 className="size-6" />
+        </div>
+
+        <h1 className="font-heading text-2xl font-bold tracking-wide text-white">Request sent</h1>
+        <p className="mx-auto mt-3 max-w-md text-sm leading-7 text-muted-foreground">
+          Your request to join
+          {orgName ? <span className="font-medium text-foreground"> {orgName}</span> : " the organisation"} is pending admin approval.
+          You will get access as soon as they accept.
+        </p>
+
+        <div className="mt-5">
+          <Badge variant="secondary">Pending approval</Badge>
+        </div>
+
+        <p className="mt-4 text-xs text-muted-foreground">You can safely close this tab.</p>
       </div>
-      <h1 style={{ color: "#fff", fontSize: 22, fontWeight: 700, marginBottom: 10, letterSpacing: "-0.03em" }}>Request sent</h1>
-      <p style={{ color: "#555", fontSize: 14, lineHeight: 1.7, maxWidth: 340, margin: "0 auto" }}>
-        Your request to join
-        {orgName ? <span style={{ color: "#fff" }}> {orgName}</span> : " the organisation"} is pending admin approval. You will get
-        access as soon as they accept.
-      </p>
-      <p style={{ color: "#333", fontSize: 12, marginTop: 24 }}>You can safely close this tab.</p>
-    </div>
+    </>
   );
 }

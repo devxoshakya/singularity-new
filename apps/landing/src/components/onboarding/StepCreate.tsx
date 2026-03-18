@@ -1,28 +1,24 @@
 "use client";
 
-import type React from "react";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { CheckCircle2, ChevronLeftIcon, Mail } from "lucide-react";
 import { PLAN_LIMITS, type PlanKey } from "@/lib/plans";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { cn } from "@/lib/utils";
 
-const PAID_PLANS = ["BASIC", "PRO", "PRO_PLUS", "PREMIUM", "PREMIUM_PLUS"] as PlanKey[];
+type PlanGroup = "BASIC_PLANS" | "PLUS_PLANS";
 
-const inputStyle: React.CSSProperties = {
-  width: "100%",
-  background: "#111",
-  border: "1px solid #1f1f1f",
-  borderRadius: 10,
-  padding: "11px 14px",
-  color: "#fff",
-  fontSize: 14,
-  outline: "none",
-  boxSizing: "border-box",
-};
+const BASIC_PLANS = ["BASIC", "PRO", "PREMIUM"] as PlanKey[];
+const PLUS_PLANS = ["PRO_PLUS", "PREMIUM_PLUS"] as PlanKey[];
 
 export default function StepCreate({ onBack }: { onBack: () => void }) {
   const router = useRouter();
   const [orgName, setOrgName] = useState("");
   const [orgSlug, setOrgSlug] = useState("");
+  const [planGroup, setPlanGroup] = useState<PlanGroup>("BASIC_PLANS");
   const [plan, setPlan] = useState<PlanKey>("BASIC");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -66,121 +62,150 @@ export default function StepCreate({ onBack }: { onBack: () => void }) {
   }
 
   const selectedLimits = PLAN_LIMITS[plan];
+  const visiblePlans = planGroup === "BASIC_PLANS" ? BASIC_PLANS : PLUS_PLANS;
 
   return (
-    <div>
-      <button
-        onClick={onBack}
-        style={{
-          background: "none",
-          border: "none",
-          color: "#555",
-          cursor: "pointer",
-          padding: 0,
-          marginBottom: 28,
-          display: "flex",
-          alignItems: "center",
-          gap: 6,
-          fontSize: 14,
-        }}
-      >
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-          <path d="M19 12H5M11 6l-6 6 6 6" />
-        </svg>
+    <>
+      <Button variant="ghost" className="absolute top-7 left-5 z-20" onClick={onBack}>
+        <ChevronLeftIcon className="me-2 size-4" />
         Back
-      </button>
-
-      <h1 style={{ color: "#fff", fontSize: 24, fontWeight: 700, marginBottom: 6, letterSpacing: "-0.03em" }}>
-        Create your organisation
-      </h1>
-      <p style={{ color: "#555", fontSize: 14, marginBottom: 32 }}>One-time purchase - no recurring fees.</p>
-
-      <div style={{ display: "flex", flexDirection: "column", gap: 12, marginBottom: 28 }}>
-        <div>
-          <label style={{ color: "#888", fontSize: 12, display: "block", marginBottom: 6 }}>Organisation name</label>
-          <input style={inputStyle} placeholder="Acme University" value={orgName} onChange={(e) => handleNameChange(e.target.value)} />
+      </Button>
+      <div className="mx-auto max-w-xl space-y-4">
+        <div className="space-y-2">
+          <h1 className="font-heading text-2xl font-bold tracking-wide text-white sm:text-3xl">
+            Create your organisation
+          </h1>
+          <p className="text-sm text-muted-foreground sm:text-base">
+            One-time purchase, no recurring fees.
+          </p>
         </div>
-        <div>
-          <label style={{ color: "#888", fontSize: 12, display: "block", marginBottom: 6 }}>Slug</label>
-          <div style={{ position: "relative" }}>
-            <span style={{ position: "absolute", left: 14, top: "50%", transform: "translateY(-50%)", color: "#444", fontSize: 14 }}>
-              singularity.app/
-            </span>
-            <input
-              style={{ ...inputStyle, paddingLeft: 130 }}
-              placeholder="acme-university"
-              value={orgSlug}
-              onChange={(e) => setOrgSlug(e.target.value)}
+
+        <div className="space-y-4">
+          <div className="space-y-2">
+            <label className="text-xs text-muted-foreground">Organisation name</label>
+            <Input
+              placeholder="Acme University"
+              value={orgName}
+              onChange={(e) => handleNameChange(e.target.value)}
+              className="bg-background/70"
             />
           </div>
-        </div>
-      </div>
 
-      <label style={{ color: "#888", fontSize: 12, display: "block", marginBottom: 12 }}>Select a plan</label>
-      <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 28 }}>
-        {PAID_PLANS.map((p) => {
-          const limits = PLAN_LIMITS[p];
-          const selected = plan === p;
-          return (
-            <div
-              key={p}
-              onClick={() => setPlan(p)}
-              style={{
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "space-between",
-                padding: "14px 16px",
-                borderRadius: 10,
-                border: `1px solid ${selected ? "#635bff" : "#1f1f1f"}`,
-                background: selected ? "rgba(99,91,255,0.06)" : "#111",
-                cursor: "pointer",
-                transition: "border-color 0.15s",
-              }}
-            >
-              <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                <div
-                  style={{
-                    width: 16,
-                    height: 16,
-                    borderRadius: "50%",
-                    border: `2px solid ${selected ? "#635bff" : "#333"}`,
-                    background: selected ? "#635bff" : "transparent",
-                    flexShrink: 0,
-                  }}
-                />
-                <div>
-                  <span style={{ color: "#fff", fontSize: 14, fontWeight: 500 }}>{limits.label}</span>
-                  <span style={{ color: "#555", fontSize: 12, marginLeft: 10 }}>
-                    {limits.studentLimit.toLocaleString()} students - {limits.memberLimit.toLocaleString()} members
-                  </span>
-                </div>
-              </div>
-              <span style={{ color: selected ? "#635bff" : "#666", fontSize: 14, fontWeight: 600 }}>${limits.price}</span>
+          <div className="space-y-2">
+            <label className="text-xs text-muted-foreground">Slug</label>
+            <div className="relative">
+              <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">
+                singularity.app/
+              </span>
+              <Input
+                placeholder="acme-university"
+                value={orgSlug}
+                onChange={(e) => setOrgSlug(e.target.value)}
+                className="bg-background/70 pl-28"
+              />
             </div>
-          );
-        })}
+          </div>
+        </div>
+
+        <div className="mt-6 space-y-3">
+          <label className="text-xs text-muted-foreground">Select a plan</label>
+
+          <div className="bg-muted/30 flex w-full rounded-full border p-1">
+            <button
+              type="button"
+              onClick={() => {
+                setPlanGroup("BASIC_PLANS");
+                setPlan("BASIC");
+              }}
+              className={cn(
+                "flex-1 rounded-full px-3 py-1.5 text-xs font-medium transition sm:text-sm",
+                planGroup === "BASIC_PLANS"
+                  ? "bg-foreground text-background"
+                  : "text-muted-foreground hover:text-foreground"
+              )}
+            >
+              Basic Plans
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setPlanGroup("PLUS_PLANS");
+                setPlan("PRO_PLUS");
+              }}
+              className={cn(
+                "flex-1 rounded-full px-3 py-1.5 text-xs font-medium transition sm:text-sm",
+                planGroup === "PLUS_PLANS"
+                  ? "bg-foreground text-background"
+                  : "text-muted-foreground hover:text-foreground"
+              )}
+            >
+              Plus Plans
+            </button>
+          </div>
+
+          {visiblePlans.map((p) => {
+            const limits = PLAN_LIMITS[p];
+            const selected = plan === p;
+            return (
+              <button
+                key={p}
+                type="button"
+                onClick={() => setPlan(p)}
+                className={cn(
+                  "flex w-full items-center justify-between rounded-xl border p-4 text-left transition",
+                  selected
+                    ? "border-primary/60 bg-primary/10"
+                    : "border-border/70 bg-background/75 hover:border-border"
+                )}
+              >
+                <div className="flex items-center gap-3">
+                  <span
+                    className={cn(
+                      "flex size-5 items-center justify-center rounded-full border",
+                      selected ? "border-primary bg-primary text-primary-foreground" : "border-muted"
+                    )}
+                  >
+                    {selected ? <CheckCircle2 className="size-3.5" /> : null}
+                  </span>
+                  <div>
+                    <p className="text-sm font-medium text-foreground">{limits.label}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {limits.studentLimit.toLocaleString()} students • {limits.memberLimit.toLocaleString()} members
+                    </p>
+                  </div>
+                </div>
+                <Badge variant={selected ? "default" : "secondary"}>${limits.price}</Badge>
+              </button>
+            );
+          })}
+
+          {planGroup === "PLUS_PLANS" ? (
+            <div className="rounded-xl border border-dashed border-border/70 bg-background/60 p-4">
+              <div className="flex items-start justify-between gap-4">
+                <div>
+                  <p className="hidden text-sm font-medium text-foreground sm:block">Custom (Above plan limits)</p>
+                  <p className="mt-1 text-xs text-muted-foreground sm:hidden">Talk to us for custom pricing.</p>
+                  <p className="mt-1 hidden text-xs text-muted-foreground sm:block">
+                    Need more than Premium Plus limits? Talk to us for custom pricing.
+                  </p>
+                </div>
+                <Button asChild size="sm" variant="outline" className="shrink-0">
+                  <a href="mailto:sales@singularity.app">
+                    <Mail className="mr-2 size-4" />
+                    Contact Sales
+                  </a>
+                </Button>
+              </div>
+            </div>
+          ) : null}
+        </div>
+
+        {error ? <p className="mt-4 text-sm text-red-400">{error}</p> : null}
+
+        <Button onClick={handleSubmit} disabled={loading} className="mt-6 w-full" size="lg">
+          {loading ? "Redirecting to checkout..." : `Continue to payment - $${selectedLimits.price}`}
+        </Button>
       </div>
-
-      {error && <p style={{ color: "#f87171", fontSize: 13, marginBottom: 16 }}>{error}</p>}
-
-      <button
-        onClick={handleSubmit}
-        disabled={loading}
-        style={{
-          width: "100%",
-          padding: "13px",
-          background: loading ? "#1a1a2e" : "#635bff",
-          color: "#fff",
-          border: "none",
-          borderRadius: 10,
-          fontSize: 14,
-          fontWeight: 600,
-          cursor: loading ? "not-allowed" : "pointer",
-          transition: "background 0.2s",
-        }}
-      >
-        {loading ? "Redirecting to checkout..." : `Continue to payment - $${selectedLimits.price}`}
-      </button>
-    </div>
+    </>
   );
 }

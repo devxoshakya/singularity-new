@@ -2,6 +2,11 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useUser } from "@clerk/nextjs";
+import { Search, Users, ChevronLeftIcon } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Skeleton } from "@/components/ui/skeleton";
 
 type OrgListing = {
   id: string;
@@ -76,120 +81,94 @@ export default function StepJoin({
   }
 
   return (
-    <div>
-      <button
-        onClick={onBack}
-        style={{
-          background: "none",
-          border: "none",
-          color: "#555",
-          cursor: "pointer",
-          padding: 0,
-          marginBottom: 28,
-          display: "flex",
-          alignItems: "center",
-          gap: 6,
-          fontSize: 14,
-        }}
-      >
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-          <path d="M19 12H5M11 6l-6 6 6 6" />
-        </svg>
+    <>
+      <Button variant="ghost" className="absolute top-7 left-5 z-20" onClick={onBack}>
+        <ChevronLeftIcon className="me-2 size-4" />
         Back
-      </button>
+      </Button>
+      <div className="mx-auto max-w-xl space-y-4">
+        <div className="space-y-2">
+          <h1 className="font-heading text-2xl font-bold tracking-wide text-white sm:text-3xl">
+            Join an organisation
+          </h1>
+          <p className="text-sm text-muted-foreground sm:text-base">
+            Send a request and the admin will approve your access.
+          </p>
+        </div>
 
-      <h1 style={{ color: "#fff", fontSize: 24, fontWeight: 700, marginBottom: 6, letterSpacing: "-0.03em" }}>
-        Join an organisation
-      </h1>
-      <p style={{ color: "#555", fontSize: 14, marginBottom: 28 }}>Send a request - the admin will review and approve you.</p>
+        <div className="relative mb-5">
+          <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+          <Input
+            placeholder="Search organisations..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="bg-background/70 pl-9"
+          />
+        </div>
 
-      <div style={{ position: "relative", marginBottom: 20 }}>
-        <svg
-          style={{ position: "absolute", left: 14, top: "50%", transform: "translateY(-50%)" }}
-          width="15"
-          height="15"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="#555"
-          strokeWidth="2"
-          strokeLinecap="round"
-        >
-          <circle cx="11" cy="11" r="8" />
-          <path d="M21 21l-4.35-4.35" />
-        </svg>
-        <input
-          style={{
-            width: "100%",
-            background: "#111",
-            border: "1px solid #1f1f1f",
-            borderRadius: 10,
-            padding: "11px 14px 11px 40px",
-            color: "#fff",
-            fontSize: 14,
-            outline: "none",
-            boxSizing: "border-box",
-          }}
-          placeholder="Search organisations..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-        />
+        {error ? <p className="mb-4 text-sm text-red-400">{error}</p> : null}
+
+        <div className="max-h-[420px] space-y-2 overflow-y-auto pr-1">
+          {loading
+            ? Array.from({ length: 4 }).map((_, idx) => (
+                <div key={idx} className="rounded-xl border border-border/60 bg-background/75 p-4">
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="min-w-0 flex-1 space-y-2">
+                      <Skeleton className="h-4 w-40" />
+                      <Skeleton className="h-3 w-56" />
+                      <Skeleton className="h-3 w-32" />
+                    </div>
+                    <Skeleton className="h-9 w-28 rounded-md" />
+                  </div>
+                </div>
+              ))
+            : null}
+
+          {!loading && filtered.length === 0 ? (
+            <p className="rounded-xl border border-border/60 bg-background/75 py-10 text-center text-sm text-muted-foreground">
+              No organisations found.
+            </p>
+          ) : null}
+
+          {!loading
+            ? filtered.map((org) => {
+                const isRequested = requested.has(org.id);
+                const isRequesting = requesting === org.id;
+                return (
+                  <div key={org.id} className="rounded-xl border border-border/60 bg-background/75 p-4">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="min-w-0">
+                        <p className="truncate text-sm font-semibold text-foreground">{org.name}</p>
+                        <p className="mt-1 text-xs text-muted-foreground">
+                          {org.slug} • {org._count.members} member{org._count.members !== 1 ? "s" : ""}
+                        </p>
+                        {org.description ? (
+                          <p className="mt-2 line-clamp-2 text-xs text-muted-foreground">{org.description}</p>
+                        ) : null}
+                        <Badge variant="outline" className="mt-2 gap-1 border-border/70 text-xs">
+                          <Users className="size-3" />
+                          Public org
+                        </Badge>
+                      </div>
+
+                      <Button
+                        size="sm"
+                        variant={isRequested ? "secondary" : "outline"}
+                        disabled={isRequested || isRequesting}
+                        onClick={() => {
+                          void handleRequest(org);
+                        }}
+                      >
+                        {isRequesting ? "Sending..." : isRequested ? "Requested" : "Request"}
+                      </Button>
+                    </div>
+                  </div>
+                );
+              })
+            : null}
+        </div>
       </div>
-
-      {error && <p style={{ color: "#f87171", fontSize: 13, marginBottom: 12 }}>{error}</p>}
-
-      <div style={{ display: "flex", flexDirection: "column", gap: 8, maxHeight: 420, overflowY: "auto" }}>
-        {loading && <p style={{ color: "#555", fontSize: 14, textAlign: "center", padding: "40px 0" }}>Loading...</p>}
-        {!loading && filtered.length === 0 && (
-          <p style={{ color: "#555", fontSize: 14, textAlign: "center", padding: "40px 0" }}>No organisations found.</p>
-        )}
-        {filtered.map((org) => {
-          const isRequested = requested.has(org.id);
-          const isRequesting = requesting === org.id;
-          return (
-            <div
-              key={org.id}
-              style={{
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "space-between",
-                padding: "14px 16px",
-                borderRadius: 10,
-                border: "1px solid #1f1f1f",
-                background: "#111",
-              }}
-            >
-              <div>
-                <p style={{ color: "#fff", fontSize: 14, fontWeight: 500, marginBottom: 2 }}>{org.name}</p>
-                <p style={{ color: "#444", fontSize: 12 }}>
-                  {org.slug} - {org._count.members} member{org._count.members !== 1 ? "s" : ""}
-                </p>
-                {org.description && <p style={{ color: "#555", fontSize: 12, marginTop: 4 }}>{org.description}</p>}
-              </div>
-              <button
-                onClick={() => {
-                  void handleRequest(org);
-                }}
-                disabled={isRequested || isRequesting}
-                style={{
-                  padding: "8px 16px",
-                  borderRadius: 8,
-                  border: `1px solid ${isRequested ? "#1f3a2e" : "#1f1f1f"}`,
-                  background: isRequested ? "rgba(20,184,166,0.08)" : "transparent",
-                  color: isRequested ? "#14b8a6" : "#888",
-                  fontSize: 13,
-                  cursor: isRequested || isRequesting ? "not-allowed" : "pointer",
-                  whiteSpace: "nowrap",
-                  flexShrink: 0,
-                  marginLeft: 16,
-                  transition: "all 0.15s",
-                }}
-              >
-                {isRequesting ? "..." : isRequested ? "Requested ✓" : "Request to join"}
-              </button>
-            </div>
-          );
-        })}
-      </div>
-    </div>
+    </>
   );
 }
+
