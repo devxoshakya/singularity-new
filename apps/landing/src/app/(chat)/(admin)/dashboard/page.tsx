@@ -1,12 +1,35 @@
-export default function DashboardPage() {
+import { auth } from "@clerk/nextjs/server";
+import { redirect } from "next/navigation";
+import { prisma } from "@/lib/prisma";
+import { DashboardShell } from "@/components/dashboard/DashboardShell";
+
+export default async function DashboardPage() {
+    const { userId } = await auth();
+    if (!userId) redirect("/sign-in");
+
+    // Admin-only guard
+    const membership = await prisma.orgMembership.findFirst({
+        where: { userId, status: "ACTIVE", role: "ADMIN" },
+        include: { org: true },
+    });
+
+    if (!membership) redirect("/c");
+
+    const { org } = membership;
+
+    // Pending requests — fetched server-side for instant paint
+    const pending = await prisma.orgMembership.findMany({
+        where: { orgId: org.id, status: "PENDING" },
+        include: { user: { select: { id: true, email: true } } },
+        orderBy: { requestedAt: "asc" },
+        take: 10,
+    });
+
     return (
-        <main className="flex-1 overflow-auto p-6">
-            <div className="mx-auto max-w-4xl space-y-3">
-                <h1 className="text-2xl font-semibold">Student Dashboard</h1>
-                <p className="text-sm text-muted-foreground">
-                    Admin-only dashboard page placeholder. Add analytics and member controls here.
-                </p>
-            </div>
-        </main>
+        <>
+            <main className="flex-1 overflow-y-auto">
+                <DashboardShell org={org} initialPending={pending} />
+            </main>
+        </>
     );
 }

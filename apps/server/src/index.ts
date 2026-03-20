@@ -32,7 +32,12 @@ app.use(logger());
 app.use(
   "/*",
   cors({
-    origin: ["https://m.devshakya.xyz", "http://localhost:3001"],  
+    origin: [
+      "https://m.devshakya.xyz",
+      "https://s.devshakya.xyz",
+      "http://localhost:3001",
+      "http://localhost:4000",
+    ],
     allowMethods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allowHeaders: ["Content-Type", "Authorization"],
     exposeHeaders: ["Set-Cookie"],
