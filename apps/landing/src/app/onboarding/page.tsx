@@ -5,7 +5,7 @@ import OnboardingShell from "@/components/onboarding/OnboardingShell";
 
 export default async function OnboardingPage() {
   const { userId } = await auth();
-  if (!userId) redirect("/sign-in");
+  if (!userId) redirect("/login");
 
   // Already has active membership → skip onboarding
   const active = await prisma.orgMembership.findFirst({
