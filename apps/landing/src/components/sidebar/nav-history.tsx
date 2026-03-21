@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
+import { useUser } from "@clerk/nextjs"
 import { useQuery }     from "@tanstack/react-query"
 import { usePathname }  from "next/navigation"
 import Link             from "next/link"
@@ -23,6 +24,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { MoreHorizontal } from "lucide-react"
+import { createFrontendJwtToken, getApiKey } from "@/lib/frontend-auth"
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -73,7 +75,7 @@ const GROUP_ORDER = ["Today", "Yesterday", "This week", "Older"] as const
 
 // ── Fetcher ──────────────────────────────────────────────────────────────────
 
-async function fetchConversations(): Promise<Conversation[]> {
+async function fetchConversations(identity?: { name?: string | null; email?: string | null }): Promise<Conversation[]> {
   const API_BASE =
     process.env.NEXT_PUBLIC_JHUNNU_API_URL ?? "https://jhunnu-backend.devshakya.xyz"
 
@@ -93,10 +95,8 @@ async function fetchConversations(): Promise<Conversation[]> {
     }
   }
 
-  const token =
-    localStorage.getItem("auth-token") ??
-    localStorage.getItem("gemini-key") ??
-    ""
+  const token = await createFrontendJwtToken(identity)
+  const apiKey = getApiKey()
 
   if (!token) {
     return cachedConversations
@@ -106,6 +106,7 @@ async function fetchConversations(): Promise<Conversation[]> {
     const res = await fetch(`${API_BASE}/sessions/`, {
       headers: {
         Authorization: `Bearer ${token}`,
+        "x-api-key": apiKey,
       },
     })
     if (!res.ok) throw new Error("Failed to load history")
@@ -131,6 +132,7 @@ async function fetchConversations(): Promise<Conversation[]> {
 // ── Component ────────────────────────────────────────────────────────────────
 
 export function NavHistory() {
+  const { user, isLoaded } = useUser()
   const pathname = usePathname()
   const [tokenVersion, setTokenVersion] = useState(0)
 
@@ -149,7 +151,12 @@ export function NavHistory() {
 
   const { data: conversations = [], isLoading } = useQuery({
     queryKey:        ["conversations", tokenVersion],
-    queryFn:         fetchConversations,
+    queryFn:         () =>
+      fetchConversations({
+        name: user?.fullName ?? user?.firstName ?? user?.username,
+        email: user?.emailAddresses?.[0]?.emailAddress,
+      }),
+    enabled:         isLoaded,
     staleTime:       1000 * 30,          // 30s — refresh after new chat
     refetchOnMount:  true,
   })

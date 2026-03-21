@@ -1,5 +1,6 @@
 import { auth } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
+import { randomUUID } from "crypto";
 import { prisma } from "@/lib/prisma";
 import { AuthPage } from "@/components/ui/auth-page";
 
@@ -13,7 +14,7 @@ export default async function LoginPage() {
     });
 
     if (activeMembership) {
-      redirect("/c");
+      redirect(`/c/${randomUUID()}`);
     }
 
     redirect("/onboarding");

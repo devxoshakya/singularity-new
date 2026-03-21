@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { LayoutDashboard, Settings, Plus, Search } from "lucide-react";
 
 import {
@@ -38,9 +38,48 @@ const TOP_NAV = [
     },
 ];
 
+type CachedConversation = {
+    id: string;
+};
+
+function isCurrentChatAlreadyNew(pathname: string) {
+    if (typeof window === "undefined") return false;
+    if (pathname === "/c") return true;
+    if (!pathname.startsWith("/c/")) return false;
+
+    const conversationId = pathname.slice(3).trim();
+    if (!conversationId) return true;
+
+    try {
+        const parsed = JSON.parse(localStorage.getItem("chat-history") ?? "[]");
+        if (!Array.isArray(parsed)) return true;
+
+        const existsInHistory = parsed.some(
+            (item): item is CachedConversation =>
+                !!item &&
+                typeof item === "object" &&
+                typeof (item as any).id === "string" &&
+                (item as any).id === conversationId,
+        );
+
+        return !existsInHistory;
+    } catch {
+        return true;
+    }
+}
+
+function buildNewChatPath() {
+    if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
+        return `/c/${crypto.randomUUID()}`;
+    }
+
+    const fallback = `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+    return `/c/${fallback}`;
+}
+
 // ── Collapsed icon strip ──────────────────────────────────────────────────────
 
-function CollapsedControls() {
+function CollapsedControls({ onNewChat }: { onNewChat: () => void }) {
     const { setOpen } = useSidebar();
 
     return (
@@ -54,13 +93,14 @@ function CollapsedControls() {
             />
 
             {/* New chat */}
-            <Link
-                href="/c"
+            <button
+                type="button"
+                onClick={onNewChat}
                 className="flex items-center justify-center w-10 h-10 rounded-lg text-muted-foreground hover:text-foreground hover:bg-sidebar-accent transition-colors"
                 title="New chat"
             >
                 <Plus className="w-5 h-5" />
-            </Link>
+            </button>
 
             {/* Search */}
             <button
@@ -89,9 +129,14 @@ function CollapsedControls() {
 
 export function AppSidebar({ role }: { role: OrgRole }) {
     const pathname = usePathname();
+    const router = useRouter();
     const { open, isMobile } = useSidebar();
     const isCollapsed = !open && !isMobile;
     const visibleTopNav = TOP_NAV.filter((item) => !item.adminOnly || role === "ADMIN");
+    const openNewChat = () => {
+        if (isCurrentChatAlreadyNew(pathname)) return;
+        router.push(buildNewChatPath());
+    };
 
     return (
         <Sidebar collapsible="icon">
@@ -111,13 +156,14 @@ export function AppSidebar({ role }: { role: OrgRole }) {
                             <SidebarMenu>
                                 <SidebarMenuItem>
                                     <SidebarMenuButton
-                                        asChild
+                                        type="button"
+                                        onClick={openNewChat}
                                         className="h-9 text-[13px] font-medium bg-primary/10 text-primary hover:bg-primary/15 hover:text-primary"
                                     >
-                                        <Link href="/c">
+                                        <>
                                             <Plus className="w-4 h-4 shrink-0" />
                                             <span>New chat</span>
-                                        </Link>
+                                        </>
                                     </SidebarMenuButton>
                                 </SidebarMenuItem>
                             </SidebarMenu>
@@ -127,7 +173,7 @@ export function AppSidebar({ role }: { role: OrgRole }) {
                         </div>
                     ) : (
                         /* Collapsed: only search + new chat icons */
-                        <CollapsedControls />
+                        <CollapsedControls onNewChat={openNewChat} />
                     )}
                 </SidebarHeader>
 

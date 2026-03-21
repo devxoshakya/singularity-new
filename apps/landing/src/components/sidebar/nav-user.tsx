@@ -41,7 +41,7 @@ import { useClerk } from "@clerk/nextjs";
 
 // ── Edit modal for roll no / API key ─────────────────────────────────────────
 
-type EditField = "roll-no" | "auth-token" | null;
+type EditField = "roll-no" | "api-key" | null;
 
 function EditModal({
     field,
@@ -53,12 +53,32 @@ function EditModal({
     const [value, setValue] = useState("");
 
     useEffect(() => {
-        if (field) setValue(localStorage.getItem(field) ?? "");
+        if (!field) return;
+
+        if (field === "api-key") {
+            setValue(
+                localStorage.getItem("api-key") ??
+                    localStorage.getItem("auth-token") ??
+                    "",
+            );
+            return;
+        }
+
+        setValue(localStorage.getItem(field) ?? "");
     }, [field]);
 
     function handleSave() {
         if (!field) return;
-        localStorage.setItem(field, value.trim());
+        const nextValue = value.trim();
+
+        if (field === "api-key") {
+            localStorage.setItem("api-key", nextValue);
+            localStorage.removeItem("auth-token");
+            localStorage.removeItem("gemini-key");
+        } else {
+            localStorage.setItem(field, nextValue);
+        }
+
         onClose();
         // Force page reload so headers update on next request
         window.dispatchEvent(new Event("storage"));
@@ -72,12 +92,12 @@ function EditModal({
             type: "text",
             hint: null,
         },
-        "auth-token": {
-            title: "Edit backend auth token",
-            label: "Bearer token",
-            placeholder: "eyJhbGciOiJIUzI1NiIs...",
+        "api-key": {
+            title: "Edit backend API key",
+            label: "API key",
+            placeholder: "jhunnu_live_xxx...",
             type: "password",
-            hint: "Stored only in your browser and sent as Authorization: Bearer <token>.",
+            hint: "Stored only in your browser and sent as x-api-key header.",
         },
     } as const;
 
@@ -133,15 +153,29 @@ export function NavUser() {
         function sync() {
             setRollNo(localStorage.getItem("roll-no") ?? "Not set");
             setApiKey(
-                localStorage.getItem("auth-token") ??
-                    localStorage.getItem("gemini-key") ??
+                localStorage.getItem("api-key") ??
+                    localStorage.getItem("auth-token") ??
                     "",
             );
+
+            const name =
+                user?.fullName ??
+                user?.firstName ??
+                user?.username ??
+                "";
+            const email = user?.emailAddresses?.[0]?.emailAddress ?? "";
+
+            if (name) {
+                localStorage.setItem("user-name", name);
+            }
+            if (email) {
+                localStorage.setItem("user-email", email);
+            }
         }
         sync();
         window.addEventListener("storage", sync);
         return () => window.removeEventListener("storage", sync);
-    }, []);
+    }, [user]);
 
     const maskedKey = apiKey
         ? `${apiKey.slice(0, 6)}${"•".repeat(8)}`
@@ -241,11 +275,11 @@ export function NavUser() {
                             {/* API key */}
                             <DropdownMenuGroup>
                                 <DropdownMenuLabel className="text-xs text-muted-foreground font-normal px-2 py-1">
-                                    Backend auth token
+                                    Backend API key
                                 </DropdownMenuLabel>
                                 <DropdownMenuItem
                                     className="font-mono text-sm justify-between"
-                                    onClick={() => setEditing("auth-token")}
+                                    onClick={() => setEditing("api-key")}
                                 >
                                     <div className="flex items-center gap-2">
                                         <KeyRound className="w-4 h-4 text-muted-foreground" />
@@ -260,7 +294,7 @@ export function NavUser() {
                                     }}
                                 >
                                     <HelpCircle className="w-4 h-4 mr-2" />
-                                    How to get a token
+                                    How to get an API key
                                 </DropdownMenuItem>
                             </DropdownMenuGroup>
 

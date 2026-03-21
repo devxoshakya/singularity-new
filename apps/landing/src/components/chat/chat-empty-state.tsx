@@ -47,7 +47,7 @@ const SUGGESTIONS: Record<TabId, string[]> = {
         "Which subjects have practicals this semester?",
     ],
     help: [
-        "How do I add my backend auth token?",
+        "How do I add my API key?",
         "What is the difference between RAG search and Result analyze?",
         "How do I update my roll number?",
         "What documents has my organisation uploaded?",

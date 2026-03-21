@@ -1,10 +1,13 @@
 "use client";
 
-import { useReducer, useRef, useEffect, useCallback, Suspense } from "react";
+import { useReducer, useRef, useEffect, useCallback, useState } from "react";
+import { useUser } from "@clerk/nextjs";
 import { toast } from "sonner";
 import { UserMessage } from "./user-message";
 import { AssistantMessage } from "./assistant-message";
 import { TypingIndicator } from "./typing-indicator";
+import { ChatEmptyState } from "@/components/chat/chat-empty-state";
+import { createFrontendJwtToken, getApiKey } from "@/lib/frontend-auth";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -214,6 +217,8 @@ export function ChatThread({
     initialMode = "rag",
     onStreamingChange,
 }: Props) {
+    const { user, isLoaded } = useUser();
+
     const [state, dispatch] = useReducer(reducer, {
         messages: initialMessages,
         streaming: false,
@@ -225,6 +230,9 @@ export function ChatThread({
     const abortRef = useRef<AbortController | null>(null);
     const autoScroll = useRef(true);
     const scrollContainerRef = useRef<HTMLDivElement>(null);
+    const [historyChecked, setHistoryChecked] = useState(
+        initialMessages.length > 0,
+    );
 
     const handleThreadScroll = useCallback(() => {
         const container = scrollContainerRef.current;
@@ -250,16 +258,14 @@ export function ChatThread({
         onStreamingChange?.(state.streaming);
     }, [state.streaming, onStreamingChange]);
 
-    // Load full conversation history in client (API uses client-side bearer token)
+    // Load full conversation history in client using frontend-issued JWT + API key.
     useEffect(() => {
         let cancelled = false;
 
-        const token =
-            localStorage.getItem("auth-token") ??
-            localStorage.getItem("gemini-key") ??
-            "";
-
-        if (!token || state.messages.length > 0) {
+        if (!isLoaded || state.messages.length > 0) {
+            if (state.messages.length > 0) {
+                setHistoryChecked(true);
+            }
             return;
         }
 
@@ -269,11 +275,18 @@ export function ChatThread({
 
         async function loadHistory() {
             try {
+                const token = await createFrontendJwtToken({
+                    name: user?.fullName ?? user?.firstName ?? user?.username,
+                    email: user?.emailAddresses?.[0]?.emailAddress,
+                });
+                const apiKey = getApiKey();
+
                 const res = await fetch(
                     `${API_BASE}/history/${conversationId}`,
                     {
                         headers: {
                             Authorization: `Bearer ${token}`,
+                            "x-api-key": apiKey,
                         },
                     },
                 );
@@ -301,6 +314,10 @@ export function ChatThread({
                 }
             } catch {
                 // Keep empty thread if history lookup fails.
+            } finally {
+                if (!cancelled) {
+                    setHistoryChecked(true);
+                }
             }
         }
 
@@ -309,24 +326,31 @@ export function ChatThread({
         return () => {
             cancelled = true;
         };
-    }, [conversationId, state.messages.length]);
+    }, [conversationId, state.messages.length, isLoaded, user]);
 
     // ── Send message ──────────────────────────────────────────────────────────
 
     const sendMessage = useCallback(
         async (text: string, mode: Mode) => {
             const rollNo = localStorage.getItem("roll-no") ?? "";
-            const authToken =
-                localStorage.getItem("auth-token") ??
-                localStorage.getItem("gemini-key") ??
-                "";
+            const apiKey = getApiKey();
 
-            if (!authToken) {
-                toast.error("No auth token set", {
-                    description: "Add your backend token in the sidebar footer.",
+            if (!isLoaded) {
+                toast.error("User session is still loading");
+                return;
+            }
+
+            if (!apiKey) {
+                toast.error("No API key set", {
+                    description: "Add your API key in the sidebar footer.",
                 });
                 return;
             }
+
+            const userToken = await createFrontendJwtToken({
+                name: user?.fullName ?? user?.firstName ?? user?.username,
+                email: user?.emailAddresses?.[0]?.emailAddress,
+            });
 
             // Cancel any in-flight request
             abortRef.current?.abort();
@@ -366,7 +390,8 @@ export function ChatThread({
                         Accept: "text/event-stream",
                         "Content-Type": "application/json",
                         "x-roll-no": rollNo,
-                        Authorization: `Bearer ${authToken}`,
+                        "x-api-key": apiKey,
+                        Authorization: `Bearer ${userToken}`,
                     },
                     body: JSON.stringify(body),
                     signal: abortRef.current.signal,
@@ -621,7 +646,7 @@ export function ChatThread({
                 });
             }
         },
-        [conversationId],
+        [conversationId, user, isLoaded],
     );
 
     const stopStream = useCallback(() => {
@@ -644,37 +669,47 @@ export function ChatThread({
             onScroll={handleThreadScroll}
             className="flex flex-col w-full h-full overflow-y-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
         >
-            <div className="flex flex-col w-full max-w-[750px] mx-auto px-4 py-6 gap-1">
-                {state.messages.map((msg) =>
-                    msg.role === "user" ? (
-                        <UserMessage key={msg.id} content={msg.content} />
-                    ) : (
-                        <AssistantMessage
-                            key={msg.id}
-                            content={msg.content}
-                            sources={msg.sources}
-                            mode={msg.mode}
-                            isStreaming={false}
-                        />
-                    ),
-                )}
-
-                {/* Live streaming message */}
-                {state.streaming && (
-                    <>
-                        {state.streamText === "" ? (
-                            <TypingIndicator mode={state.mode} />
+            {!state.streaming && state.messages.length === 0 && historyChecked ? (
+                <div className="w-full h-full max-w-[750px] mx-auto px-4 py-6">
+                    <ChatEmptyState
+                        onSelect={(prompt) => {
+                            void sendMessage(prompt, state.mode);
+                        }}
+                    />
+                </div>
+            ) : (
+                <div className="flex flex-col w-full max-w-[750px] mx-auto px-4 py-6 gap-1">
+                    {state.messages.map((msg) =>
+                        msg.role === "user" ? (
+                            <UserMessage key={msg.id} content={msg.content} />
                         ) : (
                             <AssistantMessage
-                                content={state.streamText}
-                                sources={[]}
-                                mode={state.mode}
-                                isStreaming
+                                key={msg.id}
+                                content={msg.content}
+                                sources={msg.sources}
+                                mode={msg.mode}
+                                isStreaming={false}
                             />
-                        )}
-                    </>
-                )}
-            </div>
+                        ),
+                    )}
+
+                    {/* Live streaming message */}
+                    {state.streaming && (
+                        <>
+                            {state.streamText === "" ? (
+                                <TypingIndicator mode={state.mode} />
+                            ) : (
+                                <AssistantMessage
+                                    content={state.streamText}
+                                    sources={[]}
+                                    mode={state.mode}
+                                    isStreaming
+                                />
+                            )}
+                        </>
+                    )}
+                </div>
+            )}
         </div>
     );
 }

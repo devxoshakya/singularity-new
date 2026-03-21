@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
-import { v4 as uuidv4 } from "uuid";
+import { randomUUID } from "crypto";
 
 export default function ChatRedirect() {
-    const chatId = uuidv4();
+    const chatId = randomUUID();
     redirect(`/c/${chatId}`);
 }

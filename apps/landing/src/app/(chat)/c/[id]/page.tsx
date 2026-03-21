@@ -15,7 +15,7 @@ export default async function ChatPage({ params }: Props) {
     const { id } = await params
 
     // History is loaded in the client component because the upstream API
-    // requires a bearer token stored in localStorage.
+    // uses frontend-generated JWT + API key headers from localStorage.
     const messagesPromise: Promise<Message[]> = Promise.resolve([])
 
     return (
