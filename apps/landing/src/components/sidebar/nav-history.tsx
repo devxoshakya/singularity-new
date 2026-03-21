@@ -103,11 +103,15 @@ async function fetchConversations(identity?: { userId?: string | null; name?: st
   }
 
   try {
+    const headers: Record<string, string> = {
+      Authorization: `Bearer ${token}`,
+    }
+    if (apiKey) {
+      headers["x-api-key"] = apiKey
+    }
+
     const res = await fetch(`${API_BASE}/sessions/`, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-        "x-api-key": apiKey,
-      },
+      headers,
     })
     if (!res.ok) throw new Error("Failed to load history")
     const data = (await res.json()) as SessionApiItem[]
@@ -118,12 +122,28 @@ async function fetchConversations(identity?: { userId?: string | null; name?: st
       createdAt: undefined,
     }))
 
+    // Merge server sessions with local cache so brand-new local chats
+    // remain visible immediately until backend sessions catch up.
+    const mappedIds = new Set(mapped.map((item) => item.id))
+    const localOnly = cachedConversations.filter((item) => !mappedIds.has(item.id))
+
+    const mergedServer = mapped.map((item) => {
+      const localMatch = cachedConversations.find((cached) => cached.id === item.id)
+      return {
+        id: item.id,
+        title: item.title?.trim() || localMatch?.title || "New chat",
+        createdAt: localMatch?.createdAt,
+      } satisfies Conversation
+    })
+
+    const merged: Conversation[] = [...localOnly, ...mergedServer]
+
     // Cache in localStorage for next visit
     if (typeof window !== "undefined") {
-      localStorage.setItem("chat-history", JSON.stringify(mapped))
+      localStorage.setItem("chat-history", JSON.stringify(merged))
     }
 
-    return mapped
+    return merged
   } catch {
     return cachedConversations
   }

@@ -110,6 +110,7 @@ function CollapsedControls({ onNewChat }: { onNewChat: () => void }) {
                         document.dispatchEvent(
                             new KeyboardEvent("keydown", {
                                 key: "k",
+                                ctrlKey: true,
                                 metaKey: true,
                                 bubbles: true,
                             }),
@@ -175,6 +176,8 @@ export function AppSidebar({ role }: { role: OrgRole }) {
                         /* Collapsed: only search + new chat icons */
                         <CollapsedControls onNewChat={openNewChat} />
                     )}
+
+                    {isCollapsed && <SearchCommand hideTrigger />}
                 </SidebarHeader>
 
                 {/* ── Content ── */}

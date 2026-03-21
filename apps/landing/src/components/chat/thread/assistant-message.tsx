@@ -6,6 +6,7 @@ import { code }            from "@streamdown/code"
 import { math }            from "@streamdown/math"
 import { SourcesUsed }     from "./sources-used"
 import { ResultsRenderer } from "./result-renderer"
+import { useAnimatedText } from "@/components/ui/animated-text"
 import type { Source, Mode } from "./chat-thread"
 
 // Plugins defined outside component — stable reference, no recreation on render
@@ -25,6 +26,8 @@ export const AssistantMessage = memo(function AssistantMessage({
     mode,
     isStreaming,
 }: Props) {
+    const animatedContent = useAnimatedText(content)
+    const renderedContent = isStreaming ? animatedContent : content
 
     // For results mode, try to parse as JSON
     const parsedResult = useMemo(() => {
@@ -47,7 +50,7 @@ export const AssistantMessage = memo(function AssistantMessage({
                 // RAG response OR results mode still streaming as text
                 <Streamdown
                     plugins={mode === "rag" ? RAG_PLUGINS : RESULTS_PLUGINS}
-                    isAnimating={isStreaming}
+                    isAnimating={false}
                     className={[
                         "chat-markdown",
                         "prose prose-invert max-w-none text-[15px]",
@@ -79,7 +82,7 @@ export const AssistantMessage = memo(function AssistantMessage({
                         "prose-a:text-blue-400 prose-a:no-underline hover:prose-a:underline",
                     ].join(" ")}
                 >
-                    {content}
+                    {renderedContent}
                 </Streamdown>
             )}
 

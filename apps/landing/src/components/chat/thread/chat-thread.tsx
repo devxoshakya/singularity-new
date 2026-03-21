@@ -281,14 +281,17 @@ export function ChatThread({
                     email: user?.emailAddresses?.[0]?.emailAddress,
                 });
                 const apiKey = getApiKey();
+                const headers: Record<string, string> = {
+                    Authorization: `Bearer ${token}`,
+                };
+                if (apiKey) {
+                    headers["x-api-key"] = apiKey;
+                }
 
                 const res = await fetch(
                     `${API_BASE}/history/${conversationId}`,
                     {
-                        headers: {
-                            Authorization: `Bearer ${token}`,
-                            "x-api-key": apiKey,
-                        },
+                        headers,
                     },
                 );
 
@@ -341,18 +344,20 @@ export function ChatThread({
                 return;
             }
 
-            if (!apiKey) {
-                toast.error("No API key set", {
-                    description: "Add your API key in the sidebar footer.",
-                });
-                return;
-            }
-
             const userToken = await createFrontendJwtToken({
                 userId: user?.id,
                 name: user?.fullName ?? user?.firstName ?? user?.username,
                 email: user?.emailAddresses?.[0]?.emailAddress,
             });
+            const headers: Record<string, string> = {
+                Accept: "text/event-stream",
+                "Content-Type": "application/json",
+                "x-roll-no": rollNo,
+                Authorization: `Bearer ${userToken}`,
+            };
+            if (apiKey) {
+                headers["x-api-key"] = apiKey;
+            }
 
             // Cancel any in-flight request
             abortRef.current?.abort();
@@ -388,13 +393,7 @@ export function ChatThread({
             try {
                 const res = await fetch(endpoint, {
                     method: "POST",
-                    headers: {
-                        Accept: "text/event-stream",
-                        "Content-Type": "application/json",
-                        "x-roll-no": rollNo,
-                        "x-api-key": apiKey,
-                        Authorization: `Bearer ${userToken}`,
-                    },
+                    headers,
                     body: JSON.stringify(body),
                     signal: abortRef.current.signal,
                 });
@@ -703,7 +702,7 @@ export function ChatThread({
                             ) : (
                                 <AssistantMessage
                                     content={state.streamText}
-                                    sources={[]}
+                                    sources={state.sources}
                                     mode={state.mode}
                                     isStreaming
                                 />

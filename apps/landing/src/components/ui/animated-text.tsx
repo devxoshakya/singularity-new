@@ -3,7 +3,16 @@
 import { animate } from "framer-motion";
 import { useEffect, useState } from "react";
 
-export function useAnimatedText(text: string, delimiter: string = "") {
+type AnimatedTextOptions = {
+  duration?: number;
+  ease?: "linear" | "easeIn" | "easeOut" | "easeInOut";
+};
+
+export function useAnimatedText(
+  text: string,
+  delimiter: string = "",
+  options?: AnimatedTextOptions,
+) {
   const [cursor, setCursor] = useState(0);
   const [startingCursor, setStartingCursor] = useState(0);
   const [prevText, setPrevText] = useState(text);
@@ -15,20 +24,19 @@ export function useAnimatedText(text: string, delimiter: string = "") {
 
   useEffect(() => {
     const parts = text.split(delimiter);
-    const duration = delimiter === "" ? 8 : // Character animation
-                    delimiter === " " ? 4 : // Word animation
-                    2; // Chunk animation
+    const duration = options?.duration ?? 5;
+    const ease = options?.ease ?? "easeOut";
     
     const controls = animate(startingCursor, parts.length, {
       duration,
-      ease: "easeOut",
+      ease,
       onUpdate(latest) {
         setCursor(Math.floor(latest));
       },
     });
 
     return () => controls.stop();
-  }, [startingCursor, text, delimiter]);
+  }, [startingCursor, text, delimiter, options?.duration, options?.ease]);
 
   return text.split(delimiter).slice(0, cursor).join(delimiter);
 }
