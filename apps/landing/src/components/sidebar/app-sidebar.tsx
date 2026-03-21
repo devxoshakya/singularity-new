@@ -55,7 +55,7 @@ function CollapsedControls() {
 
             {/* New chat */}
             <Link
-                href="/chat"
+                href="/c"
                 className="flex items-center justify-center w-10 h-10 rounded-lg text-muted-foreground hover:text-foreground hover:bg-sidebar-accent transition-colors"
                 title="New chat"
             >
@@ -114,7 +114,7 @@ export function AppSidebar({ role }: { role: OrgRole }) {
                                         asChild
                                         className="h-9 text-[13px] font-medium bg-primary/10 text-primary hover:bg-primary/15 hover:text-primary"
                                     >
-                                        <Link href="/chat">
+                                        <Link href="/c">
                                             <Plus className="w-4 h-4 shrink-0" />
                                             <span>New chat</span>
                                         </Link>

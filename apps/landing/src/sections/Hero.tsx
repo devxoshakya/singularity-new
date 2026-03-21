@@ -33,7 +33,7 @@ const Hero = () => {
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key.toLowerCase() === "enter") {
-        router.push("/docs"); // Redirect to Get Started
+        router.push("/login"); // Redirect to Get Started
       }
       if (e.key.toLowerCase() === "b") {
         router.push("/docs/components"); // Redirect to Browse Components
@@ -155,7 +155,7 @@ const Hero = () => {
                 className="gap-2 whitespace-nowrap focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 transition-all duration-300"
                 asChild
               >
-                <Link className="flex group items-center gap-2" href="/docs">
+                <Link className="flex group items-center gap-2" href="/login">
                   <span>Get Started</span>
                   <Badge className="bg-accent p-1 text-foreground transition-all duration-200 ease-in-out group-hover:shadow-xl shadow-background/70">
                     <CornerDownLeft className="size-4" />

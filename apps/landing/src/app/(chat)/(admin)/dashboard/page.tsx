@@ -5,7 +5,7 @@ import { DashboardShell } from "@/components/dashboard/DashboardShell";
 
 export default async function DashboardPage() {
     const { userId } = await auth();
-    if (!userId) redirect("/sign-in");
+    if (!userId) redirect("/login");
 
     // Admin-only guard
     const membership = await prisma.orgMembership.findFirst({

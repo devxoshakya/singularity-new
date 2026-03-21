@@ -10,7 +10,7 @@ interface Props {
 
 export default async function ChatPage({ params }: Props) {
     const { userId } = await auth()
-    if (!userId) redirect("/sign-in")
+    if (!userId) redirect("/login")
 
     const { id } = await params
 

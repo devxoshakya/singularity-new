@@ -16,7 +16,7 @@ type ActiveMembership = {
 export async function requireActiveMembership(): Promise<ActiveMembership> {
     const { userId } = await auth();
     if (!userId) {
-        redirect("/sign-in");
+        redirect("/login");
     }
 
     const membership = await prisma.orgMembership.findFirst({

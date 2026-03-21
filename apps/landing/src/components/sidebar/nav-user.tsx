@@ -275,7 +275,7 @@ export function NavUser() {
                             <DropdownMenuItem
                                 className="text-destructive focus:text-destructive"
                                 onClick={() =>
-                                    signOut({ redirectUrl: "/sign-in" })
+                                    signOut({ redirectUrl: "/login" })
                                 }
                             >
                                 <LogOut className="w-4 h-4 mr-2" />
