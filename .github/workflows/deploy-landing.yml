@@ -1,4 +1,4 @@
-name: Deploy Singularity Landing Page to Cloudflare Workers
+name: Deploy Singularity Landing Page to Vercel
 
 on:
   push:
@@ -19,6 +19,8 @@ jobs:
       DODO_PAYMENTS_WEBHOOK_SECRET: ${{ secrets.LANDING_DODO_PAYMENTS_WEBHOOK_SECRET }}
       DODO_PAYMENTS_ENVIRONMENT: ${{ secrets.DODO_PAYMENTS_ENVIRONMENT }}
       DODO_PAYMENTS_RETURN_URL: ${{ secrets.LANDING_DODO_PAYMENTS_RETURN_URL }}
+      VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+      VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
 
     steps:
       - name: Checkout repository
@@ -46,33 +48,17 @@ jobs:
         working-directory: packages/db
         run: bun run db:generate
 
-      - name: Build the landing app
+      - name: Install Vercel CLI
+        run: bun add -g vercel
+
+      - name: Pull Vercel Environment
         working-directory: apps/landing
-        run: bun run cf:build
+        run: vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
 
-      - name: Deploy to Cloudflare Workers
-        uses: cloudflare/wrangler-action@v3
-        with:
-          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          workingDirectory: apps/landing
-          command: deploy
-          secrets: |
-            DATABASE_URL
-            DIRECT_URL
-            NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY
-            CLERK_SECRET_KEY
-            DODO_PAYMENTS_API_KEY
-            DODO_PAYMENTS_WEBHOOK_SECRET
-            DODO_PAYMENTS_ENVIRONMENT
-            DODO_PAYMENTS_RETURN_URL
+      - name: Build
+        working-directory: apps/landing
+        run: vercel build --prod --token=${{ secrets.VERCEL_TOKEN }}
 
-        env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
-          DIRECT_URL: ${{ secrets.DIRECT_URL }}
-          NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }}
-          CLERK_SECRET_KEY: ${{ secrets.CLERK_SECRET_KEY }}
-          DODO_PAYMENTS_API_KEY: ${{ secrets.DODO_PAYMENTS_API_KEY }}
-          DODO_PAYMENTS_WEBHOOK_SECRET: ${{ secrets.LANDING_DODO_PAYMENTS_WEBHOOK_SECRET }}
-          DODO_PAYMENTS_ENVIRONMENT: ${{ secrets.DODO_PAYMENTS_ENVIRONMENT }}
-          DODO_PAYMENTS_RETURN_URL: ${{ secrets.LANDING_DODO_PAYMENTS_RETURN_URL }}
+      - name: Deploy
+        working-directory: apps/landing
+        run: vercel deploy --prebuilt --prod --token=${{ secrets.VERCEL_TOKEN }}
