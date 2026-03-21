@@ -1,5 +1,6 @@
 "use client"
 
+import { useEffect, useState } from "react"
 import { useQuery }     from "@tanstack/react-query"
 import { usePathname }  from "next/navigation"
 import Link             from "next/link"
@@ -28,7 +29,12 @@ import { MoreHorizontal } from "lucide-react"
 type Conversation = {
   id:        string
   title:     string
-  createdAt: string
+  createdAt?: string
+}
+
+type SessionApiItem = {
+  session_id: string
+  title: string
 }
 
 // ── Date grouping ────────────────────────────────────────────────────────────
@@ -41,7 +47,17 @@ function groupByDate(convos: Conversation[]) {
 
   return convos.reduce(
     (acc, c) => {
-      const d = new Date(c.createdAt); d.setHours(0, 0, 0, 0)
+      if (!c.createdAt) {
+        acc["Older"] = [...(acc["Older"] ?? []), c]
+        return acc
+      }
+
+      const d = new Date(c.createdAt)
+      if (Number.isNaN(d.getTime())) {
+        acc["Older"] = [...(acc["Older"] ?? []), c]
+        return acc
+      }
+      d.setHours(0, 0, 0, 0)
       const key =
         d >= today     ? "Today"     :
         d >= yesterday ? "Yesterday" :
@@ -58,31 +74,81 @@ const GROUP_ORDER = ["Today", "Yesterday", "This week", "Older"] as const
 // ── Fetcher ──────────────────────────────────────────────────────────────────
 
 async function fetchConversations(): Promise<Conversation[]> {
-  // Try localStorage first for instant paint
+  const API_BASE =
+    process.env.NEXT_PUBLIC_JHUNNU_API_URL ?? "https://jhunnu-backend.devshakya.xyz"
+
+  // Read cache first for fallback and quick empty-token behavior.
+  let cachedConversations: Conversation[] = []
   if (typeof window !== "undefined") {
     const cached = localStorage.getItem("chat-history")
-    if (cached) return JSON.parse(cached)
+    if (cached) {
+      try {
+        const parsed = JSON.parse(cached)
+        if (Array.isArray(parsed)) {
+          cachedConversations = parsed
+        }
+      } catch {
+        localStorage.removeItem("chat-history")
+      }
+    }
   }
 
-  const res = await fetch("/api/conversations")
-  if (!res.ok) throw new Error("Failed to load history")
-  const data = await res.json()
+  const token =
+    localStorage.getItem("auth-token") ??
+    localStorage.getItem("gemini-key") ??
+    ""
 
-  // Cache in localStorage for next visit
-  if (typeof window !== "undefined") {
-    localStorage.setItem("chat-history", JSON.stringify(data))
+  if (!token) {
+    return cachedConversations
   }
 
-  return data
+  try {
+    const res = await fetch(`${API_BASE}/sessions/`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    })
+    if (!res.ok) throw new Error("Failed to load history")
+    const data = (await res.json()) as SessionApiItem[]
+
+    const mapped: Conversation[] = data.map((item) => ({
+      id: item.session_id,
+      title: item.title,
+      createdAt: undefined,
+    }))
+
+    // Cache in localStorage for next visit
+    if (typeof window !== "undefined") {
+      localStorage.setItem("chat-history", JSON.stringify(mapped))
+    }
+
+    return mapped
+  } catch {
+    return cachedConversations
+  }
 }
 
 // ── Component ────────────────────────────────────────────────────────────────
 
 export function NavHistory() {
   const pathname = usePathname()
+  const [tokenVersion, setTokenVersion] = useState(0)
+
+  useEffect(() => {
+    const handleStorage = () => setTokenVersion(v => v + 1)
+    const handleHistoryUpdate = () => setTokenVersion(v => v + 1)
+
+    window.addEventListener("storage", handleStorage)
+    window.addEventListener("chat-history-updated", handleHistoryUpdate)
+
+    return () => {
+      window.removeEventListener("storage", handleStorage)
+      window.removeEventListener("chat-history-updated", handleHistoryUpdate)
+    }
+  }, [])
 
   const { data: conversations = [], isLoading } = useQuery({
-    queryKey:        ["conversations"],
+    queryKey:        ["conversations", tokenVersion],
     queryFn:         fetchConversations,
     staleTime:       1000 * 30,          // 30s — refresh after new chat
     refetchOnMount:  true,

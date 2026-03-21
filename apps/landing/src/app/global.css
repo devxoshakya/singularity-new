@@ -2,6 +2,7 @@
 @import "fumadocs-ui/css/solar.css";
 @import "fumadocs-ui/css/preset.css";
 @import "tw-animate-css";
+@source "../../node_modules/streamdown/dist/*.js";
 
 @custom-variant dark (&:is(.dark *));
 
@@ -159,4 +160,84 @@
 [data-collapsible="icon"] [data-sidebar="menu-item"] {
     display: flex;
     justify-content: center;
+}
+
+.chat-markdown [data-streamdown="table-wrapper"] {
+    margin-top: 0 !important;
+    margin-bottom: 0 !important;
+    padding: 0 !important;
+    gap: 0 !important;
+}
+
+.chat-markdown [data-streamdown="table"] {
+    margin-top: 0 !important;
+    margin-bottom: 0 !important;
+}
+
+.chat-markdown [data-streamdown="table-wrapper"] > div,
+.chat-markdown [data-streamdown="table-fullscreen"] [data-streamdown="table-wrapper"] > div {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+}
+
+.chat-markdown [data-streamdown="table-wrapper"] > div::-webkit-scrollbar,
+.chat-markdown [data-streamdown="table-fullscreen"] [data-streamdown="table-wrapper"] > div::-webkit-scrollbar {
+    width: 0;
+    height: 0;
+    display: none;
+}
+
+.chat-markdown [data-streamdown="code-block"] {
+    position: relative;
+    margin-top: 0 !important;
+    margin-bottom: 0 !important;
+    gap: 0 !important;
+    padding: 0 !important;
+    border-color: #2a2a2a !important;
+    background: #111111 !important;
+}
+
+.chat-markdown [data-streamdown="code-block-header"] {
+    min-height: 2.25rem;
+    padding: 0.25rem 3.5rem 0.25rem 0.75rem;
+    border-bottom: 1px solid #2a2a2a;
+}
+
+.chat-markdown [data-streamdown="code-block"] > div:has(> [data-streamdown="code-block-actions"]) {
+    position: absolute !important;
+    top: 0.125rem;
+    right: 0.5rem;
+    z-index: 20;
+    height: 2rem !important;
+    margin-top: 0 !important;
+}
+
+.chat-markdown [data-streamdown="code-block-actions"] {
+    background: transparent !important;
+    border: 0 !important;
+    padding: 0 !important;
+}
+
+.chat-markdown [data-streamdown="code-block-body"] {
+    padding: 0.75rem !important;
+    border: 0 !important;
+    border-radius: 0 0 0.75rem 0.75rem !important;
+    background: #0d0d0d !important;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+}
+
+.chat-markdown [data-streamdown="code-block-body"]::-webkit-scrollbar {
+    width: 0;
+    height: 0;
+    display: none;
+}
+
+.chat-markdown [data-streamdown="code-block-body"] pre {
+    margin: 0 !important;
+    padding: 0 !important;
+    background: transparent !important;
+    border: 0 !important;
+    font-size: 0.875rem;
+    line-height: 1.5;
 }

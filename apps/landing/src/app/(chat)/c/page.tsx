@@ -1,5 +1,7 @@
-const page = () => {
-    return <div className="flex items-center justify-center h-screen"> Hello bhaiiii</div>;
-};
+import { redirect } from "next/navigation";
+import { v4 as uuidv4 } from "uuid";
 
-export default page;
+export default function ChatRedirect() {
+    const chatId = uuidv4();
+    redirect(`/c/${chatId}`);
+}

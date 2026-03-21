@@ -1,4 +1,5 @@
 import "./global.css";
+import "katex/dist/katex.min.css";
 import { ClerkProvider } from "@clerk/nextjs";
 import { Inter } from "next/font/google";
 import { Toaster } from "@/components/ui/sonner";

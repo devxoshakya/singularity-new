@@ -41,7 +41,7 @@ import { useClerk } from "@clerk/nextjs";
 
 // ── Edit modal for roll no / API key ─────────────────────────────────────────
 
-type EditField = "roll-no" | "gemini-key" | null;
+type EditField = "roll-no" | "auth-token" | null;
 
 function EditModal({
     field,
@@ -72,12 +72,12 @@ function EditModal({
             type: "text",
             hint: null,
         },
-        "gemini-key": {
-            title: "Edit Gemini API key",
-            label: "API key",
-            placeholder: "AIza...",
+        "auth-token": {
+            title: "Edit backend auth token",
+            label: "Bearer token",
+            placeholder: "eyJhbGciOiJIUzI1NiIs...",
             type: "password",
-            hint: "Your key is stored only in your browser — never sent to our servers.",
+            hint: "Stored only in your browser and sent as Authorization: Bearer <token>.",
         },
     } as const;
 
@@ -132,7 +132,11 @@ export function NavUser() {
     useEffect(() => {
         function sync() {
             setRollNo(localStorage.getItem("roll-no") ?? "Not set");
-            setApiKey(localStorage.getItem("gemini-key") ?? "");
+            setApiKey(
+                localStorage.getItem("auth-token") ??
+                    localStorage.getItem("gemini-key") ??
+                    "",
+            );
         }
         sync();
         window.addEventListener("storage", sync);
@@ -237,11 +241,11 @@ export function NavUser() {
                             {/* API key */}
                             <DropdownMenuGroup>
                                 <DropdownMenuLabel className="text-xs text-muted-foreground font-normal px-2 py-1">
-                                    Gemini API key
+                                    Backend auth token
                                 </DropdownMenuLabel>
                                 <DropdownMenuItem
                                     className="font-mono text-sm justify-between"
-                                    onClick={() => setEditing("gemini-key")}
+                                    onClick={() => setEditing("auth-token")}
                                 >
                                     <div className="flex items-center gap-2">
                                         <KeyRound className="w-4 h-4 text-muted-foreground" />
@@ -256,7 +260,7 @@ export function NavUser() {
                                     }}
                                 >
                                     <HelpCircle className="w-4 h-4 mr-2" />
-                                    How to get a key
+                                    How to get a token
                                 </DropdownMenuItem>
                             </DropdownMenuGroup>
 
