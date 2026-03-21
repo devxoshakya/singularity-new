@@ -75,7 +75,7 @@ const GROUP_ORDER = ["Today", "Yesterday", "This week", "Older"] as const
 
 // ── Fetcher ──────────────────────────────────────────────────────────────────
 
-async function fetchConversations(identity?: { name?: string | null; email?: string | null }): Promise<Conversation[]> {
+async function fetchConversations(identity?: { userId?: string | null; name?: string | null; email?: string | null }): Promise<Conversation[]> {
   const API_BASE =
     process.env.NEXT_PUBLIC_JHUNNU_API_URL ?? "https://jhunnu-backend.devshakya.xyz"
 
@@ -153,6 +153,7 @@ export function NavHistory() {
     queryKey:        ["conversations", tokenVersion],
     queryFn:         () =>
       fetchConversations({
+        userId: user?.id,
         name: user?.fullName ?? user?.firstName ?? user?.username,
         email: user?.emailAddresses?.[0]?.emailAddress,
       }),

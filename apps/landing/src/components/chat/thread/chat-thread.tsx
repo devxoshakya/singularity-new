@@ -276,6 +276,7 @@ export function ChatThread({
         async function loadHistory() {
             try {
                 const token = await createFrontendJwtToken({
+                    userId: user?.id,
                     name: user?.fullName ?? user?.firstName ?? user?.username,
                     email: user?.emailAddresses?.[0]?.emailAddress,
                 });
@@ -348,6 +349,7 @@ export function ChatThread({
             }
 
             const userToken = await createFrontendJwtToken({
+                userId: user?.id,
                 name: user?.fullName ?? user?.firstName ?? user?.username,
                 email: user?.emailAddresses?.[0]?.emailAddress,
             });

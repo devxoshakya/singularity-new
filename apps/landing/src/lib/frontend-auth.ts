@@ -1,6 +1,7 @@
 const JWT_SECRET = "jhunnu";
 
 type FrontendIdentity = {
+    userId?: string | null;
     name?: string | null;
     email?: string | null;
 };
@@ -41,6 +42,8 @@ async function signHs256(message: string, secret: string): Promise<string> {
 export async function createFrontendJwtToken(
     identity?: FrontendIdentity,
 ): Promise<string> {
+    const userId = identity?.userId?.trim() || "anonymous";
+
     const name =
         identity?.name?.trim() ||
         "Unknown User";
@@ -57,6 +60,9 @@ export async function createFrontendJwtToken(
     };
 
     const payload = {
+        sub: userId,
+        id: userId,
+        user_id: userId,
         name,
         email,
         iat: now,
