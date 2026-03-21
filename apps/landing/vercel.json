@@ -1,0 +1,7 @@
+{
+    "framework": "nextjs",
+    "rootDirectory": "apps/landing",
+    "installCommand": "cd ../.. && bun install",
+    "buildCommand": "cd ../.. && bun run db:generate && cd apps/landing && bun run build",
+    "outputDirectory": ".next"
+}
