@@ -19,8 +19,39 @@ import {
     SheetTitle,
     SheetDescription,
 } from "@/components/ui/sheet";
-import { Search, GraduationCap, ChevronRight, TrendingUp } from "lucide-react";
-import { ScrollArea } from "@/components/ui/scroll-area";
+import {
+    Search,
+    GraduationCap,
+    ChevronRight,
+    TrendingUp,
+    CircleCheck,
+    AlertTriangle,
+    CircleX,
+} from "lucide-react";
+import {
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableHeader,
+    TableRow,
+} from "@/components/ui/table";
+import {
+    Pagination,
+    PaginationContent,
+    PaginationItem,
+    PaginationLink,
+    PaginationNext,
+    PaginationPrevious,
+    PaginationEllipsis,
+} from "@/components/ui/pagination";
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -48,10 +79,21 @@ type StudentResult = {
     year: number;
     cgpa: string;
     SGPA: Record<string, number>;
-    CarryOvers: string[][];
+    CarryOvers: Array<{ session?: string; sem?: string; cop?: string }>;
+    backlogSubjects: string[];
+    backlogCount: number;
+    computedStatus: "PASS" | "PCP" | "FAIL";
+    latestResultStatus?: string;
+    latestCOP?: string;
+    division?: string;
     totalMarksObtained: number;
     Subjects: Subject[];
 };
+
+type YearFilter = "all" | "1" | "2" | "3" | "4" | "2024";
+
+const ROW_HEIGHT = 54;
+const ROWS_PER_PAGE = 5;
 
 // ── Fetchers ──────────────────────────────────────────────────────────────────
 
@@ -68,7 +110,103 @@ async function fetchStudentResult(rollNo: string): Promise<StudentResult> {
     );
     if (!res.ok) throw new Error("Failed to load result");
     const json = await res.json();
-    return json.data;
+
+    const envelope = Array.isArray(json) ? json[0] : json;
+    const raw = envelope?.data ?? envelope;
+
+    const carryOvers = Array.isArray(raw?.CarryOvers) ? raw.CarryOvers : [];
+    const backlogSubjects = Array.from(
+        new Set(
+            carryOvers
+                .flatMap((entry: any) => {
+                    if (Array.isArray(entry)) {
+                        return entry;
+                    }
+                    if (typeof entry?.cop === "string") {
+                        return entry.cop
+                            .replace(/^COP\s*:\s*/i, "")
+                            .split(",")
+                            .map((s: string) => s.trim());
+                    }
+                    return [];
+                })
+                .map((s: string) => s.trim())
+                .filter(
+                    (s: string) =>
+                        !!s &&
+                        s.toLowerCase() !== "no backlogs" &&
+                        s.toLowerCase() !== "none",
+                ),
+        ),
+    );
+
+    const backlogCount = backlogSubjects.length;
+    const computedStatus =
+        backlogCount === 0 ? "PASS" : backlogCount <= 3 ? "PCP" : "FAIL";
+
+    return {
+        rollNo: raw?.rollNo ?? rollNo,
+        fullName: raw?.fullName ?? "Unknown",
+        course: raw?.course ?? "",
+        branch: raw?.branch ?? "",
+        year: Number(raw?.year ?? 0),
+        cgpa: String(raw?.cgpa ?? "0"),
+        SGPA: raw?.SGPA ?? {},
+        CarryOvers: carryOvers,
+        backlogSubjects,
+        backlogCount,
+        computedStatus,
+        latestResultStatus: raw?.latestResultStatus,
+        latestCOP: raw?.latestCOP,
+        division: raw?.divison ?? raw?.division,
+        totalMarksObtained: Number(raw?.totalMarksObtained ?? 0),
+        Subjects: Array.isArray(raw?.Subjects) ? raw.Subjects : [],
+    };
+}
+
+function getBatchFromRollNo(rollNo: string): number | null {
+    const yy = Number.parseInt(rollNo.slice(0, 2), 10);
+    if (Number.isNaN(yy)) return null;
+    return 2000 + yy;
+}
+
+function getResultStatusBadge(status: "PASS" | "PCP" | "FAIL") {
+    if (status === "PASS") {
+        return {
+            label: "PASS",
+            icon: CircleCheck,
+            className: "bg-emerald-500/10 text-emerald-700 border-emerald-500/20",
+        };
+    }
+    if (status === "PCP") {
+        return {
+            label: "PCP",
+            icon: AlertTriangle,
+            className: "bg-amber-500/10 text-amber-700 border-amber-500/20",
+        };
+    }
+    return {
+        label: "FAIL",
+        icon: CircleX,
+        className: "bg-red-500/10 text-red-700 border-red-500/20",
+    };
+}
+
+function getSgpaTextClass(value: number) {
+    if (value >= 8) return "bg-emerald-500/15 text-emerald-300";
+    if (value >= 7) return "bg-lime-500/15 text-lime-300";
+    if (value >= 6) return "bg-amber-500/15 text-amber-300";
+    if (value >= 5) return "bg-orange-500/15 text-orange-300";
+    return "bg-red-500/15 text-red-300";
+}
+
+function extractCopCodes(copText?: string): string[] {
+    if (!copText) return [];
+    return copText
+        .replace(/^COP\s*:\s*/i, "")
+        .split(",")
+        .map((s) => s.trim().toUpperCase())
+        .filter(Boolean);
 }
 
 // ── Student result sheet ──────────────────────────────────────────────────────
@@ -94,10 +232,24 @@ function StudentSheet({
         : [];
     const latestSgpa =
         sgpaEntries.length > 0 ? sgpaEntries[sgpaEntries.length - 1] : null;
+    const status = data ? getResultStatusBadge(data.computedStatus) : null;
+    const latestCopCodes = useMemo(
+        () => new Set(extractCopCodes(data?.latestCOP)),
+        [data?.latestCOP],
+    );
+    const backlogCodeSet = useMemo(
+        () =>
+            new Set(
+                (data?.backlogSubjects ?? []).map((code) =>
+                    String(code).trim().toUpperCase(),
+                ),
+            ),
+        [data?.backlogSubjects],
+    );
 
     return (
         <Sheet open={open} onOpenChange={(v) => !v && onClose()}>
-            <SheetContent className="w-full sm:max-w-lg overflow-y-auto">
+            <SheetContent className="w-full sm:max-w-2xl overflow-y-auto no-scrollbar px-4 sm:px-6">
                 <SheetHeader className="pb-4">
                     <SheetTitle>
                         {isLoading ? (
@@ -123,8 +275,28 @@ function StudentSheet({
                     </div>
                 ) : data ? (
                     <div className="space-y-6">
+                        {status && (
+                            <div className="flex items-center justify-between gap-3 rounded-lg border p-3 bg-muted/30">
+                                <div>
+                                    <p className="text-sm font-medium">
+                                        Result status
+                                    </p>
+                                    <p className="text-xs text-muted-foreground mt-0.5">
+                                        Rule: PASS = 0 carry over, PCP = up to 3, FAIL = above 3
+                                    </p>
+                                </div>
+                                <Badge
+                                    variant="outline"
+                                    className={`gap-1.5 ${status.className}`}
+                                >
+                                    <status.icon className="w-3.5 h-3.5" />
+                                    {status.label}
+                                </Badge>
+                            </div>
+                        )}
+
                         {/* Quick stats */}
-                        <div className="grid grid-cols-3 gap-3">
+                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                             <div className="rounded-lg border p-3 text-center">
                                 <p className="text-lg font-bold">{data.year}</p>
                                 <p className="text-xs text-muted-foreground">
@@ -151,6 +323,14 @@ function StudentSheet({
                                     Total marks
                                 </p>
                             </div>
+                            <div className="rounded-lg border p-3 text-center">
+                                <p className="text-lg font-bold">
+                                    {data.backlogCount}
+                                </p>
+                                <p className="text-xs text-muted-foreground">
+                                    Carry overs
+                                </p>
+                            </div>
                         </div>
 
                         {/* SGPA trend */}
@@ -164,12 +344,12 @@ function StudentSheet({
                                     {sgpaEntries.map(([sem, val]) => (
                                         <div
                                             key={sem}
-                                            className="rounded-md bg-muted px-2.5 py-1.5 text-center min-w-[52px]"
+                                            className={`rounded-md px-2.5 py-1.5 text-center min-w-13 ${getSgpaTextClass(val)}`}
                                         >
                                             <p className="text-sm font-semibold">
                                                 {val.toFixed(2)}
                                             </p>
-                                            <p className="text-[10px] text-muted-foreground capitalize">
+                                            <p className="text-[10px] capitalize opacity-90">
                                                 {sem.replace("sem", "Sem ")}
                                             </p>
                                         </div>
@@ -181,37 +361,105 @@ function StudentSheet({
                         {/* Subjects */}
                         <div>
                             <p className="text-sm font-medium mb-2">Subjects</p>
-                            <div className="space-y-1.5">
-                                {data.Subjects.map((s, index) => (
-                                    <div
-                                        key={`${s.code}-${index}`}
-                                        className="flex items-center justify-between rounded-lg border px-3 py-2 text-sm"
-                                    >
-                                        <div className="min-w-0 mr-3">
-                                            <p className="font-medium truncate">
-                                                {s.subject}
-                                            </p>
-                                            <p className="text-xs text-muted-foreground">
-                                                {s.code} · {s.type}
-                                            </p>
-                                        </div>
-                                        <div className="text-right shrink-0">
-                                            <p className="text-xs text-muted-foreground">
-                                                {s.internal || "—"} +{" "}
-                                                {s.external || "—"}
-                                            </p>
-                                        </div>
-                                    </div>
-                                ))}
+                            <div className="max-h-95 overflow-auto no-scrollbar rounded-lg border">
+                                <Table className="min-w-160">
+                                    <TableHeader>
+                                        <TableRow>
+                                            <TableHead>Subject</TableHead>
+                                            <TableHead>Code</TableHead>
+                                            <TableHead>Type</TableHead>
+                                            <TableHead className="text-right">
+                                                Internal
+                                            </TableHead>
+                                            <TableHead className="text-right">
+                                                External
+                                            </TableHead>
+                                        </TableRow>
+                                    </TableHeader>
+                                    <TableBody>
+                                        {data.Subjects.map((s, index) => {
+                                            const code = s.code.toUpperCase();
+                                            const hasCop =
+                                                latestCopCodes.has(code) ||
+                                                backlogCodeSet.has(code);
+
+                                            return (
+                                            <TableRow
+                                                key={`${s.code}-${index}`}
+                                                className={
+                                                    hasCop
+                                                        ? "bg-red-500/10 hover:bg-red-500/15"
+                                                        : ""
+                                                }
+                                            >
+                                                <TableCell className="max-w-70 truncate font-medium">
+                                                    {s.subject}
+                                                </TableCell>
+                                                <TableCell
+                                                    className={
+                                                        hasCop
+                                                            ? "text-red-400 font-semibold"
+                                                            : ""
+                                                    }
+                                                >
+                                                    {s.code}
+                                                </TableCell>
+                                                <TableCell>{s.type}</TableCell>
+                                                <TableCell className="text-right">
+                                                    {s.internal || "-"}
+                                                </TableCell>
+                                                <TableCell className="text-right">
+                                                    {s.external || "-"}
+                                                </TableCell>
+                                            </TableRow>
+                                            );
+                                        })}
+                                    </TableBody>
+                                </Table>
                             </div>
                         </div>
 
                         {/* Carry overs */}
                         <div>
                             <p className="text-sm font-medium mb-1">Backlogs</p>
-                            <p className="text-sm text-muted-foreground">
-                                {data.CarryOvers.flat().join(", ") || "None"}
-                            </p>
+                            {data.CarryOvers.length > 0 ? (
+                                <div className="space-y-2">
+                                    {data.CarryOvers.map((co, index) => (
+                                        <div
+                                            key={`${co.session ?? "session"}-${index}`}
+                                            className="rounded-lg border p-3"
+                                        >
+                                            <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground mb-1">
+                                                {co.session && (
+                                                    <Badge
+                                                        variant="secondary"
+                                                        className="font-normal"
+                                                    >
+                                                        {co.session}
+                                                    </Badge>
+                                                )}
+                                                {co.sem && (
+                                                    <span>
+                                                        Semester: {co.sem}
+                                                    </span>
+                                                )}
+                                            </div>
+                                            <p className="text-sm">
+                                                {co.cop ?? "-"}
+                                            </p>
+                                        </div>
+                                    ))}
+                                </div>
+                            ) : (
+                                <p className="text-sm text-muted-foreground">
+                                    No backlogs found
+                                </p>
+                            )}
+                            {data.latestCOP && (
+                                <p className="text-xs text-muted-foreground mt-2">
+                                    Latest COP: {data.latestCOP}
+                                </p>
+                            )}
                         </div>
                     </div>
                 ) : (
@@ -228,6 +476,8 @@ function StudentSheet({
 
 export function StudentCache() {
     const [search, setSearch] = useState("");
+    const [yearFilter, setYearFilter] = useState<YearFilter>("2");
+    const [page, setPage] = useState(1);
     const [selected, setSelected] = useState<string | null>(null);
 
     const { data: students = [], isLoading } = useQuery({
@@ -248,9 +498,40 @@ export function StudentCache() {
         );
     }, [students, search]);
 
+    const yearFiltered = useMemo(() => {
+        if (yearFilter === "all") return filtered;
+        if (yearFilter === "2024") {
+            return filtered.filter((s) => getBatchFromRollNo(s.rollNo) === 2024);
+        }
+        const year = Number.parseInt(yearFilter, 10);
+        return filtered.filter((s) => s.year === year);
+    }, [filtered, yearFilter]);
+
+    const totalPages = Math.max(1, Math.ceil(yearFiltered.length / ROWS_PER_PAGE));
+    const currentPage = Math.min(page, totalPages);
+    const pageRows = useMemo(() => {
+        const from = (currentPage - 1) * ROWS_PER_PAGE;
+        return yearFiltered.slice(from, from + ROWS_PER_PAGE);
+    }, [yearFiltered, currentPage]);
+
+    function goToPage(nextPage: number) {
+        const bounded = Math.max(1, Math.min(totalPages, nextPage));
+        setPage(bounded);
+    }
+
+    const pageButtons = useMemo(() => {
+        if (totalPages <= 5) {
+            return Array.from({ length: totalPages }, (_, i) => i + 1);
+        }
+        const pages = new Set<number>([1, totalPages, currentPage]);
+        if (currentPage > 1) pages.add(currentPage - 1);
+        if (currentPage < totalPages) pages.add(currentPage + 1);
+        return Array.from(pages).sort((a, b) => a - b);
+    }, [currentPage, totalPages]);
+
     return (
         <>
-            <Card className="h-full flex flex-col">
+            <Card className="h-full w-full flex flex-col">
                 <CardHeader className="pb-3">
                     <CardTitle className="text-base flex items-center gap-2">
                         <GraduationCap className="w-4 h-4 text-muted-foreground" />
@@ -267,19 +548,44 @@ export function StudentCache() {
                     <CardDescription>
                         Cached results from the university portal
                     </CardDescription>
-                    <div className="relative mt-1">
-                        <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
-                        <Input
-                            placeholder="Search by name, roll no, branch..."
-                            value={search}
-                            onChange={(e) => setSearch(e.target.value)}
-                            className="pl-8 h-8 text-sm"
-                        />
+                    <div className="mt-1 flex items-center gap-2">
+                        <div className="relative flex-1">
+                            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
+                            <Input
+                                placeholder="Search by name, roll no, branch..."
+                                value={search}
+                                onChange={(e) => {
+                                    setSearch(e.target.value);
+                                    setPage(1);
+                                }}
+                                className="pl-8 h-8 text-sm"
+                            />
+                        </div>
+
+                        <Select
+                            value={yearFilter}
+                            onValueChange={(v) => {
+                                setYearFilter(v as YearFilter);
+                                setPage(1);
+                            }}
+                        >
+                            <SelectTrigger className="h-8 w-36.25 text-xs">
+                                <SelectValue placeholder="Filter year" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="all">All years</SelectItem>
+                                <SelectItem value="1">Year 1</SelectItem>
+                                <SelectItem value="2">Year 2</SelectItem>
+                                <SelectItem value="3">Year 3</SelectItem>
+                                <SelectItem value="4">Year 4</SelectItem>
+                                <SelectItem value="2024">2024 batch</SelectItem>
+                            </SelectContent>
+                        </Select>
                     </div>
                 </CardHeader>
 
                 <CardContent className="pt-0 flex-1 min-h-0">
-                    <ScrollArea className="h-[380px] pr-1">
+                    <div className="flex h-full min-h-107.5 flex-col gap-3">
                         {isLoading ? (
                             <div className="space-y-2">
                                 {Array.from({ length: 8 }).map((_, i) => (
@@ -289,32 +595,103 @@ export function StudentCache() {
                                     />
                                 ))}
                             </div>
-                        ) : filtered.length === 0 ? (
+                        ) : yearFiltered.length === 0 ? (
                             <p className="text-sm text-muted-foreground text-center py-8">
                                 No students found
                             </p>
                         ) : (
-                            <div className="space-y-1">
-                                {filtered.map((s) => (
-                                    <button
-                                        key={s.id}
-                                        onClick={() => setSelected(s.rollNo)}
-                                        className="w-full flex items-center justify-between px-3 py-2.5 rounded-lg hover:bg-muted/60 transition-colors text-left group"
-                                    >
-                                        <div className="min-w-0">
-                                            <p className="text-sm font-medium truncate">
-                                                {s.fullName}
-                                            </p>
-                                            <p className="text-xs text-muted-foreground">
-                                                {s.rollNo} · Year {s.year}
-                                            </p>
-                                        </div>
-                                        <ChevronRight className="w-4 h-4 text-muted-foreground/40 group-hover:text-muted-foreground shrink-0 ml-2 transition-colors" />
-                                    </button>
-                                ))}
-                            </div>
+                            <>
+                                <div className="max-h-95 overflow-auto no-scrollbar rounded-lg border w-full">
+                                    <Table className="min-w-160">
+                                        <TableHeader>
+                                            <TableRow>
+                                                <TableHead>Name</TableHead>
+                                                <TableHead>Roll No</TableHead>
+                                                <TableHead>Branch</TableHead>
+                                                <TableHead>Year</TableHead>
+                                                <TableHead className="w-12.5" />
+                                            </TableRow>
+                                        </TableHeader>
+                                        <TableBody>
+                                            {pageRows.map((s) => (
+                                                <TableRow
+                                                    key={s.id}
+                                                    className="cursor-pointer"
+                                                    style={{ height: `${ROW_HEIGHT}px` }}
+                                                    onClick={() => setSelected(s.rollNo)}
+                                                >
+                                                    <TableCell className="font-medium truncate max-w-0">
+                                                        {s.fullName}
+                                                    </TableCell>
+                                                    <TableCell className="text-muted-foreground">
+                                                        {s.rollNo}
+                                                    </TableCell>
+                                                    <TableCell className="text-muted-foreground truncate max-w-0">
+                                                        {s.branch}
+                                                    </TableCell>
+                                                    <TableCell>{s.year}</TableCell>
+                                                    <TableCell>
+                                                        <ChevronRight className="ml-auto w-4 h-4 text-muted-foreground/50" />
+                                                    </TableCell>
+                                                </TableRow>
+                                            ))}
+                                        </TableBody>
+                                    </Table>
+                                </div>
+
+                                <Pagination>
+                                    <PaginationContent>
+                                        <PaginationItem>
+                                            <PaginationPrevious
+                                                href="#"
+                                                onClick={(e) => {
+                                                    e.preventDefault();
+                                                    goToPage(currentPage - 1);
+                                                }}
+                                            />
+                                        </PaginationItem>
+                                        {pageButtons.map((p, idx) => {
+                                            const prev = pageButtons[idx - 1];
+                                            const showEllipsis = prev && p - prev > 1;
+                                            return (
+                                                <div
+                                                    key={`student-page-${p}`}
+                                                    className="contents"
+                                                >
+                                                    {showEllipsis && (
+                                                        <PaginationItem>
+                                                            <PaginationEllipsis />
+                                                        </PaginationItem>
+                                                    )}
+                                                    <PaginationItem>
+                                                        <PaginationLink
+                                                            href="#"
+                                                            isActive={p === currentPage}
+                                                            onClick={(e) => {
+                                                                e.preventDefault();
+                                                                goToPage(p);
+                                                            }}
+                                                        >
+                                                            {p}
+                                                        </PaginationLink>
+                                                    </PaginationItem>
+                                                </div>
+                                            );
+                                        })}
+                                        <PaginationItem>
+                                            <PaginationNext
+                                                href="#"
+                                                onClick={(e) => {
+                                                    e.preventDefault();
+                                                    goToPage(currentPage + 1);
+                                                }}
+                                            />
+                                        </PaginationItem>
+                                    </PaginationContent>
+                                </Pagination>
+                            </>
                         )}
-                    </ScrollArea>
+                    </div>
                 </CardContent>
             </Card>
 

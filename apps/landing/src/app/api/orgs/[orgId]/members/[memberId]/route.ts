@@ -157,3 +157,99 @@ export async function PATCH(
         );
     }
 }
+
+export async function DELETE(
+    _req: Request,
+    {
+        params,
+    }: {
+        params: Promise<{ orgId: string; memberId: string }>;
+    },
+) {
+    const { userId } = await auth();
+    if (!userId) {
+        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const { orgId, memberId } = await params;
+
+    const admin = await prisma.orgMembership.findUnique({
+        where: { orgId_userId: { orgId, userId } },
+        select: { id: true, role: true, status: true },
+    });
+
+    if (!admin || admin.role !== "ADMIN" || admin.status !== "ACTIVE") {
+        return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
+
+    try {
+        const removed = await prisma.$transaction(async (tx) => {
+            const membership = await tx.orgMembership.findFirst({
+                where: { id: memberId, orgId },
+                select: { id: true, role: true, status: true, userId: true },
+            });
+
+            if (!membership) {
+                throw new Error("NOT_FOUND");
+            }
+
+            if (membership.status !== "ACTIVE") {
+                throw new Error("NOT_ACTIVE");
+            }
+
+            if (membership.role === "ADMIN") {
+                throw new Error("ADMIN_REMOVE_BLOCKED");
+            }
+
+            if (membership.userId === userId) {
+                throw new Error("SELF_REMOVE_BLOCKED");
+            }
+
+            await tx.orgMembership.delete({ where: { id: memberId } });
+
+            await tx.org.update({
+                where: { id: orgId },
+                data: {
+                    memberCount: { decrement: 1 },
+                    studentCount: { decrement: 1 },
+                },
+            });
+
+            return { id: memberId };
+        });
+
+        return NextResponse.json({ success: true, data: removed });
+    } catch (error) {
+        const message = error instanceof Error ? error.message : "UNKNOWN";
+
+        if (message === "NOT_FOUND") {
+            return NextResponse.json({ error: "Member not found." }, { status: 404 });
+        }
+
+        if (message === "NOT_ACTIVE") {
+            return NextResponse.json(
+                { error: "Only active members can be removed." },
+                { status: 409 },
+            );
+        }
+
+        if (message === "ADMIN_REMOVE_BLOCKED") {
+            return NextResponse.json(
+                { error: "Admins cannot be removed from this endpoint." },
+                { status: 409 },
+            );
+        }
+
+        if (message === "SELF_REMOVE_BLOCKED") {
+            return NextResponse.json(
+                { error: "You cannot remove yourself." },
+                { status: 409 },
+            );
+        }
+
+        return NextResponse.json(
+            { error: "Failed to remove member." },
+            { status: 500 },
+        );
+    }
+}

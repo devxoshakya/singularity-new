@@ -25,10 +25,21 @@ export default async function DashboardPage() {
         take: 10,
     });
 
+    const active = await prisma.orgMembership.findMany({
+        where: { orgId: org.id, status: "ACTIVE" },
+        include: { user: { select: { id: true, email: true } } },
+        orderBy: { acceptedAt: "desc" },
+        take: 200,
+    });
+
     return (
         <>
-            <main className="flex-1 overflow-y-auto">
-                <DashboardShell org={org} initialPending={pending} />
+            <main className="flex-1 overflow-y-auto no-scrollbar">
+                <DashboardShell
+                    org={org}
+                    initialPending={pending}
+                    initialActive={active}
+                />
             </main>
         </>
     );

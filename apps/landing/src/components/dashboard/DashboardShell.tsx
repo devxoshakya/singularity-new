@@ -1,21 +1,22 @@
 "use client";
 
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQueryClient } from "@tanstack/react-query";
 import type { Org, OrgMembership, OrgUser } from "@prisma/client";
 import { StatsBar } from "./status-bar";
-import { PendingRequests } from "./pending-requests";
 import { StudentCache } from "./student-cache";
 import { KnowledgeBase } from "./knowledge-base";
 import { PlanUpgradeBanner } from "./plan-upgrade-banner";
+import { OrgMembersTable } from "./org-members-table";
 
 type MemberWithUser = OrgMembership & { user: Pick<OrgUser, "id" | "email"> };
 
 interface Props {
     org: Org;
     initialPending: MemberWithUser[];
+    initialActive: MemberWithUser[];
 }
 
-export function DashboardShell({ org, initialPending }: Props) {
+export function DashboardShell({ org, initialPending, initialActive }: Props) {
     const qc = useQueryClient();
 
     const usedPct =
@@ -30,7 +31,7 @@ export function DashboardShell({ org, initialPending }: Props) {
     }
 
     return (
-        <div className="max-w-6xl mx-auto px-6 py-8 space-y-6">
+        <div className="w-full max-w-5xl mx-auto px-6 py-8 space-y-6">
             {/* Plan upgrade banner — only when >80% */}
             {usedPct >= 80 && (
                 <PlanUpgradeBanner
@@ -44,21 +45,15 @@ export function DashboardShell({ org, initialPending }: Props) {
             {/* Stats */}
             <StatsBar org={org} pendingCount={initialPending.length} />
 
-            {/* Two column grid */}
-            <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
-                {/* Left — pending requests (wider) */}
-                <div className="lg:col-span-3">
-                    <PendingRequests
-                        orgId={org.id}
-                        initialPending={initialPending}
-                        onAction={invalidate}
-                    />
-                </div>
+            <div className="space-y-6">
+                <OrgMembersTable
+                    orgId={org.id}
+                    initialActive={initialActive}
+                    initialPending={initialPending}
+                    onAction={invalidate}
+                />
 
-                {/* Right — student cache */}
-                <div className="lg:col-span-2">
-                    <StudentCache />
-                </div>
+                <StudentCache />
             </div>
 
             {/* Knowledge base — full width */}
