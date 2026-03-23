@@ -104,7 +104,6 @@ export function PendingRequests({ orgId, initialPending, onAction }: Props) {
                                 {pending.length} pending request
                                 {pending.length === 1 ? "" : "s"}
                             </p>
-                            
                         </div>
                         <Badge variant="secondary" className="shrink-0">
                             Check them
@@ -118,7 +117,8 @@ export function PendingRequests({ orgId, initialPending, onAction }: Props) {
                     <DrawerHeader>
                         <DrawerTitle>Pending membership requests</DrawerTitle>
                         <DrawerDescription>
-                            Review and process requests waiting for admin approval.
+                            Review and process requests waiting for admin
+                            approval.
                         </DrawerDescription>
                     </DrawerHeader>
 

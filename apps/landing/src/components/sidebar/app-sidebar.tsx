@@ -22,6 +22,7 @@ import { OrgSwitcher } from "@/components/sidebar/org-switcher";
 import { SearchCommand } from "@/components/chat/SearchCommand";
 import { cn } from "@/lib/utils";
 import type { OrgRole } from "@/lib/rbac";
+import { LocalStorageService } from "@/lib/local-storage-service";
 
 const TOP_NAV = [
     {
@@ -51,8 +52,7 @@ function isCurrentChatAlreadyNew(pathname: string) {
     if (!conversationId) return true;
 
     try {
-        const parsed = JSON.parse(localStorage.getItem("chat-history") ?? "[]");
-        if (!Array.isArray(parsed)) return true;
+        const parsed = LocalStorageService.getChatHistory();
 
         const existsInHistory = parsed.some(
             (item): item is CachedConversation =>

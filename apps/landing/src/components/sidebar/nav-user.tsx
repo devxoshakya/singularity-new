@@ -38,6 +38,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useClerk } from "@clerk/nextjs";
+import { LocalStorageService } from "@/lib/local-storage-service";
 
 // ── Edit modal for roll no / API key ─────────────────────────────────────────
 
@@ -56,15 +57,13 @@ function EditModal({
         if (!field) return;
 
         if (field === "api-key") {
-            setValue(
-                localStorage.getItem("api-key") ??
-                    localStorage.getItem("auth-token") ??
-                    "",
-            );
+            setValue(LocalStorageService.getApiKey());
             return;
         }
 
-        setValue(localStorage.getItem(field) ?? "");
+        setValue(
+            field === "roll-no" ? LocalStorageService.getRollNo() : "",
+        );
     }, [field]);
 
     function handleSave() {
@@ -72,11 +71,9 @@ function EditModal({
         const nextValue = value.trim();
 
         if (field === "api-key") {
-            localStorage.setItem("api-key", nextValue);
-            localStorage.removeItem("auth-token");
-            localStorage.removeItem("gemini-key");
+            LocalStorageService.setApiKey(nextValue);
         } else {
-            localStorage.setItem(field, nextValue);
+            LocalStorageService.setRollNo(nextValue);
         }
 
         onClose();
@@ -151,12 +148,8 @@ export function NavUser() {
     // Read from localStorage on mount + listen for updates
     useEffect(() => {
         function sync() {
-            setRollNo(localStorage.getItem("roll-no") ?? "Not set");
-            setApiKey(
-                localStorage.getItem("api-key") ??
-                    localStorage.getItem("auth-token") ??
-                    "",
-            );
+            setRollNo(LocalStorageService.getRollNo() || "Not set");
+            setApiKey(LocalStorageService.getApiKey());
 
             const name =
                 user?.fullName ??
@@ -165,12 +158,7 @@ export function NavUser() {
                 "";
             const email = user?.emailAddresses?.[0]?.emailAddress ?? "";
 
-            if (name) {
-                localStorage.setItem("user-name", name);
-            }
-            if (email) {
-                localStorage.setItem("user-email", email);
-            }
+            LocalStorageService.setUserIdentity(name, email);
         }
         sync();
         window.addEventListener("storage", sync);

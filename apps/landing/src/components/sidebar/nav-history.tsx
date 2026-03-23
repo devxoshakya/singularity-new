@@ -25,6 +25,10 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { MoreHorizontal } from "lucide-react"
 import { createFrontendJwtToken, getApiKey } from "@/lib/frontend-auth"
+import {
+  CHAT_HISTORY_UPDATED_EVENT,
+  LocalStorageService,
+} from "@/lib/local-storage-service"
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -37,6 +41,10 @@ type Conversation = {
 type SessionApiItem = {
   session_id: string
   title: string
+}
+
+function readCachedConversations(): Conversation[] {
+  return LocalStorageService.getChatHistory()
 }
 
 // ── Date grouping ────────────────────────────────────────────────────────────
@@ -82,17 +90,7 @@ async function fetchConversations(identity?: { userId?: string | null; name?: st
   // Read cache first for fallback and quick empty-token behavior.
   let cachedConversations: Conversation[] = []
   if (typeof window !== "undefined") {
-    const cached = localStorage.getItem("chat-history")
-    if (cached) {
-      try {
-        const parsed = JSON.parse(cached)
-        if (Array.isArray(parsed)) {
-          cachedConversations = parsed
-        }
-      } catch {
-        localStorage.removeItem("chat-history")
-      }
-    }
+    cachedConversations = readCachedConversations()
   }
 
   const token = await createFrontendJwtToken(identity)
@@ -140,7 +138,7 @@ async function fetchConversations(identity?: { userId?: string | null; name?: st
 
     // Cache in localStorage for next visit
     if (typeof window !== "undefined") {
-      localStorage.setItem("chat-history", JSON.stringify(merged))
+      LocalStorageService.setChatHistory(merged, true)
     }
 
     return merged
@@ -155,17 +153,24 @@ export function NavHistory() {
   const { user, isLoaded } = useUser()
   const pathname = usePathname()
   const [tokenVersion, setTokenVersion] = useState(0)
+  const [localConversations, setLocalConversations] = useState<Conversation[]>([])
 
   useEffect(() => {
-    const handleStorage = () => setTokenVersion(v => v + 1)
-    const handleHistoryUpdate = () => setTokenVersion(v => v + 1)
+    setLocalConversations(readCachedConversations())
+  }, [])
 
-    window.addEventListener("storage", handleStorage)
-    window.addEventListener("chat-history-updated", handleHistoryUpdate)
+  useEffect(() => {
+    const refreshFromLocal = () => {
+      setLocalConversations(readCachedConversations())
+      setTokenVersion(v => v + 1)
+    }
+
+    window.addEventListener("storage", refreshFromLocal)
+    window.addEventListener(CHAT_HISTORY_UPDATED_EVENT, refreshFromLocal)
 
     return () => {
-      window.removeEventListener("storage", handleStorage)
-      window.removeEventListener("chat-history-updated", handleHistoryUpdate)
+      window.removeEventListener("storage", refreshFromLocal)
+      window.removeEventListener(CHAT_HISTORY_UPDATED_EVENT, refreshFromLocal)
     }
   }, [])
 
@@ -182,7 +187,10 @@ export function NavHistory() {
     refetchOnMount:  true,
   })
 
-  if (isLoading) {
+  const displayConversations =
+    conversations.length > 0 ? conversations : localConversations
+
+  if (isLoading && localConversations.length === 0) {
     return (
       <SidebarGroup>
         <SidebarGroupLabel>History</SidebarGroupLabel>
@@ -197,7 +205,7 @@ export function NavHistory() {
     )
   }
 
-  if (conversations.length === 0) {
+  if (displayConversations.length === 0) {
     return (
       <SidebarGroup>
         <SidebarGroupLabel>History</SidebarGroupLabel>
@@ -210,7 +218,7 @@ export function NavHistory() {
     )
   }
 
-  const grouped = groupByDate(conversations)
+  const grouped = groupByDate(displayConversations)
 
   return (
     <>

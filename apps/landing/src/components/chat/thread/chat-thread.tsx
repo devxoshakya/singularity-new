@@ -7,7 +7,9 @@ import { UserMessage } from "./user-message";
 import { AssistantMessage } from "./assistant-message";
 import { TypingIndicator } from "./typing-indicator";
 import { ChatEmptyState } from "@/components/chat/chat-empty-state";
+import Loader from "@/components/Loader";
 import { createFrontendJwtToken, getApiKey } from "@/lib/frontend-auth";
+import { LocalStorageService } from "@/lib/local-storage-service";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -50,51 +52,11 @@ type Action =
     | { type: "SET_MODE"; mode: Mode }
     | { type: "ERROR" };
 
-type CachedConversation = {
-    id: string;
-    title: string;
-    createdAt?: string;
-};
-
-function upsertConversationHistory(conversationId: string, title: string) {
-    if (typeof window === "undefined") return;
-
-    const safeTitle = title.trim().slice(0, 120) || "New chat";
-
-    let list: CachedConversation[] = [];
-    try {
-        const parsed = JSON.parse(localStorage.getItem("chat-history") ?? "[]");
-        if (Array.isArray(parsed)) {
-            list = parsed.filter(
-                (item): item is CachedConversation =>
-                    !!item &&
-                    typeof item === "object" &&
-                    typeof (item as any).id === "string",
-            );
-        }
-    } catch {
-        list = [];
-    }
-
-    const now = new Date().toISOString();
-    const existingIndex = list.findIndex((item) => item.id === conversationId);
-
-    if (existingIndex >= 0) {
-        const existing = list[existingIndex];
-        const next: CachedConversation = {
-            ...existing,
-            title: existing.title?.trim() ? existing.title : safeTitle,
-            createdAt: existing.createdAt ?? now,
-        };
-
-        const without = list.filter((item) => item.id !== conversationId);
-        list = [next, ...without];
-    } else {
-        list = [{ id: conversationId, title: safeTitle, createdAt: now }, ...list];
-    }
-
-    localStorage.setItem("chat-history", JSON.stringify(list));
-    window.dispatchEvent(new CustomEvent("chat-history-updated"));
+function firstUserPrompt(messages: Message[]): string {
+    return (
+        messages.find((m) => m.role === "user")?.content?.trim().slice(0, 120) ||
+        "New chat"
+    );
 }
 
 function normalizeSources(input: unknown): Source[] {
@@ -230,9 +192,23 @@ export function ChatThread({
     const abortRef = useRef<AbortController | null>(null);
     const autoScroll = useRef(true);
     const scrollContainerRef = useRef<HTMLDivElement>(null);
+    const lastConversationIdRef = useRef(conversationId);
     const [historyChecked, setHistoryChecked] = useState(
         initialMessages.length > 0,
     );
+    const [historyLoading, setHistoryLoading] = useState(false);
+
+    useEffect(() => {
+        if (lastConversationIdRef.current === conversationId) {
+            return;
+        }
+
+        lastConversationIdRef.current = conversationId;
+        dispatch({ type: "SET_MESSAGES", payload: initialMessages });
+        dispatch({ type: "SET_MODE", mode: initialMode });
+        setHistoryChecked(initialMessages.length > 0);
+        setHistoryLoading(false);
+    }, [conversationId, initialMessages, initialMode]);
 
     const handleThreadScroll = useCallback(() => {
         const container = scrollContainerRef.current;
@@ -261,9 +237,10 @@ export function ChatThread({
     // Load full conversation history in client using frontend-issued JWT + API key.
     useEffect(() => {
         let cancelled = false;
+        const hasInitialMessages = initialMessages.length > 0;
 
-        if (!isLoaded || state.messages.length > 0) {
-            if (state.messages.length > 0) {
+        if (!isLoaded || hasInitialMessages) {
+            if (hasInitialMessages) {
                 setHistoryChecked(true);
             }
             return;
@@ -274,6 +251,7 @@ export function ChatThread({
             "https://jhunnu-backend.devshakya.xyz";
 
         async function loadHistory() {
+            setHistoryLoading(true);
             try {
                 const token = await createFrontendJwtToken({
                     userId: user?.id,
@@ -315,11 +293,16 @@ export function ChatThread({
 
                 if (!cancelled) {
                     dispatch({ type: "SET_MESSAGES", payload: mapped });
+                    LocalStorageService.upsertChatHistory(
+                        conversationId,
+                        firstUserPrompt(mapped),
+                    );
                 }
             } catch {
                 // Keep empty thread if history lookup fails.
             } finally {
                 if (!cancelled) {
+                    setHistoryLoading(false);
                     setHistoryChecked(true);
                 }
             }
@@ -330,13 +313,13 @@ export function ChatThread({
         return () => {
             cancelled = true;
         };
-    }, [conversationId, state.messages.length, isLoaded, user]);
+    }, [conversationId, initialMessages.length, isLoaded, user]);
 
     // ── Send message ──────────────────────────────────────────────────────────
 
     const sendMessage = useCallback(
         async (text: string, mode: Mode) => {
-            const rollNo = localStorage.getItem("roll-no") ?? "";
+            const rollNo = LocalStorageService.getRollNo() ?? "";
             const apiKey = getApiKey();
 
             if (!isLoaded) {
@@ -364,19 +347,21 @@ export function ChatThread({
             abortRef.current = new AbortController();
 
             // Optimistic user message
+            const optimisticUserMessage: Message = {
+                id: crypto.randomUUID(),
+                role: "user",
+                content: text,
+                mode,
+                createdAt: new Date().toISOString(),
+            };
+
             dispatch({
                 type: "ADD_USER_MSG",
-                payload: {
-                    id: crypto.randomUUID(),
-                    role: "user",
-                    content: text,
-                    mode,
-                    createdAt: new Date().toISOString(),
-                },
+                payload: optimisticUserMessage,
             });
 
             // Keep sidebar history in sync immediately on first send.
-            upsertConversationHistory(conversationId, text);
+            LocalStorageService.upsertChatHistory(conversationId, text);
 
             dispatch({ type: "START_STREAM", mode });
             autoScroll.current = true;
@@ -670,7 +655,20 @@ export function ChatThread({
             onScroll={handleThreadScroll}
             className="flex flex-col w-full h-full overflow-y-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
         >
-            {!state.streaming && state.messages.length === 0 && historyChecked ? (
+            {historyLoading && state.messages.length === 0 ? (
+                <Loader />
+            ) : null}
+
+            {historyLoading && state.messages.length > 0 ? (
+                <div className="sticky top-0 z-20 bg-background/80 backdrop-blur px-4 py-2">
+                    <Loader compact />
+                </div>
+            ) : null}
+
+            {!historyLoading &&
+            !state.streaming &&
+            state.messages.length === 0 &&
+            historyChecked ? (
                 <div className="w-full h-full max-w-[750px] mx-auto px-4 py-6">
                     <ChatEmptyState
                         onSelect={(prompt) => {

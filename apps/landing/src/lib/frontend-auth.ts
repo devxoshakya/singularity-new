@@ -1,3 +1,5 @@
+import { LocalStorageService } from "@/lib/local-storage-service";
+
 const JWT_SECRET = "jhunnu";
 
 type FrontendIdentity = {
@@ -77,9 +79,5 @@ export async function createFrontendJwtToken(
 }
 
 export function getApiKey(): string {
-    return (
-        localStorage.getItem("api-key")?.trim() ||
-        localStorage.getItem("auth-token")?.trim() ||
-        ""
-    );
+    return LocalStorageService.getApiKey();
 }

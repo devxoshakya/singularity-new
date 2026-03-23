@@ -12,11 +12,13 @@ import {
     CommandItem,
     CommandList,
 } from "@/components/ui/command";
+import {
+    LocalStorageService,
+    type RecentSearch,
+    type ConversationSummary,
+} from "@/lib/local-storage-service";
 
 type Result = { id: string; title: string; createdAt: string };
-type RecentSearch = { id: string; title: string };
-
-const RECENT_SEARCHES_KEY = "recent-chat-searches";
 
 interface SearchCommandProps {
     hideTrigger?: boolean;
@@ -24,38 +26,18 @@ interface SearchCommandProps {
 
 function searchLocal(q: string): Result[] {
     if (!q || typeof window === "undefined") return [];
-    const cached: Result[] = JSON.parse(
-        localStorage.getItem("chat-history") ?? "[]",
-    );
+    const cached = LocalStorageService.getChatHistory() as ConversationSummary[];
     return cached
         .filter((c) => c.title.toLowerCase().includes(q.toLowerCase()))
-        .slice(0, 8);
+        .slice(0, 8) as Result[];
 }
 
 function getRecentSearches(): RecentSearch[] {
-    if (typeof window === "undefined") return [];
-
-    try {
-        const parsed = JSON.parse(localStorage.getItem(RECENT_SEARCHES_KEY) ?? "[]");
-        if (!Array.isArray(parsed)) return [];
-
-        return parsed
-            .filter(
-                (item): item is RecentSearch =>
-                    !!item &&
-                    typeof item === "object" &&
-                    typeof (item as any).id === "string" &&
-                    typeof (item as any).title === "string",
-            )
-            .slice(0, 5);
-    } catch {
-        return [];
-    }
+    return LocalStorageService.getRecentSearches();
 }
 
 function saveRecentSearches(items: RecentSearch[]) {
-    if (typeof window === "undefined") return;
-    localStorage.setItem(RECENT_SEARCHES_KEY, JSON.stringify(items.slice(0, 5)));
+    LocalStorageService.setRecentSearches(items);
 }
 
 function upsertRecentSearch(item: RecentSearch): RecentSearch[] {
