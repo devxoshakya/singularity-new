@@ -115,18 +115,25 @@ async function fetchStudentResult(rollNo: string): Promise<StudentResult> {
     const raw = envelope?.data ?? envelope;
 
     const carryOvers = Array.isArray(raw?.CarryOvers) ? raw.CarryOvers : [];
-    const backlogSubjects = Array.from(
+    const backlogSubjects: string[] = Array.from(
         new Set(
             carryOvers
-                .flatMap((entry: any) => {
+                .flatMap((entry: unknown): string[] => {
                     if (Array.isArray(entry)) {
-                        return entry;
+                        return entry.filter(
+                            (v): v is string => typeof v === "string",
+                        );
                     }
-                    if (typeof entry?.cop === "string") {
-                        return entry.cop
+                    if (
+                        entry &&
+                        typeof entry === "object" &&
+                        "cop" in entry &&
+                        typeof (entry as { cop?: unknown }).cop === "string"
+                    ) {
+                        return ((entry as { cop: string }).cop ?? "")
                             .replace(/^COP\s*:\s*/i, "")
                             .split(",")
-                            .map((s: string) => s.trim());
+                            .map((s) => s.trim());
                     }
                     return [];
                 })
