@@ -118,7 +118,7 @@ export const Features = () => {
   }
 
   return (
-    <section className="py-20 md:py-24">
+    <section className="py-20 md:py-24 max-w-6xl mx-auto px-4">
       <div className="container">
         <h2 className="text-5xl md:text-6xl font-medium text-center tracking-tighter">Elevate your result analysis.</h2>
         <p className="text-white/70 text-lg md:text-xl max-w-2xl mx-auto tracking-tight text-center mt-5">
@@ -135,7 +135,7 @@ export const Features = () => {
           <motion.div
             className="aspect-video bg-cover border border-white/20 rounded-lg"
             style={{
-              backgroundImage: `url(https://cdn2.devshakya.xyz/landing/assets/product-image.png)`,
+              backgroundImage: `url(/landing/product.png)`,
               backgroundPosition: backgroundPosition,
               backgroundSize: backgroundSize,
             }}

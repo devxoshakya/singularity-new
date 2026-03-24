@@ -36,6 +36,8 @@ export interface Plan {
   };
   highlighted?: boolean;
   isFree?: boolean;
+  isOneTime?: boolean;
+  customPriceLabel?: string;
   isLoading?: boolean;
   disabled?: boolean;
 }
@@ -44,15 +46,26 @@ interface PricingSectionProps extends React.ComponentProps<"div"> {
   plans: Plan[];
   heading: string;
   description?: string;
+  showFrequencyToggle?: boolean;
+  hideHeader?: boolean;
 }
 
 export function PricingSection({
   plans,
   heading,
   description,
+  showFrequencyToggle = true,
+  hideHeader = false,
   ...props
 }: PricingSectionProps) {
   const [frequency, setFrequency] = React.useState<FREQUENCY>("1 Semester");
+
+  const gridColsClass =
+    plans.length <= 1
+      ? "md:grid-cols-1 max-w-xl"
+      : plans.length === 2
+        ? "md:grid-cols-2 max-w-3xl"
+        : "md:grid-cols-3 max-w-4xl";
 
   return (
     <div
@@ -62,23 +75,27 @@ export function PricingSection({
       )}
       {...props}
     >
-      <div className="mx-auto max-w-xl space-y-2">
-        <h2 className="text-center text-2xl font-bold tracking-tight md:text-3xl lg:text-4xl">
-          {heading}
-        </h2>
-        {description && (
-          <p className="text-muted-foreground text-center text-sm md:text-base">
-            {description}
-          </p>
-        )}
-      </div>
+      {!hideHeader ? (
+        <div className="mx-auto max-w-xl space-y-2">
+          <h2 className="text-center text-2xl font-bold tracking-tight md:text-3xl lg:text-4xl">
+            {heading}
+          </h2>
+          {description && (
+            <p className="text-muted-foreground text-center text-sm md:text-base">
+              {description}
+            </p>
+          )}
+        </div>
+      ) : null}
 
-      <PricingFrequencyToggle
-        frequency={frequency}
-        setFrequency={setFrequency}
-      />
+      {showFrequencyToggle ? (
+        <PricingFrequencyToggle
+          frequency={frequency}
+          setFrequency={setFrequency}
+        />
+      ) : null}
 
-      <div className="mx-auto grid w-full max-w-4xl grid-cols-1 gap-4 md:grid-cols-3">
+      <div className={cn("mx-auto grid w-full grid-cols-1 gap-4", gridColsClass)}>
         {plans.map((plan) => (
           <PricingCard plan={plan} key={plan.name} frequency={frequency} />
         ))}
@@ -181,7 +198,7 @@ export function PricingCard({
               Popular
             </p>
           )}
-          {!plan.isFree && frequency === "2 Semesters" && discount > 0 && (
+          {!plan.isFree && !plan.customPriceLabel && frequency === "2 Semesters" && discount > 0 && (
             <p className="bg-primary text-primary-foreground flex items-center gap-1 rounded-md border px-2 py-0.5 text-xs">
               {discount}% off
             </p>
@@ -191,10 +208,18 @@ export function PricingCard({
         <div className="text-lg font-medium">{plan.name}</div>
         <p className="text-muted-foreground text-sm font-normal">{plan.info}</p>
         <h3 className="mt-2 flex items-end gap-1">
-          <span className="text-3xl font-bold">INR {plan.price[frequency]}</span>
-          <span className="text-muted-foreground">
-            {!plan.isFree && `/${frequency === "1 Semester" ? "sem" : "year"}`}
-          </span>
+          {plan.customPriceLabel ? (
+            <span className="text-3xl font-bold">{plan.customPriceLabel}</span>
+          ) : (
+            <>
+              <span className="text-3xl font-bold">INR {plan.price[frequency]}</span>
+              {!plan.isFree ? (
+                <span className="text-muted-foreground">
+                  {plan.isOneTime ? "/one-time" : `/${frequency === "1 Semester" ? "sem" : "year"}`}
+                </span>
+              ) : null}
+            </>
+          )}
         </h3>
       </div>
 

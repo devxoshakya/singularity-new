@@ -1,13 +1,13 @@
+
 import { auth } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 import { randomUUID } from "crypto";
 import { Header } from "@/sections/Header";
-import Hero from "@/sections/Hero";
+import HeroSection from "@/sections/Hero";
 import { LogoTicker } from "@/sections/LogoTicker";
 import { Features } from "@/sections/Features";
-import { BentoFeatures } from "@/sections/BentoFeatures";
 import { Benefits } from "@/sections/Benefits";
-import { Pricing } from "@/sections/Pricing";
+import { PricingPage } from "@/components/ui/pricing-page";
 import { Testimonials } from "@/sections/Testimonials";
 import { CallToAction } from "@/sections/CallToAction";
 import { Footer2 } from "@/components/footer2";
@@ -21,15 +21,25 @@ export default async function Home() {
     }
 
     return (
-        <div className="w-full container mx-auto relative overflow-hidden p-4">
+        <div className="w-full relative overflow-hidden">
             {/* <Header /> */}
-            <Hero />
-            <LogoTicker />
-            <Features />
-            <BentoFeatures />
-            <Pricing />
+            <HeroSection />
+            <div className="max-w-480 mx-auto px-4">
+                <LogoTicker />
+            </div>
+            <div className="max-w-480 mx-auto px-4">
+                <Features />
+            </div>
+            <div className="max-w-480 mx-auto px-4">
+                {/* <BentoFeatures /> */}
+            </div>
+            <div className="max-w-480 mx-auto px-4">
+                <PricingPage embedded />
+            </div>
             {/* <Benefits /> */}
-            <Testimonials />
+            <div className="max-w-480 mx-auto px-4">
+                <Testimonials />
+            </div>
             <MietResults />
             <Faq />
             <CallToAction />

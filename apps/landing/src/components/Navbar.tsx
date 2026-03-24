@@ -19,13 +19,7 @@ export const Logo = () => {
         height={36}
         className="fill-white"
       />
-      <span className="text-3xl font-display">/</span>
-      <img
-        src="/logo-acme.png"
-        alt="Billing SDK"
-        width={120}
-        height={120}
-      />
+      <span className="text-xl font-medium font-body">Singularity</span>
     </div>
   );
 };

@@ -6,10 +6,11 @@ import { Footer } from "./footer";
 
 export function Footer2() {
   return (
-    <footer className="bg-muted/10 rounded-3xl border border-input p-2 w-full">
-      <Footer />
-      <div className="pt-12 pb-2 md:pb-12 px-4">
-        <div className="max-w-6xl mx-auto">
+    <div className="w-full max-w-300 mx-auto">
+      <footer className="bg-muted/10 rounded-3xl border border-input p-2 w-full">
+        <Footer />
+        <div className="pt-12 pb-2 md:pb-12 px-4">
+          <div className="max-w-6xl mx-auto">
           {/* Top Section */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-8">
             <div className="lg:col-span-1">
@@ -192,8 +193,9 @@ export function Footer2() {
               </div>
             </div>
           </div>
+          </div>
         </div>
-      </div>
-    </footer>
+      </footer>
+    </div>
   );
 }

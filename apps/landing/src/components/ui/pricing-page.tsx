@@ -4,138 +4,143 @@ import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 
-import { PricingSection } from "@/components/ui/pricing";
+import { PricingSection, type Plan } from "@/components/ui/pricing";
+import { PLAN_LIMITS, type PlanKey } from "@/lib/plans";
+import { cn } from "@/lib/utils";
 
-const plans = [
+type PlanGroup = "BASIC_PLANS" | "PLUS_PLANS";
+
+const BASIC_PLAN_KEYS: PlanKey[] = ["BASIC", "PRO", "PREMIUM"];
+const PLUS_PLAN_KEYS: PlanKey[] = ["PRO_PLUS", "PREMIUM_PLUS"];
+
+const PLAN_CONTENT: Record<
+  PlanKey,
   {
-    name: "Basic",
-    info: "Perfect for trying out Singularity",
-    price: {
-      "1 Semester": 0,
-      "2 Semesters": 0,
-    },
-    features: [
-      {
-        text: "Access to ranking of all students",
-        tooltip: "View complete student rankings",
-      },
-      {
-        text: "List of all 5700+ student database",
-        tooltip: "Full access to student directory",
-      },
-      {
-        text: "5 free result views per semester",
-        tooltip: "View up to 5 results each semester",
-      },
-      {
-        text: "Semester-wise SGPA only",
-        tooltip: "Basic SGPA information",
-      },
-    ],
-    btn: {
-      text: "Start Free",
-      href: "#",
-      onClick: "basic",
-    },
-    isFree: true,
+    info: string;
+    highlighted?: boolean;
+    buttonText: string;
+  }
+> = {
+  FREE: {
+    info: "Free plan",
+    buttonText: "Start Free",
   },
-  {
-    name: "Premium",
-    info: "For institutions and power users",
-    price: {
-      "1 Semester": 199,
-      "2 Semesters": 339,
-    },
-    features: [
-      {
-        text: "Access to ranking of all students",
-        tooltip: "View complete student rankings",
-      },
-      {
-        text: "List of all 5700+ student database",
-        tooltip: "Full access to student directory",
-      },
-      {
-        text: "100 result views per semester",
-        tooltip: "View up to 100 results each semester",
-      },
-      {
-        text: "Detailed result view",
-        tooltip: "Complete result breakdown with all details",
-      },
-      {
-        text: "Latest semester marks",
-        tooltip: "Access to most recent semester marks",
-      },
-      {
-        text: "Semester-wise SGPA",
-        tooltip: "Detailed SGPA for each semester",
-      },
-      {
-        text: "Profile view tracking",
-        tooltip: "See who has viewed your result",
-      },
-      {
-        text: "Advanced analytics",
-        tooltip: "Detailed insights and trends",
-      },
-      {
-        text: "Priority support",
-        tooltip: "Get help when you need it",
-      },
-    ],
-    btn: {
-      text: "Get Started",
-      href: "#",
-      onClick: "premium",
-    },
+  BASIC: {
+    info: "For individuals and small cohorts",
+    buttonText: "Get Basic",
+  },
+  PRO: {
+    info: "For growing organisations and teams",
+    buttonText: "Get Pro",
+  },
+  PRO_PLUS: {
+    info: "High-capacity plan for larger teams",
+    buttonText: "Get Pro Plus",
+  },
+  PREMIUM: {
+    info: "For institutions with high throughput",
     highlighted: true,
+    buttonText: "Get Premium",
   },
-  {
-    name: "Pro",
-    info: "For active users and small teams",
-    price: {
-      "1 Semester": 99,
-      "2 Semesters": 179,
-    },
-    features: [
-      {
-        text: "Access to ranking of all students",
-        tooltip: "View complete student rankings",
-      },
-      {
-        text: "List of all 5700+ student database",
-        tooltip: "Full access to student directory",
-      },
-      {
-        text: "50 result views per semester",
-        tooltip: "View up to 50 results each semester",
-      },
-      {
-        text: "Detailed result view",
-        tooltip: "Complete result breakdown with all details",
-      },
-      {
-        text: "Latest semester marks",
-        tooltip: "Access to most recent semester marks",
-      },
-      {
-        text: "Semester-wise SGPA",
-        tooltip: "Detailed SGPA for each semester",
-      },
-    ],
-    btn: {
-      text: "Get Started",
-      href: "#",
-      onClick: "pro",
-    },
+  PREMIUM_PLUS: {
+    info: "Top-tier plan for large deployments",
+    buttonText: "Get Premium Plus",
   },
-];
+};
 
-export function PricingPage() {
+export function PricingPage({ embedded = false }: { embedded?: boolean } = {}) {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState<string | null>(null);
+  const [planGroup, setPlanGroup] = useState<PlanGroup>("BASIC_PLANS");
+
+  const buildPlan = (planKey: PlanKey, group: PlanGroup): Plan => {
+    const limits = PLAN_LIMITS[planKey];
+    const content = PLAN_CONTENT[planKey];
+    const isPlusPlan = group === "PLUS_PLANS";
+
+    return {
+      name: limits.label,
+      info: content.info,
+      price: {
+        "1 Semester": limits.price,
+        "2 Semesters": limits.price,
+      },
+      features: [
+        {
+          text: `${limits.studentLimit.toLocaleString()} student records`,
+          tooltip: "Maximum student records supported by this plan",
+        },
+        {
+          text: `${limits.memberLimit.toLocaleString()} organisation members`,
+          tooltip: "Maximum team members allowed in your organisation",
+        },
+        {
+          text: `Knowledge base limit: ${isPlusPlan ? "5 GB" : "2 GB"}`,
+          tooltip: "Total storage available for your knowledge base content",
+        },
+        {
+          text: `SLA: ${isPlusPlan ? "99.9%" : "99%"} uptime`,
+          tooltip: "Platform uptime commitment",
+        },
+        {
+          text: isPlusPlan ? "High priority support" : "Standard support",
+          tooltip: isPlusPlan
+            ? "Fast-track support queue for plus plans"
+            : "Regular support response times",
+        },
+        {
+          text: "One-time purchase",
+          tooltip: "No recurring subscription fees",
+        },
+      ],
+      btn: {
+        text: content.buttonText,
+        href: "#",
+      },
+      highlighted: content.highlighted,
+      isOneTime: true,
+    };
+  };
+
+  const basicPlans: Plan[] = BASIC_PLAN_KEYS.map((planKey) => buildPlan(planKey, "BASIC_PLANS"));
+  const plusPlans: Plan[] = [
+    ...PLUS_PLAN_KEYS.map((planKey) => buildPlan(planKey, "PLUS_PLANS")),
+    {
+      name: "Custom Enterprise",
+      info: "Need limits above Plus plans?",
+      price: {
+        "1 Semester": 0,
+        "2 Semesters": 0,
+      },
+      customPriceLabel: "Custom",
+      features: [
+        {
+          text: "Custom pricing for larger deployments",
+          tooltip: "Volume-based and institution-specific pricing",
+        },
+        {
+          text: "Knowledge base limit: 5 GB+",
+          tooltip: "Higher limits available based on use case",
+        },
+        {
+          text: "SLA: 99.9% uptime",
+          tooltip: "Enterprise-grade uptime commitment",
+        },
+        {
+          text: "High priority support",
+          tooltip: "Dedicated support path for enterprise accounts",
+        },
+      ],
+      btn: {
+        text: "Contact Sales",
+        href: "mailto:sales@singularity.app",
+      },
+      isOneTime: true,
+    },
+  ];
+
+  const plans = planGroup === "BASIC_PLANS" ? basicPlans : plusPlans;
 
   const handlePlanSelection = async (planName: string) => {
     setIsLoading(true);
@@ -157,18 +162,27 @@ export function PricingPage() {
   };
 
   const plansWithHandlers = plans.map((plan) => ({
-    ...plan,
-    btn: {
-      ...plan.btn,
-      href: "#",
-      onClick: () => handlePlanSelection(plan.name),
-    },
-    isLoading: isLoading && selectedPlan === plan.name,
-    disabled: isLoading && selectedPlan !== plan.name,
+    ...(plan.customPriceLabel
+      ? plan
+      : {
+          ...plan,
+          btn: {
+            ...plan.btn,
+            href: "#",
+            onClick: () => handlePlanSelection(plan.name),
+          },
+          isLoading: isLoading && selectedPlan === plan.name,
+          disabled: isLoading && selectedPlan !== plan.name,
+        }),
   }));
 
   return (
-    <main className="relative min-h-screen overflow-hidden bg-black">
+    <main
+      className={cn(
+        "relative overflow-hidden",
+        embedded ? "rounded-2xl " : "min-h-screen"
+      )}
+    >
       <div
         aria-hidden
         className="absolute inset-0 isolate -z-10 contain-strict opacity-60"
@@ -178,30 +192,72 @@ export function PricingPage() {
         <div className="bg-[radial-gradient(50%_50%_at_50%_50%,--theme(--color-foreground/.04)_0,--theme(--color-foreground/.01)_80%,transparent_100%)] absolute top-0 right-0 h-320 w-60 -translate-y-87.5 rounded-full" />
       </div>
 
-      <div className="container mx-auto px-4 py-12 md:py-20">
-        <div className="mb-8 flex items-center justify-center gap-2">
-          <div className="flex items-center">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              fill="#ffffff"
-              viewBox="0 0 120 120"
-              className="size-8 translate-x-[-0.5px]"
-            >
-              <path
+      <div className={cn("mx-auto px-4 py-12 md:py-20", embedded ? "max-w-300" : "container")}>
+        {!embedded ? (
+          <div className="mb-8 flex items-center justify-center gap-2">
+            <div className="flex items-center">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
                 fill="#ffffff"
-                fillRule="evenodd"
-                d="M0 60c38.137 0 60-21.863 60-60 0 38.137 21.863 60 60 60-38.137 0-60 21.863-60 60 0-38.137-21.863-60-60-60"
-                clipRule="evenodd"
-              />
-            </svg>
+                viewBox="0 0 120 120"
+                className="size-8 translate-x-[-0.5px]"
+              >
+                <path
+                  fill="#ffffff"
+                  fillRule="evenodd"
+                  d="M0 60c38.137 0 60-21.863 60-60 0 38.137 21.863 60 60 60-38.137 0-60 21.863-60 60 0-38.137-21.863-60-60-60"
+                  clipRule="evenodd"
+                />
+              </svg>
+            </div>
+            <p className="text-center text-xl font-semibold text-white">Singularity</p>
           </div>
-          <p className="text-center text-xl font-semibold text-white">Singularity</p>
+        ) : null}
+
+        <div className="mx-auto mb-4 max-w-2xl space-y-2">
+          <h2 className="text-center text-4xl font-semibold tracking-tight text-white md:text-5xl">
+            Simple, transparent pricing
+          </h2>
+          <p className="text-muted-foreground text-center text-base md:text-lg">
+            Choose the plan that's right for you
+          </p>
+        </div>
+
+        <div className="mb-4 flex justify-center">
+          <div className="bg-muted/30 flex w-full max-w-xs rounded-full border p-1">
+            <button
+              type="button"
+              onClick={() => setPlanGroup("BASIC_PLANS")}
+              className={cn(
+                "flex-1 rounded-full px-3 py-1.5 text-xs font-medium transition sm:text-sm",
+                planGroup === "BASIC_PLANS"
+                  ? "bg-foreground text-background"
+                  : "text-muted-foreground hover:text-foreground"
+              )}
+            >
+              Basic Plans
+            </button>
+            <button
+              type="button"
+              onClick={() => setPlanGroup("PLUS_PLANS")}
+              className={cn(
+                "flex-1 rounded-full px-3 py-1.5 text-xs font-medium transition sm:text-sm",
+                planGroup === "PLUS_PLANS"
+                  ? "bg-foreground text-background"
+                  : "text-muted-foreground hover:text-foreground"
+              )}
+            >
+              Plus Plans
+            </button>
+          </div>
         </div>
 
         <PricingSection
-          plans={plansWithHandlers as never}
-          heading="Choose Your Plan"
-          description="Select the perfect plan for your needs. Start for free and upgrade as you grow."
+          plans={plansWithHandlers}
+          heading="Simple, transparent pricing"
+          description="Choose the plan that's right for you"
+          showFrequencyToggle={false}
+          hideHeader
         />
       </div>
     </main>
