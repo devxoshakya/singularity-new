@@ -39,10 +39,6 @@ const TOP_NAV = [
     },
 ];
 
-type CachedConversation = {
-    id: string;
-};
-
 function isCurrentChatAlreadyNew(pathname: string) {
     if (typeof window === "undefined") return false;
     if (pathname === "/c") return true;
@@ -54,13 +50,7 @@ function isCurrentChatAlreadyNew(pathname: string) {
     try {
         const parsed = LocalStorageService.getChatHistory();
 
-        const existsInHistory = parsed.some(
-            (item): item is CachedConversation =>
-                !!item &&
-                typeof item === "object" &&
-                typeof (item as any).id === "string" &&
-                (item as any).id === conversationId,
-        );
+        const existsInHistory = parsed.some((item) => item.id === conversationId);
 
         return !existsInHistory;
     } catch {
