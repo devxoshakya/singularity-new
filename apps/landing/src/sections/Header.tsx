@@ -1,4 +1,5 @@
 import Button from '@/components/Button'
+import Link from 'next/link'
 
 export const Header = () => {
   return (
@@ -29,7 +30,9 @@ export const Header = () => {
             </nav>
           </div>
           <div className="flex gap-4 items-center">
-            <Button>Get Started</Button>
+            <Link href="/login">
+              <Button>Get Started</Button>
+            </Link>
             <img src="https://cdn2.devshakya.xyz/landing/assets/icon-menu.svg" alt="Menu" className="md:hidden" />
           </div>
         </div>

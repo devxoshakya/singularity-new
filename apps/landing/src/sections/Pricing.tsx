@@ -13,6 +13,7 @@ import {
 	PricingTablePlan,
 } from '@/components/ui/pricing-table';
 import { Button } from '@/components/ui/button';
+import Link from 'next/link';
 
 export const Pricing = () => {
 	return (
@@ -64,8 +65,9 @@ export const Pricing = () => {
 									<Button
 										className="w-full rounded-lg border-[#A369FF]/60 bg-[#8C45FF]/80 text-white hover:bg-[#8C45FF] shadow-lg shadow-[#8C45FF]/25"
 										size="lg"
+										asChild
 									>
-										Get Started
+										<Link href="/login">Get Started</Link>
 									</Button>
 								</PricingTablePlan>
 							</th>
@@ -82,8 +84,9 @@ export const Pricing = () => {
 										variant="outline" 
 										className="w-full rounded-lg border-white/15 hover:bg-white/5" 
 										size="lg"
+										asChild
 									>
-										Get Started
+										<Link href="/login">Get Started</Link>
 									</Button>
 								</PricingTablePlan>
 							</th>

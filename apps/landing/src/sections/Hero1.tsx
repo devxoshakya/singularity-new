@@ -36,7 +36,7 @@ const Hero = () => {
         router.push("/login"); // Redirect to Get Started
       }
       if (e.key.toLowerCase() === "b") {
-        router.push("/docs/components"); // Redirect to Browse Components
+        router.push("/docs"); // Redirect to Documentation
       }
       if (e.key.toLowerCase() === "g") {
         router.push("https://github.com/dodopayments/billingsdk");
@@ -168,11 +168,11 @@ const Hero = () => {
               >
                 <Link
                   className="flex group items-center gap-2"
-                  href="/docs/components"
+                  href="/docs"
                 >
-                  <span>Browse Components</span>
+                  <span>Documentation</span>
                   <Badge className="bg-accent text-foreground transition-all duration-200 group-hover:shadow-xl shadow-white/70">
-                    B
+                    D
                   </Badge>
                 </Link>
               </Button>

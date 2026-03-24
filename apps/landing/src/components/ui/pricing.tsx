@@ -261,8 +261,8 @@ export function PricingCard({
         )}
       >
         {plan.isFree ? (
-          <Button className="w-full" variant="outline" onClick={() => router.push("/login")}>
-            Get Started
+          <Button className="w-full" variant="outline" asChild>
+            <Link href="/login">Get Started</Link>
           </Button>
         ) : plan.btn.onClick ? (
           <Button

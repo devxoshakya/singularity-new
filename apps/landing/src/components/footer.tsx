@@ -12,7 +12,7 @@ export function Footer() {
     <footer className="w-full h-80 border rounded-2xl overflow-hidden relative">
       <img
         src="https://cdn2.devshakya.xyz/landing/FractalMaze.jpg"
-        alt="Moon background"
+        alt="Fractal background"
         className="absolute inset-0 w-full h-full opacity-40 blur-[1px] md:blur-[2px] object-cover rotate-180"
       />
 
@@ -23,11 +23,11 @@ export function Footer() {
       <div className="relative z-10 flex flex-col items-start px-4 md:px-8 pt-2 pb-4 justify-between sm:justify-center h-full">
         <div className="relative flex flex-col items-start justify-start">
           <p className="text-white max-w-lg mt-3 tracking-tight font-semibold text-xl md:text-3xl text-left">
-            Ready to use billing components and blocks for your next project?
+            Ready to simplify student support and result workflows?
           </p>
           <p className="text-sm pt-3 text-neutral-200 max-w-xl text-left">
-            Free Billing components and blocks built with React, Typescript,
-            Tailwind CSS, and Motion. Perfect companion for shadcn/ui.
+            Singularity brings instant answers, AKTU result access, and admin
+            insights into one platform for your institution.
           </p>
         </div>
         <motion.div
@@ -42,7 +42,7 @@ export function Footer() {
             className="w-full md:w-52 h-12 text-primary-foreground before:from-primary-foreground/20 after:from-primary-foreground/10 relative isolate inline-flex items-center justify-center overflow-hidden rounded-md px-3 text-left text-sm font-medium  before:pointer-events-none before:absolute before:inset-0 before:-z-10 before:rounded-md before:bg-linear-to-b before:opacity-80 before:transition-opacity before:duration-300 before:ease-[cubic-bezier(0.4,0.36,0,1)] after:pointer-events-none after:absolute after:inset-0 after:-z-10 after:rounded-md after:bg-linear-to-b after:to-transparent after:mix-blend-overlay hover:cursor-pointer"
             asChild
           >
-            <Link className="flex group items-center gap-2" href="/docs">
+            <Link className="flex group items-center gap-2" href="/login">
               <span>Get Started</span>
               <Badge className="bg-accent p-1 text-foreground transition-all duration-200 ease-in-out group-hover:shadow-xl shadow-background/70">
                 <CornerDownLeft className="size-4" />
@@ -55,9 +55,11 @@ export function Footer() {
           >
             <Link
               className="flex group items-center gap-2"
-              href="/docs/components"
+              href="https://github.com/devxoshakya/singularity"
+              target="_blank"
+              rel="noopener noreferrer"
             >
-              <span>Github</span>
+              <span>GitHub</span>
               <Badge className="bg-accent text-foreground transition-all duration-200 group-hover:shadow-xl shadow-white/70">
                 <FaGithub />
               </Badge>

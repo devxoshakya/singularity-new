@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
 import { CornerDownLeft } from "lucide-react";
 import { ShineButton } from "./shine-button";
-
+import Link from "next/link";
 
 export function MietResults() {
     return (
@@ -20,18 +20,20 @@ export function MietResults() {
                     {/* Left Content */}
                     <div className="flex flex-col items-start justify-center md:w-1/2 md:pr-8 ">
                         <ShineButton
-                        containerClassName="rounded-none"
+                            containerClassName="rounded-none"
                             className="shadow-md  shadow-white/5 mb-2 rounded-sm"
-                            label="Sentra"
+                            label="Singularity Project"
                         />
-                        <p className="text-white tracking-tight font-display font-semibold text-2xl md:text-3xl text-left mb-4">
-                            Don't code,<br />
-                            just prompt & integrate.
+                        <p className="text-white tracking-tight font-body font-light text-2xl md:text-3xl text-left mb-4">
+                            MIET Results
+                            <br />
+                            Listing
                         </p>
                         <p className="text-sm text-neutral-200 max-w-xl text-left mb-8">
-                            Sentra is the new agentic stack from Dodo Payments, an IDE-first
-                            assistant that integrates billing and payments, gives insights, and executes
-                            actions inside VS Code, Cursor or Windsurf.
+                            An unbiased platform to view and verify student
+                            scores at MIET. Powered by the Singularity Project,
+                            it ensures transparency, eliminates favouritism, and
+                            promotes fair recognition for every student.
                         </p>
                         <motion.div
                             className="flex"
@@ -39,18 +41,20 @@ export function MietResults() {
                                 hidden: { opacity: 0, y: 20 },
                                 visible: { opacity: 1, y: 0 },
                             }}
-                            transition={{ duration: 0.4, delay: 0.2, ease: "easeOut" }}
+                            transition={{
+                                duration: 0.4,
+                                delay: 0.2,
+                                ease: "easeOut",
+                            }}
                         >
-                            
-                                    <Button
-                                        className="w-44 md:w-52 h-12 text-primary-foreground before:from-primary-foreground/20 after:from-primary-foreground/10 relative isolate inline-flex items-center justify-center overflow-hidden rounded-md px-3 text-left text-sm font-medium before:pointer-events-none before:absolute before:inset-0 before:-z-10 before:rounded-md before:bg-linear-to-b before:opacity-80 before:transition-opacity before:duration-300 before:ease-[cubic-bezier(0.4,0.36,0,1)] after:pointer-events-none after:absolute after:inset-0 after:-z-10 after:rounded-md after:bg-linear-to-b after:to-transparent after:mix-blend-overlay hover:cursor-pointer"
-                                    >
-                                        <span className="flex group items-center gap-2">
-                                            <span>Get Alpha Access</span>
-                                            <CornerDownLeft className="size-4 transition-all duration-200 ease-in-out group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
-                                        </span>
-                                    </Button>
-                               
+                            <Link href={'https://m.devshakya.xyz'} target="__blank">
+                                <Button className="w-44 md:w-52 h-12 text-primary-foreground before:from-primary-foreground/20 after:from-primary-foreground/10 relative isolate inline-flex items-center justify-center overflow-hidden rounded-md px-3 text-left text-sm font-medium before:pointer-events-none before:absolute before:inset-0 before:-z-10 before:rounded-md before:bg-linear-to-b before:opacity-80 before:transition-opacity before:duration-300 before:ease-[cubic-bezier(0.4,0.36,0,1)] after:pointer-events-none after:absolute after:inset-0 after:-z-10 after:rounded-md after:bg-linear-to-b after:to-transparent after:mix-blend-overlay hover:cursor-pointer">
+                                    <span className="flex group items-center gap-2">
+                                        <span>Get Alpha Access</span>
+                                        <CornerDownLeft className="size-4 transition-all duration-200 ease-in-out group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+                                    </span>
+                                </Button>
+                            </Link>
                         </motion.div>
                     </div>
 
@@ -58,7 +62,7 @@ export function MietResults() {
                     <div className="flex items-center justify-center md:w-1/2 mt-8 md:mt-0">
                         <div className="p-4 rounded-xl bg-muted/20 overflow-x-scroll md:overflow-auto border border-muted/80">
                             <img
-                                src="https://cdn2.devshakya.xyz/landing/Sentra.png"
+                                src="/landing/miet-results.png"
                                 alt="Sentra"
                                 className="opacity-80 drop-shadow-2xl"
                             />
