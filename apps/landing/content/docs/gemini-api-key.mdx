@@ -1,0 +1,49 @@
+---
+title: Get a Gemini API Key
+description: Step-by-step guide to create a Gemini API key in Google AI Studio.
+---
+
+Use this guide to generate a Gemini API key from Google AI Studio and add it to the app.
+
+## Video Tutorial
+
+<iframe
+  width="100%"
+  height="420"
+  src="https://www.youtube.com/embed/sLxW6oIS4cM"
+  title="How to get Gemini API key from Google AI Studio"
+  frameBorder="0"
+  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+  referrerPolicy="strict-origin-when-cross-origin"
+  allowFullScreen
+/>
+
+## Step-by-Step Instructions
+
+1. Open Google AI Studio: [https://aistudio.google.com](https://aistudio.google.com)
+2. Sign in with your Google account.
+3. In AI Studio, open the API key section.
+4. Click **Create API key**.
+5. Copy the generated key and store it securely.
+6. Open this app and go to the user menu in the sidebar.
+7. Click **Backend API key** and paste your Gemini API key.
+8. Save and start using chat features.
+
+## Important Notes
+
+- Never share your API key publicly.
+- Do not commit API keys into source code or git.
+- If you think the key is exposed, revoke it and create a new one.
+
+## Troubleshooting
+
+### Invalid key error
+
+- Verify there are no extra spaces when pasting.
+- Regenerate the key in AI Studio and try again.
+
+### Requests still failing
+
+- Check internet connectivity.
+- Ensure your backend endpoint accepts the key through `x-api-key`.
+- Confirm the selected Gemini model is available for your key/project.

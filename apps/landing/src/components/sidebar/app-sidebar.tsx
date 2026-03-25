@@ -49,10 +49,8 @@ function isCurrentChatAlreadyNew(pathname: string) {
 
     try {
         const parsed = LocalStorageService.getChatHistory();
-
-        const existsInHistory = parsed.some((item) => item.id === conversationId);
-
-        return !existsInHistory;
+        const current = parsed.find((item) => item.id === conversationId);
+        return (current?.title ?? "").trim().toLowerCase() === "new chat";
     } catch {
         return true;
     }
@@ -126,7 +124,17 @@ export function AppSidebar({ role }: { role: OrgRole }) {
     const visibleTopNav = TOP_NAV.filter((item) => !item.adminOnly || role === "ADMIN");
     const openNewChat = () => {
         if (isCurrentChatAlreadyNew(pathname)) return;
-        router.push(buildNewChatPath());
+
+        const pendingId = LocalStorageService.getPendingNewChatId();
+        if (pendingId) {
+            router.push(`/c/${pendingId}`);
+            return;
+        }
+
+        const nextPath = buildNewChatPath();
+        const conversationId = nextPath.slice(3);
+        LocalStorageService.upsertChatHistory(conversationId, "New chat");
+        router.push(nextPath);
     };
 
     return (
@@ -190,7 +198,7 @@ export function AppSidebar({ role }: { role: OrgRole }) {
                                             className="h-9 text-[13px]"
                                         >
                                             <Link href={href}>
-                                                <Icon className="w-[17px] h-[17px] shrink-0" />
+                                                <Icon className="w-4.25 h-4.25 shrink-0" />
                                                 <span>{label}</span>
                                             </Link>
                                         </SidebarMenuButton>

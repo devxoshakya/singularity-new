@@ -118,22 +118,51 @@ export class LocalStorageService {
         const safeTitle = title.trim().slice(0, 120) || "New chat";
         const list = this.getChatHistory();
         const now = new Date().toISOString();
-        const existingIndex = list.findIndex((item) => item.id === conversationId);
+        const deduped =
+            safeTitle === "New chat"
+                ? list.filter(
+                      (item) =>
+                          item.id === conversationId ||
+                          item.title.trim().toLowerCase() !== "new chat",
+                  )
+                : list;
+
+        const existingIndex = deduped.findIndex((item) => item.id === conversationId);
 
         let next: ConversationSummary[];
         if (existingIndex >= 0) {
-            const existing = list[existingIndex];
+            const existing = deduped[existingIndex];
+            const existingTitle = existing.title?.trim() ?? "";
+            const shouldKeepExistingTitle =
+                existingTitle.length > 0 &&
+                existingTitle.toLowerCase() !== "new chat" &&
+                safeTitle.toLowerCase() === "new chat";
+
             const merged: ConversationSummary = {
                 ...existing,
-                title: existing.title?.trim() ? existing.title : safeTitle,
+                title: shouldKeepExistingTitle ? existingTitle : safeTitle,
                 createdAt: existing.createdAt ?? now,
             };
-            next = [merged, ...list.filter((item) => item.id !== conversationId)];
+            next = [
+                merged,
+                ...deduped.filter((item) => item.id !== conversationId),
+            ];
         } else {
-            next = [{ id: conversationId, title: safeTitle, createdAt: now }, ...list];
+            next = [
+                { id: conversationId, title: safeTitle, createdAt: now },
+                ...deduped,
+            ];
         }
 
         this.setChatHistory(next, true);
+    }
+
+    static getPendingNewChatId(): string | null {
+        const pending = this.getChatHistory().find(
+            (item) => item.title.trim().toLowerCase() === "new chat",
+        );
+
+        return pending?.id ?? null;
     }
 
     static getRecentSearches(): RecentSearch[] {

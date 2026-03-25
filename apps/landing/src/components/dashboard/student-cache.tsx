@@ -94,6 +94,30 @@ type YearFilter = "all" | "1" | "2" | "3" | "4" | "2024";
 
 const ROW_HEIGHT = 54;
 const ROWS_PER_PAGE = 5;
+const STUDENT_CACHE_LS_KEY = "dashboard-student-cache-v1";
+const STUDENT_RESULT_LS_PREFIX = "dashboard-student-result-v1:";
+
+function readLocalStorage<T>(key: string, fallback: T): T {
+    if (typeof window === "undefined") return fallback;
+
+    try {
+        const raw = window.localStorage.getItem(key);
+        if (!raw) return fallback;
+        return JSON.parse(raw) as T;
+    } catch {
+        return fallback;
+    }
+}
+
+function writeLocalStorage<T>(key: string, value: T) {
+    if (typeof window === "undefined") return;
+
+    try {
+        window.localStorage.setItem(key, JSON.stringify(value));
+    } catch {
+        // Ignore storage write failures (quota/private mode).
+    }
+}
 
 // ── Fetchers ──────────────────────────────────────────────────────────────────
 
@@ -227,11 +251,28 @@ function StudentSheet({
     open: boolean;
     onClose: () => void;
 }) {
+    const cachedResult = useMemo(
+        () =>
+            rollNo
+                ? readLocalStorage<StudentResult | null>(
+                      `${STUDENT_RESULT_LS_PREFIX}${rollNo}`,
+                      null,
+                  )
+                : null,
+        [rollNo],
+    );
+
     const { data, isLoading } = useQuery({
         queryKey: ["student-result", rollNo],
-        queryFn: () => fetchStudentResult(rollNo!),
+        queryFn: async () => {
+            const result = await fetchStudentResult(rollNo!);
+            writeLocalStorage(`${STUDENT_RESULT_LS_PREFIX}${rollNo}`, result);
+            return result;
+        },
         enabled: !!rollNo && open,
         staleTime: 1000 * 60 * 10, // 10 min
+        initialData: cachedResult ?? undefined,
+        refetchOnMount: true,
     });
 
     const sgpaEntries = data
@@ -487,11 +528,22 @@ export function StudentCache() {
     const [page, setPage] = useState(1);
     const [selected, setSelected] = useState<string | null>(null);
 
+    const cachedStudents = useMemo(
+        () => readLocalStorage<CacheStudent[]>(STUDENT_CACHE_LS_KEY, []),
+        [],
+    );
+
     const { data: students = [], isLoading } = useQuery({
         queryKey: ["student-cache"],
-        queryFn: fetchCache,
+        queryFn: async () => {
+            const fresh = await fetchCache();
+            writeLocalStorage(STUDENT_CACHE_LS_KEY, fresh);
+            return fresh;
+        },
         staleTime: 1000 * 60 * 60, // 1 hour — this data rarely changes
         gcTime: 1000 * 60 * 120,
+        initialData: cachedStudents.length > 0 ? cachedStudents : undefined,
+        refetchOnMount: true,
     });
 
     const filtered = useMemo(() => {

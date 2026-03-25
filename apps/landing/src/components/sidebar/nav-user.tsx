@@ -1,7 +1,9 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Link from "next/link";
 import { useUser } from "@clerk/nextjs";
+import { z } from "zod";
 import {
     KeyRound,
     Hash,
@@ -44,6 +46,58 @@ import { LocalStorageService } from "@/lib/local-storage-service";
 
 type EditField = "roll-no" | "api-key" | null;
 
+const ROLL_NO_PLACEHOLDER = "2300680100104";
+
+const rollNoSchema = z
+    .string()
+    .length(
+        ROLL_NO_PLACEHOLDER.length,
+        `Roll number must be exactly ${ROLL_NO_PLACEHOLDER.length} characters.`,
+    );
+
+const geminiApiKeySchema = z
+    .string()
+    .startsWith("AIza", "Gemini API key must start with AIza.");
+
+function ApiKeyHelpDialog({
+    open,
+    onClose,
+}: {
+    open: boolean;
+    onClose: () => void;
+}) {
+    return (
+        <Dialog open={open} onOpenChange={(nextOpen) => !nextOpen && onClose()}>
+            <DialogContent className="sm:max-w-2xl">
+                <DialogHeader>
+                    <DialogTitle>How to get a Gemini API key</DialogTitle>
+                    <DialogDescription>
+                        The full process is written in{" "}
+                        <Link
+                            href="/docs/gemini-api-key"
+                            className="underline underline-offset-4"
+                        >
+                            documentation
+                        </Link>
+                        .
+                    </DialogDescription>
+                </DialogHeader>
+
+                <div className="overflow-hidden rounded-md border">
+                    <iframe
+                        title="How to get Gemini API key from Google AI Studio"
+                        src="https://www.youtube.com/embed/sLxW6oIS4cM"
+                        className="h-55 w-full sm:h-90"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                        referrerPolicy="strict-origin-when-cross-origin"
+                        allowFullScreen
+                    />
+                </div>
+            </DialogContent>
+        </Dialog>
+    );
+}
+
 function EditModal({
     field,
     onClose,
@@ -52,9 +106,11 @@ function EditModal({
     onClose: () => void;
 }) {
     const [value, setValue] = useState("");
+    const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
         if (!field) return;
+        setError(null);
 
         if (field === "api-key") {
             setValue(LocalStorageService.getApiKey());
@@ -69,6 +125,16 @@ function EditModal({
     function handleSave() {
         if (!field) return;
         const nextValue = value.trim();
+
+        const validation =
+            field === "api-key"
+                ? geminiApiKeySchema.safeParse(nextValue)
+                : rollNoSchema.safeParse(nextValue);
+
+        if (!validation.success) {
+            setError(validation.error.issues[0]?.message ?? "Invalid value.");
+            return;
+        }
 
         if (field === "api-key") {
             LocalStorageService.setApiKey(nextValue);
@@ -85,14 +151,14 @@ function EditModal({
         "roll-no": {
             title: "Edit roll number",
             label: "Roll number",
-            placeholder: "e.g. 22BCE1234",
+            placeholder: ROLL_NO_PLACEHOLDER,
             type: "text",
             hint: null,
         },
         "api-key": {
             title: "Edit backend API key",
             label: "API key",
-            placeholder: "jhunnu_live_xxx...",
+            placeholder: "AIza...",
             type: "password",
             hint: "Stored only in your browser and sent as x-api-key header.",
         },
@@ -115,10 +181,16 @@ function EditModal({
                             type={c.type}
                             placeholder={c.placeholder}
                             value={value}
-                            onChange={(e) => setValue(e.target.value)}
+                            onChange={(e) => {
+                                setValue(e.target.value);
+                                if (error) setError(null);
+                            }}
                             onKeyDown={(e) => e.key === "Enter" && handleSave()}
                             autoFocus
                         />
+                        {error && (
+                            <p className="text-xs text-destructive">{error}</p>
+                        )}
                     </div>
                     <div className="flex gap-2 justify-end">
                         <Button variant="outline" size="sm" onClick={onClose}>
@@ -144,6 +216,7 @@ export function NavUser() {
     const [rollNo, setRollNo] = useState("");
     const [apiKey, setApiKey] = useState("");
     const [editing, setEditing] = useState<EditField>(null);
+    const [isApiHelpOpen, setIsApiHelpOpen] = useState(false);
 
     // Read from localStorage on mount + listen for updates
     useEffect(() => {
@@ -277,9 +350,7 @@ export function NavUser() {
                                 </DropdownMenuItem>
                                 <DropdownMenuItem
                                     className="text-xs text-muted-foreground"
-                                    onClick={() => {
-                                        /* open help modal */
-                                    }}
+                                    onClick={() => setIsApiHelpOpen(true)}
                                 >
                                     <HelpCircle className="w-4 h-4 mr-2" />
                                     How to get an API key
@@ -310,6 +381,10 @@ export function NavUser() {
 
             {/* Edit modals */}
             <EditModal field={editing} onClose={() => setEditing(null)} />
+            <ApiKeyHelpDialog
+                open={isApiHelpOpen}
+                onClose={() => setIsApiHelpOpen(false)}
+            />
         </>
     );
 }

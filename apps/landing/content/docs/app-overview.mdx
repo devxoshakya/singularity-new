@@ -1,0 +1,69 @@
+---
+title: App Overview
+description: A practical overview of the platform, key routes, and setup.
+---
+
+This app is a Next.js platform that combines:
+
+- Public marketing pages
+- Authenticated chat experience
+- Organization onboarding and membership workflows
+- Plan-based billing with Dodo Payments
+- MDX-powered documentation
+
+## Tech Stack
+
+- Next.js App Router (`src/app`)
+- TypeScript
+- Clerk authentication
+- Prisma database access
+- Fumadocs for documentation (`content/docs`)
+- Dodo Payments for checkout and customer portal
+
+## Main Route Groups
+
+- `/` landing and marketing experience
+- `/login` sign-in/sign-up page
+- `/onboarding` organization onboarding flow
+- `/c/[id]` chat conversation workspace
+- `/pricing` pricing plans
+- `/docs` documentation pages
+
+## User Flow (High Level)
+
+1. User visits landing page.
+2. User signs in with Clerk.
+3. If no active membership, user is redirected to onboarding.
+4. After onboarding and active org membership, user can access chat routes.
+5. Billing can be handled via checkout and customer portal routes.
+
+## API Key Behavior
+
+The chat UI supports a client-side backend API key value stored in browser local storage.
+
+- Key is saved locally (not committed in code)
+- It is sent in request headers as `x-api-key`
+- Users can edit this key from the user menu in the app sidebar
+
+For Gemini key generation instructions, visit [Get a Gemini API Key](/docs/gemini-api-key).
+
+## Billing Endpoints
+
+- `/checkout` provides Dodo Payments checkout
+- `/customer-portal` redirects users to Dodo customer portal
+
+These endpoints require payment-related environment variables.
+
+## Local Development
+
+Install dependencies and run the app:
+
+```bash
+pnpm install
+pnpm dev
+```
+
+Then open:
+
+- App: `http://localhost:3000`
+- Docs: `http://localhost:3000/docs`

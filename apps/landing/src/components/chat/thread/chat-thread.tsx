@@ -193,10 +193,12 @@ export function ChatThread({
     const autoScroll = useRef(true);
     const scrollContainerRef = useRef<HTMLDivElement>(null);
     const lastConversationIdRef = useRef(conversationId);
-    const [historyChecked, setHistoryChecked] = useState(
-        initialMessages.length > 0,
-    );
     const [historyLoading, setHistoryLoading] = useState(false);
+
+    // Ensure a newly opened chat route appears in local history immediately.
+    useEffect(() => {
+        LocalStorageService.upsertChatHistory(conversationId, "New chat");
+    }, [conversationId]);
 
     useEffect(() => {
         if (lastConversationIdRef.current === conversationId) {
@@ -206,7 +208,6 @@ export function ChatThread({
         lastConversationIdRef.current = conversationId;
         dispatch({ type: "SET_MESSAGES", payload: initialMessages });
         dispatch({ type: "SET_MODE", mode: initialMode });
-        setHistoryChecked(initialMessages.length > 0);
         setHistoryLoading(false);
     }, [conversationId, initialMessages, initialMode]);
 
@@ -240,9 +241,6 @@ export function ChatThread({
         const hasInitialMessages = initialMessages.length > 0;
 
         if (!isLoaded || hasInitialMessages) {
-            if (hasInitialMessages) {
-                setHistoryChecked(true);
-            }
             return;
         }
 
@@ -303,7 +301,6 @@ export function ChatThread({
             } finally {
                 if (!cancelled) {
                     setHistoryLoading(false);
-                    setHistoryChecked(true);
                 }
             }
         }
@@ -655,21 +652,14 @@ export function ChatThread({
             onScroll={handleThreadScroll}
             className="flex flex-col w-full h-full overflow-y-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
         >
-            {historyLoading && state.messages.length === 0 ? (
-                <Loader />
-            ) : null}
-
             {historyLoading && state.messages.length > 0 ? (
                 <div className="sticky top-0 z-20 bg-background/80 backdrop-blur px-4 py-2">
                     <Loader compact />
                 </div>
             ) : null}
 
-            {!historyLoading &&
-            !state.streaming &&
-            state.messages.length === 0 &&
-            historyChecked ? (
-                <div className="w-full h-full max-w-[750px] mx-auto px-4 py-6">
+            {!state.streaming && state.messages.length === 0 ? (
+                <div className="w-full h-full max-w-187.5 mx-auto px-4 py-6">
                     <ChatEmptyState
                         onSelect={(prompt) => {
                             void sendMessage(prompt, state.mode);
@@ -677,7 +667,7 @@ export function ChatThread({
                     />
                 </div>
             ) : (
-                <div className="flex flex-col w-full max-w-[750px] mx-auto px-4 py-6 gap-1">
+                <div className="flex flex-col w-full max-w-187.5 mx-auto px-4 py-6 gap-1">
                     {state.messages.map((msg) =>
                         msg.role === "user" ? (
                             <UserMessage key={msg.id} content={msg.content} />

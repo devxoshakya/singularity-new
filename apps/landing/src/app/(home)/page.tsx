@@ -13,6 +13,7 @@ import { CallToAction } from "@/sections/CallToAction";
 import { Footer2 } from "@/components/footer2";
 import { MietResults } from "@/components/miet-results";
 import { Faq } from "@/components/faq";
+import FeaturesSectionDemo from "@/components/features-section-demo-3";
 
 export default async function Home() {
     const { userId } = await auth();
@@ -32,6 +33,9 @@ export default async function Home() {
             </div>
             <div className="max-w-480 mx-auto px-4">
                 {/* <BentoFeatures /> */}
+            </div>
+            <div className="max-w-480 mx-auto px-4">
+                <FeaturesSectionDemo />
             </div>
             <div className="max-w-480 mx-auto px-4">
                 <PricingPage embedded />
