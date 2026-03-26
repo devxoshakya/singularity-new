@@ -194,6 +194,16 @@ export function ChatThread({
     const scrollContainerRef = useRef<HTMLDivElement>(null);
     const lastConversationIdRef = useRef(conversationId);
     const [historyLoading, setHistoryLoading] = useState(false);
+    const [chatTitle, setChatTitle] = useState<string>("");
+
+    // Get chat title from local storage
+    useEffect(() => {
+        if (typeof window !== "undefined") {
+            const history = LocalStorageService.getChatHistory();
+            const found = history.find((item) => item.id === conversationId);
+            setChatTitle(found?.title?.trim() || "");
+        }
+    }, [conversationId]);
 
     // Ensure a newly opened chat route appears in local history immediately.
     useEffect(() => {
@@ -652,13 +662,22 @@ export function ChatThread({
             onScroll={handleThreadScroll}
             className="flex flex-col w-full h-full overflow-y-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
         >
-            {historyLoading && state.messages.length > 0 ? (
-                <div className="sticky top-0 z-20 bg-background/80 backdrop-blur px-4 py-2">
-                    <Loader compact />
+            {/* If chat is 'New chat', always show empty state, no loader */}
+            {chatTitle.toLowerCase() === "new chat" ? (
+                <div className="w-full h-full max-w-187.5 mx-auto px-4 py-6">
+                    <ChatEmptyState
+                        onSelect={(prompt) => {
+                            void sendMessage(prompt, state.mode);
+                        }}
+                    />
                 </div>
-            ) : null}
-
-            {!state.streaming && state.messages.length === 0 ? (
+            ) : historyLoading ? (
+                // Show loader centered while loading for non-new chats
+                <div className="flex items-center justify-center w-full h-full">
+                    <Loader />
+                </div>
+            ) : !state.streaming && state.messages.length === 0 ? (
+                // Show empty state only if not loading, not streaming, and no messages
                 <div className="w-full h-full max-w-187.5 mx-auto px-4 py-6">
                     <ChatEmptyState
                         onSelect={(prompt) => {
@@ -667,6 +686,7 @@ export function ChatThread({
                     />
                 </div>
             ) : (
+                // Show messages and streaming UI
                 <div className="flex flex-col w-full max-w-187.5 mx-auto px-4 py-6 gap-1">
                     {state.messages.map((msg) =>
                         msg.role === "user" ? (
