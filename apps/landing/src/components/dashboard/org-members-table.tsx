@@ -29,7 +29,25 @@ import {
     PaginationEllipsis,
 } from "@/components/ui/pagination";
 import { Badge } from "@/components/ui/badge";
-import { Search, Trash2, Users } from "lucide-react";
+import {
+    Select,
+    SelectTrigger,
+    SelectContent,
+    SelectItem,
+    SelectValue
+} from "@/components/ui/select";
+import { Search, Trash2, Users, AlertTriangle } from "lucide-react";
+// Helper to extract unique years from members (ignore missing year)
+function getUniqueYears(members: Member[]): string[] {
+    const years = new Set<string>();
+    for (const m of members) {
+        if (m.year !== null && m.year !== undefined) {
+            const y = String(m.year).trim();
+            if (y) years.add(y);
+        }
+    }
+    return Array.from(years).sort();
+}
 import { formatDistanceToNow } from "date-fns";
 import { toast } from "sonner";
 import { PendingRequests } from "./pending-requests";
@@ -70,6 +88,8 @@ export function OrgMembersTable({
     const [search, setSearch] = useState("");
     const [page, setPage] = useState(1);
     const [removing, setRemoving] = useState<string | null>(null);
+    const [yearFilter, setYearFilter] = useState<string>("__all__");
+    const [deplatforming, setDeplatforming] = useState(false);
 
     const { data: members = initialActive } = useQuery({
         queryKey: ["active-members", orgId],
@@ -78,11 +98,20 @@ export function OrgMembersTable({
         staleTime: 1000 * 60,
     });
 
+    // Filter by year and search
     const filtered = useMemo(() => {
-        if (!search) return members;
-        const q = search.toLowerCase();
-        return members.filter((m) => m.user.email.toLowerCase().includes(q));
-    }, [members, search]);
+        let result = members;
+        if (yearFilter !== "__all__") {
+            result = result.filter((m) => m.year === yearFilter);
+        }
+        if (search) {
+            const q = search.toLowerCase();
+            result = result.filter((m) => m.user.email.toLowerCase().includes(q));
+        }
+        return result;
+    }, [members, search, yearFilter]);
+    // Unique years for dropdown (ignore missing year)
+    const uniqueYears = useMemo(() => getUniqueYears(members), [members]);
 
     const totalPages = Math.max(1, Math.ceil(filtered.length / ROWS_PER_PAGE));
     const currentPage = Math.min(page, totalPages);
@@ -154,6 +183,56 @@ export function OrgMembersTable({
                 </div>
 
                 <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-3">
+                                        {/* Year filter and Deplatform All */}
+                                        <div className="flex gap-2 items-center">
+                                            {uniqueYears.length > 0 ? (
+                                                <Select value={yearFilter} onValueChange={setYearFilter}>
+                                                    <SelectTrigger className="w-32 h-8">
+                                                        <SelectValue placeholder="All Years" />
+                                                    </SelectTrigger>
+                                                    <SelectContent>
+                                                        <SelectItem value="__all__">All Years</SelectItem>
+                                                        {uniqueYears.map((y) => (
+                                                            <SelectItem key={y} value={y}>{y}</SelectItem>
+                                                        ))}
+                                                    </SelectContent>
+                                                </Select>
+                                            ) : (
+                                                <div className="w-32 h-8 flex items-center border rounded px-3 text-muted-foreground text-sm bg-muted">All Years</div>
+                                            )}
+                                            {yearFilter !== "__all__" && (
+                                                <Button
+                                                    size="sm"
+                                                    variant="destructive"
+                                                    className="h-8 px-3 flex items-center gap-1"
+                                                    disabled={deplatforming}
+                                                    onClick={async () => {
+                                                        setDeplatforming(true);
+                                                        try {
+                                                            const res = await fetch("/api/orguser/deplatform", {
+                                                                method: "POST",
+                                                                headers: { "Content-Type": "application/json" },
+                                                                body: JSON.stringify({ year: yearFilter }),
+                                                            });
+                                                            if (!res.ok) {
+                                                                const data = await res.json().catch(() => ({}));
+                                                                throw new Error(data.error || "Failed to deplatform users");
+                                                            }
+                                                            toast.success(`All users from year ${yearFilter} have been deplatformed.`);
+                                                            qc.invalidateQueries({ queryKey: ["active-members", orgId] });
+                                                            setYearFilter("__all__");
+                                                        } catch (err: any) {
+                                                            toast.error(err.message || "Failed to deplatform users");
+                                                        } finally {
+                                                            setDeplatforming(false);
+                                                        }
+                                                    }}
+                                                >
+                                                    <AlertTriangle className="w-4 h-4" />
+                                                    Deplatform All
+                                                </Button>
+                                            )}
+                                        </div>
                     <div className="relative w-full sm:max-w-xl">
                         <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
                         <Input

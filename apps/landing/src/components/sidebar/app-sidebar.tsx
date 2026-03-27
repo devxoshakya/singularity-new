@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { LayoutDashboard, Settings, Plus, Search } from "lucide-react";
+import { LayoutDashboard, Settings, Plus, Search, Sparkles } from "lucide-react";
 
 import {
     Sidebar,
@@ -37,32 +37,18 @@ const TOP_NAV = [
         icon: Settings,
         adminOnly: true,
     },
+    {
+        label: "Playground",
+        href: "/playground",
+        icon: Sparkles,
+        adminOnly: true,
+    },
 ];
 
 function isCurrentChatAlreadyNew(pathname: string) {
     if (typeof window === "undefined") return false;
-    if (pathname === "/c") return true;
-    if (!pathname.startsWith("/c/")) return false;
-
-    const conversationId = pathname.slice(3).trim();
-    if (!conversationId) return true;
-
-    try {
-        const parsed = LocalStorageService.getChatHistory();
-        const current = parsed.find((item) => item.id === conversationId);
-        return (current?.title ?? "").trim().toLowerCase() === "new chat";
-    } catch {
-        return true;
-    }
-}
-
-function buildNewChatPath() {
-    if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
-        return `/c/${crypto.randomUUID()}`;
-    }
-
-    const fallback = `${Date.now()}-${Math.random().toString(16).slice(2)}`;
-    return `/c/${fallback}`;
+    if (pathname === "/c" || pathname === "/c/new") return true;
+    return false;
 }
 
 // ── Collapsed icon strip ──────────────────────────────────────────────────────
@@ -124,17 +110,7 @@ export function AppSidebar({ role }: { role: OrgRole }) {
     const visibleTopNav = TOP_NAV.filter((item) => !item.adminOnly || role === "ADMIN");
     const openNewChat = () => {
         if (isCurrentChatAlreadyNew(pathname)) return;
-
-        const pendingId = LocalStorageService.getPendingNewChatId();
-        if (pendingId) {
-            router.push(`/c/${pendingId}`);
-            return;
-        }
-
-        const nextPath = buildNewChatPath();
-        const conversationId = nextPath.slice(3);
-        LocalStorageService.upsertChatHistory(conversationId, "New chat");
-        router.push(nextPath);
+        router.push("/c/new");
     };
 
     return (

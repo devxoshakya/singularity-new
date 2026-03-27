@@ -24,6 +24,10 @@ model OrgUser {
     id        String   @id @map("_id") // Clerk user ID
     email     String   @unique
     createdAt DateTime @default(now())
+    rollNo    String?
+    dob       String?
+    year      String?
+    passout   Boolean  @default(false)
     memberships OrgMembership[]
     ownedOrgs   Org[]           @relation("OrgOwner")
 }

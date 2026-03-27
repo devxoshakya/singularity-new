@@ -30,8 +30,14 @@ export async function GET() {
     return NextResponse.json({ error: "Active organisation not found" }, { status: 404 });
   }
 
+  const orgUser = await prisma.orgUser.findUnique({
+    where: { id: userId },
+    select: { rollNo: true }
+  });
+
   return NextResponse.json({
     ...activeMembership.org,
     role: activeMembership.role,
+    rollNo: orgUser?.rollNo || null,
   });
 }

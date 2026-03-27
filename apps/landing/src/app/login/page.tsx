@@ -14,7 +14,7 @@ export default async function LoginPage() {
     });
 
     if (activeMembership) {
-      redirect(`/c/${randomUUID()}`);
+      redirect(`/c/new`);
     }
 
     redirect("/onboarding");

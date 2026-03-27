@@ -2,6 +2,7 @@
 
 import { useReducer, useRef, useEffect, useCallback, useState } from "react";
 import { useUser } from "@clerk/nextjs";
+import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { UserMessage } from "./user-message";
 import { AssistantMessage } from "./assistant-message";
@@ -180,6 +181,7 @@ export function ChatThread({
     onStreamingChange,
 }: Props) {
     const { user, isLoaded } = useUser();
+    const router = useRouter();
 
     const [state, dispatch] = useReducer(reducer, {
         messages: initialMessages,
@@ -192,33 +194,23 @@ export function ChatThread({
     const abortRef = useRef<AbortController | null>(null);
     const autoScroll = useRef(true);
     const scrollContainerRef = useRef<HTMLDivElement>(null);
-    const lastConversationIdRef = useRef(conversationId);
+    const activeIdRef = useRef(conversationId);
     const [historyLoading, setHistoryLoading] = useState(false);
-    const [chatTitle, setChatTitle] = useState<string>("");
 
-    // Get chat title from local storage
+    // If prop changes to "new" (user clicked New Chat) or to another chat
     useEffect(() => {
-        if (typeof window !== "undefined") {
-            const history = LocalStorageService.getChatHistory();
-            const found = history.find((item) => item.id === conversationId);
-            setChatTitle(found?.title?.trim() || "");
+        if (activeIdRef.current !== conversationId) {
+            if (conversationId === "new" && activeIdRef.current !== "new") {
+                 activeIdRef.current = "new";
+                 dispatch({ type: "SET_MESSAGES", payload: [] });
+                 dispatch({ type: "SET_MODE", mode: initialMode });
+            } else if (conversationId !== "new") {
+                 activeIdRef.current = conversationId;
+                 dispatch({ type: "SET_MESSAGES", payload: initialMessages });
+                 dispatch({ type: "SET_MODE", mode: initialMode });
+                 setHistoryLoading(false);
+            }
         }
-    }, [conversationId]);
-
-    // Ensure a newly opened chat route appears in local history immediately.
-    useEffect(() => {
-        LocalStorageService.upsertChatHistory(conversationId, "New chat");
-    }, [conversationId]);
-
-    useEffect(() => {
-        if (lastConversationIdRef.current === conversationId) {
-            return;
-        }
-
-        lastConversationIdRef.current = conversationId;
-        dispatch({ type: "SET_MESSAGES", payload: initialMessages });
-        dispatch({ type: "SET_MODE", mode: initialMode });
-        setHistoryLoading(false);
     }, [conversationId, initialMessages, initialMode]);
 
     const handleThreadScroll = useCallback(() => {
@@ -250,7 +242,7 @@ export function ChatThread({
         let cancelled = false;
         const hasInitialMessages = initialMessages.length > 0;
 
-        if (!isLoaded || hasInitialMessages) {
+        if (!isLoaded || hasInitialMessages || conversationId === "new") {
             return;
         }
 
@@ -367,8 +359,15 @@ export function ChatThread({
                 payload: optimisticUserMessage,
             });
 
+            let activeId = activeIdRef.current;
+            if (activeId === "new") {
+                activeId = crypto.randomUUID();
+                activeIdRef.current = activeId;
+                router.replace(`/c/${activeId}`, { scroll: false });
+            }
+
             // Keep sidebar history in sync immediately on first send.
-            LocalStorageService.upsertChatHistory(conversationId, text);
+            LocalStorageService.upsertChatHistory(activeId, text);
 
             dispatch({ type: "START_STREAM", mode });
             autoScroll.current = true;
@@ -380,7 +379,7 @@ export function ChatThread({
             const endpoint =
                 mode === "rag" ? `${API_BASE}/ask` : `${API_BASE}/analyze-result`;
 
-            const body = { question: text, session_id: conversationId };
+            const body = { question: text, session_id: activeId };
 
             try {
                 const res = await fetch(endpoint, {
@@ -662,8 +661,8 @@ export function ChatThread({
             onScroll={handleThreadScroll}
             className="flex flex-col w-full h-full overflow-y-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
         >
-            {/* If chat is 'New chat', always show empty state, no loader */}
-            {chatTitle.toLowerCase() === "new chat" ? (
+            {/* If chat is 'new' or has no messages, show empty state, no loader */}
+            {state.messages.length === 0 && (!historyLoading || activeIdRef.current === "new") ? (
                 <div className="w-full h-full max-w-187.5 mx-auto px-4 py-6">
                     <ChatEmptyState
                         onSelect={(prompt) => {
@@ -675,15 +674,6 @@ export function ChatThread({
                 // Show loader centered while loading for non-new chats
                 <div className="flex items-center justify-center w-full h-full">
                     <Loader />
-                </div>
-            ) : !state.streaming && state.messages.length === 0 ? (
-                // Show empty state only if not loading, not streaming, and no messages
-                <div className="w-full h-full max-w-187.5 mx-auto px-4 py-6">
-                    <ChatEmptyState
-                        onSelect={(prompt) => {
-                            void sendMessage(prompt, state.mode);
-                        }}
-                    />
                 </div>
             ) : (
                 // Show messages and streaming UI

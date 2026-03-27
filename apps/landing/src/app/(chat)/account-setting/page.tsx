@@ -31,6 +31,7 @@ type OrgInfo = {
     name: string;
     plan: string;
     role: "ADMIN" | "MEMBER";
+    rollNo?: string | null;
 };
 
 const ROLL_NO_PLACEHOLDER = "2300680100104";
@@ -68,7 +69,7 @@ export default function AccountSettingPage() {
     const [leaving, setLeaving] = useState(false);
 
     useEffect(() => {
-        setRollNo(LocalStorageService.getRollNo());
+        // Fallback for API key; rollNo is fetched from org API
         setApiKey(LocalStorageService.getApiKey());
     }, []);
 
@@ -85,7 +86,15 @@ export default function AccountSettingPage() {
                 }
 
                 const data = (await res.json()) as OrgInfo;
-                if (!cancelled) setOrg(data);
+                if (!cancelled) {
+                    setOrg(data);
+                    if (data.rollNo) {
+                        setRollNo(data.rollNo);
+                        LocalStorageService.setRollNo(data.rollNo);
+                    } else {
+                        setRollNo(LocalStorageService.getRollNo());
+                    }
+                }
             } catch {
                 if (!cancelled) setOrg(null);
             } finally {
@@ -137,7 +146,7 @@ export default function AccountSettingPage() {
 
         setSaving(true);
         try {
-            LocalStorageService.setRollNo(rollNo.trim());
+            // rollNo is no longer editable, only save API key
             LocalStorageService.setApiKey(apiKey.trim());
             window.dispatchEvent(new Event("storage"));
             toast.success("Account preferences updated.");
@@ -239,13 +248,10 @@ export default function AccountSettingPage() {
                             </div>
                             <Input
                                 value={rollNo}
-                                onChange={(e) => {
-                                    setRollNo(e.target.value);
-                                    if (errors.rollNo) {
-                                        setErrors((prev) => ({ ...prev, rollNo: undefined }));
-                                    }
-                                }}
+                                readOnly
+                                disabled
                                 placeholder={ROLL_NO_PLACEHOLDER}
+                                className="bg-muted text-muted-foreground"
                             />
                             {errors.rollNo ? (
                                 <p className="text-xs text-destructive">{errors.rollNo}</p>

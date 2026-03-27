@@ -41,6 +41,7 @@ async function fetchPending(orgId: string): Promise<Member[]> {
 export function PendingRequests({ orgId, initialPending, onAction }: Props) {
     const qc = useQueryClient();
     const [acting, setActing] = useState<string | null>(null);
+    const [actingAll, setActingAll] = useState<boolean>(false);
     const [open, setOpen] = useState(false);
 
     const { data: pending = initialPending } = useQuery({
@@ -89,6 +90,21 @@ export function PendingRequests({ orgId, initialPending, onAction }: Props) {
     async function handleAction(memberId: string, action: "accept" | "reject") {
         setActing(memberId);
         await actionMutation.mutateAsync({ memberId, action });
+    }
+
+    async function handleAcceptAll() {
+        setActingAll(true);
+        try {
+            await Promise.all(
+                pending.map((m) =>
+                    actionMutation.mutateAsync({ memberId: m.id, action: "accept" })
+                )
+            );
+        } catch (err) {
+            // errors handled individually in the mutation
+        } finally {
+            setActingAll(false);
+        }
     }
 
     return (
@@ -160,7 +176,7 @@ export function PendingRequests({ orgId, initialPending, onAction }: Props) {
                                                 size="sm"
                                                 variant="outline"
                                                 className="h-8 w-8 p-0 text-destructive hover:text-destructive border-destructive/30 hover:bg-destructive/5"
-                                                disabled={acting === m.id}
+                                                disabled={acting === m.id || actingAll}
                                                 onClick={() =>
                                                     handleAction(m.id, "reject")
                                                 }
@@ -170,7 +186,7 @@ export function PendingRequests({ orgId, initialPending, onAction }: Props) {
                                             <Button
                                                 size="sm"
                                                 className="h-8 w-8 p-0"
-                                                disabled={acting === m.id}
+                                                disabled={acting === m.id || actingAll}
                                                 onClick={() =>
                                                     handleAction(m.id, "accept")
                                                 }
@@ -184,9 +200,20 @@ export function PendingRequests({ orgId, initialPending, onAction }: Props) {
                         )}
                     </div>
 
-                    <DrawerFooter>
+                    <DrawerFooter className="flex-row">
+                        {pending.length > 0 && (
+                            <Button
+                                className="flex-1"
+                                disabled={actingAll}
+                                onClick={handleAcceptAll}
+                            >
+                                {actingAll ? "Accepting..." : "Accept All"}
+                            </Button>
+                        )}
                         <DrawerClose asChild>
-                            <Button variant="outline">Close</Button>
+                            <Button variant="outline" className="flex-1">
+                                Close
+                            </Button>
                         </DrawerClose>
                     </DrawerFooter>
                 </div>

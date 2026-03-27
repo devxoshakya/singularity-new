@@ -23,9 +23,24 @@ export async function GET(
 
     const members = await prisma.orgMembership.findMany({
         where: { orgId, status: status as any },
-        include: { user: { select: { id: true, email: true } } },
+        include: {
+            user: { select: { id: true, email: true } },
+        },
         orderBy: { requestedAt: "asc" },
     })
 
-    return NextResponse.json(members)
+    // Fetch OrgUser year for each member
+    const userIds = members.map((m) => m.userId);
+    const orgUsers = await prisma.orgUser.findMany({
+        where: { id: { in: userIds } },
+        select: { id: true, year: true },
+    });
+    const yearMap = new Map(orgUsers.map(u => [u.id, u.year ?? null]));
+
+    const result = members.map((m) => ({
+        ...m,
+        year: yearMap.has(m.userId) ? yearMap.get(m.userId) : null,
+    }));
+
+    return NextResponse.json(result)
 }

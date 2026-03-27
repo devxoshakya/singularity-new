@@ -11,7 +11,7 @@ export default async function OnboardingPage() {
   const active = await prisma.orgMembership.findFirst({
     where: { userId, status: "ACTIVE" },
   });
-  if (active) redirect("/dashboard");
+  if (active) redirect("/c/new");
 
   // Check if they already sent a pending request
   const pending = await prisma.orgMembership.findFirst({

@@ -30,6 +30,13 @@ export async function POST(req: Request, { params }: { params: Promise<{ orgId: 
     where: { orgId_userId: { orgId, userId } },
   });
 
+
+  // Block join if user is passout
+  const orgUser = await prisma.orgUser.findUnique({ where: { id: userId } });
+  if (orgUser?.passout) {
+    return NextResponse.json({ error: "You are marked as passout and cannot join this organisation." }, { status: 403 });
+  }
+
   if (existing) {
     const messages: Record<string, string> = {
       PENDING: "You already have a pending request for this organisation.",

@@ -2,8 +2,8 @@
 
 import { useEffect, useState } from "react"
 import { useUser } from "@clerk/nextjs"
-import { useQuery }     from "@tanstack/react-query"
-import { usePathname }  from "next/navigation"
+import { useQuery, useQueryClient }     from "@tanstack/react-query"
+import { usePathname, useRouter }  from "next/navigation"
 import Link             from "next/link"
 import { MessageCircle, Trash2 } from "lucide-react"
 
@@ -152,6 +152,8 @@ async function fetchConversations(identity?: { userId?: string | null; name?: st
 export function NavHistory() {
   const { user, isLoaded } = useUser()
   const pathname = usePathname()
+  const router = useRouter()
+  const queryClient = useQueryClient()
   const [tokenVersion, setTokenVersion] = useState(0)
   const [localConversations, setLocalConversations] = useState<Conversation[]>([])
 
@@ -251,7 +253,29 @@ export function NavHistory() {
                       <DropdownMenuItem
                         className="text-destructive focus:text-destructive"
                         onClick={() => {
-                          // TODO: call delete API + invalidate query
+                          const current = LocalStorageService.getChatHistory();
+                          LocalStorageService.setChatHistory(current.filter(item => item.id !== c.id), true);
+                          
+                          queryClient.setQueryData(["conversations", tokenVersion], (old: any) => {
+                            if (!Array.isArray(old)) return old;
+                            return old.filter((item: any) => item.id !== c.id);
+                          });
+
+                          createFrontendJwtToken({
+                            userId: user?.id,
+                            name: user?.fullName ?? user?.firstName ?? user?.username,
+                            email: user?.emailAddresses?.[0]?.emailAddress,
+                          }).then(token => {
+                            const API_BASE = process.env.NEXT_PUBLIC_JHUNNU_API_URL ?? "https://jhunnu-backend.devshakya.xyz";
+                            fetch(`${API_BASE}/sessions/${c.id}?session_id=${c.id}`, {
+                              method: 'DELETE',
+                              headers: { Authorization: `Bearer ${token}`, "x-api-key": getApiKey() }
+                            }).catch(() => {});
+                          });
+
+                          if (pathname === `/c/${c.id}`) {
+                              router.push("/c/new");
+                          }
                         }}
                       >
                         <Trash2 className="w-4 h-4 mr-2" />

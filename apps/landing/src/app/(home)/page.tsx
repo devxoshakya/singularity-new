@@ -18,7 +18,7 @@ import FeaturesSectionDemo from "@/components/features-section-demo-3";
 export default async function Home() {
     const { userId } = await auth();
     if (userId) {
-        redirect(`/c/${randomUUID()}`);
+        redirect(`/c/new`);
     }
 
     return (

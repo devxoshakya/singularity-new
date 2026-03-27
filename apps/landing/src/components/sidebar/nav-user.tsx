@@ -321,13 +321,11 @@ export function NavUser() {
                                 </DropdownMenuLabel>
                                 <DropdownMenuItem
                                     className="font-mono text-sm justify-between"
-                                    onClick={() => setEditing("roll-no")}
                                 >
                                     <div className="flex items-center gap-2">
                                         <Hash className="w-4 h-4 text-muted-foreground" />
                                         {rollNo}
                                     </div>
-                                    <Pencil className="w-3 h-3 text-muted-foreground" />
                                 </DropdownMenuItem>
                             </DropdownMenuGroup>
 
