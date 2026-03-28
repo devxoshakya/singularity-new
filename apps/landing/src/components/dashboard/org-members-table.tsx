@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
     Card,
@@ -53,7 +53,10 @@ type Member = {
     year?: number | string | null;
 };
 
-function getUniqueYears(members: Member[]): string[] {
+/** Standard year labels for the filter (program year or cohort). */
+const STANDARD_YEAR_OPTIONS = ["1", "2", "3", "4", "2024"] as const;
+
+function collectYearLabels(members: Member[]): string[] {
     const years = new Set<string>();
     for (const m of members) {
         if (m.year !== null && m.year !== undefined) {
@@ -61,7 +64,24 @@ function getUniqueYears(members: Member[]): string[] {
             if (y) years.add(y);
         }
     }
-    return Array.from(years).sort();
+    return Array.from(years);
+}
+
+function sortYearLabels(years: string[]): string[] {
+    return [...years].sort((a, b) => {
+        const na = Number(a);
+        const nb = Number(b);
+        if (Number.isFinite(na) && Number.isFinite(nb)) {
+            return na - nb;
+        }
+        return a.localeCompare(b);
+    });
+}
+
+function buildYearFilterOptions(members: Member[]): string[] {
+    const fromData = collectYearLabels(members);
+    const merged = new Set<string>([...STANDARD_YEAR_OPTIONS, ...fromData]);
+    return sortYearLabels(Array.from(merged));
 }
 
 interface Props {
@@ -100,13 +120,17 @@ export function OrgMembersTable({
         staleTime: 1000 * 60,
     });
 
-    // Filter by year and search
+    // Filter by year and search (no year → excluded when a specific year is selected)
     const filtered = useMemo(() => {
         let result = members;
         if (yearFilter !== "__all__") {
-            result = result.filter(
-                (m) => String(m.year ?? "") === yearFilter,
-            );
+            result = result.filter((m) => {
+                const y = m.year;
+                if (y === null || y === undefined || String(y).trim() === "") {
+                    return false;
+                }
+                return String(y).trim() === yearFilter;
+            });
         }
         if (search) {
             const q = search.toLowerCase();
@@ -114,8 +138,19 @@ export function OrgMembersTable({
         }
         return result;
     }, [members, search, yearFilter]);
-    // Unique years for dropdown (ignore missing year)
-    const uniqueYears = useMemo(() => getUniqueYears(members), [members]);
+    const yearOptions = useMemo(
+        () => buildYearFilterOptions(members),
+        [members],
+    );
+
+    useEffect(() => {
+        if (
+            yearFilter !== "__all__" &&
+            !yearOptions.includes(yearFilter)
+        ) {
+            setYearFilter("__all__");
+        }
+    }, [yearFilter, yearOptions]);
 
     const totalPages = Math.max(1, Math.ceil(filtered.length / ROWS_PER_PAGE));
     const currentPage = Math.min(page, totalPages);
@@ -189,21 +224,24 @@ export function OrgMembersTable({
                 <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-3">
                                         {/* Year filter and Deplatform All */}
                                         <div className="flex gap-2 items-center">
-                                            {uniqueYears.length > 0 ? (
-                                                <Select value={yearFilter} onValueChange={setYearFilter}>
-                                                    <SelectTrigger className="w-32 h-8">
-                                                        <SelectValue placeholder="All Years" />
+                                                <Select
+                                                    value={yearFilter}
+                                                    onValueChange={setYearFilter}
+                                                >
+                                                    <SelectTrigger className="w-[8.5rem] h-8">
+                                                        <SelectValue placeholder="All years" />
                                                     </SelectTrigger>
                                                     <SelectContent>
-                                                        <SelectItem value="__all__">All Years</SelectItem>
-                                                        {uniqueYears.map((y) => (
-                                                            <SelectItem key={y} value={y}>{y}</SelectItem>
+                                                        <SelectItem value="__all__">
+                                                            All years
+                                                        </SelectItem>
+                                                        {yearOptions.map((y) => (
+                                                            <SelectItem key={y} value={y}>
+                                                                Year {y}
+                                                            </SelectItem>
                                                         ))}
                                                     </SelectContent>
                                                 </Select>
-                                            ) : (
-                                                <div className="w-32 h-8 flex items-center border rounded px-3 text-muted-foreground text-sm bg-muted">All Years</div>
-                                            )}
                                             {yearFilter !== "__all__" && (
                                                 <Button
                                                     size="sm"

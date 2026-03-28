@@ -1,8 +1,15 @@
 "use client";
 
-import { useReducer, useRef, useEffect, useCallback, useState } from "react";
+import {
+    useReducer,
+    useRef,
+    useEffect,
+    useLayoutEffect,
+    useCallback,
+    useState,
+} from "react";
 import { useUser } from "@clerk/nextjs";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { toast } from "sonner";
 import { UserMessage } from "./user-message";
 import { AssistantMessage } from "./assistant-message";
@@ -182,6 +189,7 @@ export function ChatThread({
 }: Props) {
     const { user, isLoaded } = useUser();
     const router = useRouter();
+    const pathname = usePathname();
 
     const [state, dispatch] = useReducer(reducer, {
         messages: initialMessages,
@@ -190,28 +198,89 @@ export function ChatThread({
         sources: [],
         mode: initialMode,
     });
+    const streamingRef = useRef(state.streaming);
+    streamingRef.current = state.streaming;
 
     const abortRef = useRef<AbortController | null>(null);
     const autoScroll = useRef(true);
     const scrollContainerRef = useRef<HTMLDivElement>(null);
     const activeIdRef = useRef(conversationId);
     const [historyLoading, setHistoryLoading] = useState(false);
+    const historyAbortRef = useRef<AbortController | null>(null);
+    const initialMessagesRef = useRef(initialMessages);
+    initialMessagesRef.current = initialMessages;
+    /** True while URL is still `/c/new` but we already assigned a real session id (first send). */
+    const pendingNewToIdRef = useRef(false);
 
-    // If prop changes to "new" (user clicked New Chat) or to another chat
-    useEffect(() => {
-        if (activeIdRef.current !== conversationId) {
-            if (conversationId === "new" && activeIdRef.current !== "new") {
-                 activeIdRef.current = "new";
-                 dispatch({ type: "SET_MESSAGES", payload: [] });
-                 dispatch({ type: "SET_MODE", mode: initialMode });
-            } else if (conversationId !== "new") {
-                 activeIdRef.current = conversationId;
-                 dispatch({ type: "SET_MESSAGES", payload: initialMessages });
-                 dispatch({ type: "SET_MODE", mode: initialMode });
-                 setHistoryLoading(false);
+    // Sync route id → thread state before paint (avoids wrong-chat flash and unstable [] refs).
+    useLayoutEffect(() => {
+        if (activeIdRef.current === conversationId) {
+            if (pendingNewToIdRef.current && conversationId !== "new") {
+                pendingNewToIdRef.current = false;
             }
+            return;
         }
-    }, [conversationId, initialMessages, initialMode]);
+
+        const prevId = activeIdRef.current;
+        const ims = initialMessagesRef.current;
+
+        if (conversationId === "new" && prevId !== "new") {
+            if (pendingNewToIdRef.current) {
+                return;
+            }
+            activeIdRef.current = "new";
+            dispatch({ type: "SET_MESSAGES", payload: [] });
+            dispatch({ type: "SET_MODE", mode: initialMode });
+            return;
+        }
+
+        if (conversationId !== "new") {
+            activeIdRef.current = conversationId;
+            if (pendingNewToIdRef.current) {
+                pendingNewToIdRef.current = false;
+            }
+            // Promoting "new" → real id after first send: keep in-memory messages.
+            // Switching between two existing ids: reset and load history.
+            if (prevId !== "new" && prevId !== conversationId) {
+                dispatch({ type: "SET_MESSAGES", payload: ims });
+            } else if (ims.length > 0) {
+                dispatch({ type: "SET_MESSAGES", payload: ims });
+            }
+            dispatch({ type: "SET_MODE", mode: initialMode });
+            setHistoryLoading(false);
+        }
+    }, [conversationId, initialMode]);
+
+    // Keep in sync with client-side URL changes (sidebar/router.push to /c/new)
+    useEffect(() => {
+        if (!pathname) return;
+        const m = pathname.match(/^\/c\/(.+)$/);
+        if (!m) return;
+        const idFromPath = m[1];
+
+        // If the URL already matches active id, nothing to do
+        if (idFromPath === activeIdRef.current) return;
+
+        // If navigating to /c/new: reset to empty thread (unless we're already
+        // pending a promotion from a just-created id)
+        if (idFromPath === "new") {
+            if (pendingNewToIdRef.current) {
+                // If we are in the middle of promoting new→id, ignore the transient
+                return;
+            }
+            activeIdRef.current = "new";
+            dispatch({ type: "SET_MESSAGES", payload: [] });
+            dispatch({ type: "SET_MODE", mode: initialMode });
+            return;
+        }
+
+        // Navigated to a concrete id — update active id and load initial messages
+        activeIdRef.current = idFromPath;
+        pendingNewToIdRef.current = false;
+        dispatch({ type: "SET_MESSAGES", payload: initialMessagesRef.current });
+        dispatch({ type: "SET_MODE", mode: initialMode });
+        setHistoryLoading(false);
+    }, [pathname, initialMode]);
 
     const handleThreadScroll = useCallback(() => {
         const container = scrollContainerRef.current;
@@ -246,6 +315,10 @@ export function ChatThread({
             return;
         }
 
+        historyAbortRef.current?.abort();
+        const ac = new AbortController();
+        historyAbortRef.current = ac;
+
         const API_BASE =
             process.env.NEXT_PUBLIC_JHUNNU_API_URL ??
             "https://jhunnu-backend.devshakya.xyz";
@@ -270,6 +343,7 @@ export function ChatThread({
                     `${API_BASE}/history/${conversationId}`,
                     {
                         headers,
+                        signal: ac.signal,
                     },
                 );
 
@@ -291,26 +365,34 @@ export function ChatThread({
                         createdAt: new Date().toISOString(),
                     }));
 
-                if (!cancelled) {
+                if (
+                    !cancelled &&
+                    !ac.signal.aborted &&
+                    !streamingRef.current
+                ) {
                     dispatch({ type: "SET_MESSAGES", payload: mapped });
                     LocalStorageService.upsertChatHistory(
                         conversationId,
                         firstUserPrompt(mapped),
                     );
                 }
-            } catch {
+            } catch (e: unknown) {
+                if (e instanceof Error && e.name === "AbortError") {
+                    return;
+                }
                 // Keep empty thread if history lookup fails.
             } finally {
-                if (!cancelled) {
+                if (!cancelled && !ac.signal.aborted) {
                     setHistoryLoading(false);
                 }
             }
         }
 
-        loadHistory();
+        void loadHistory();
 
         return () => {
             cancelled = true;
+            ac.abort();
         };
     }, [conversationId, initialMessages.length, isLoaded, user]);
 
@@ -363,7 +445,22 @@ export function ChatThread({
             if (activeId === "new") {
                 activeId = crypto.randomUUID();
                 activeIdRef.current = activeId;
-                router.replace(`/c/${activeId}`, { scroll: false });
+                pendingNewToIdRef.current = true;
+                // Avoid triggering a full route change (which shows the
+                // server-side Loading component) by updating the browser
+                // URL via history.replaceState. This keeps the client
+                // render intact and prevents the blank/loading flash.
+                try {
+                    if (typeof window !== "undefined" && window.history && window.location) {
+                        const newUrl = `/c/${activeId}`;
+                        window.history.replaceState(null, "", newUrl);
+                    } else {
+                        router.replace(`/c/${activeId}`, { scroll: false });
+                    }
+                } catch (e) {
+                    // Fallback to router.replace if anything goes wrong.
+                    router.replace(`/c/${activeId}`, { scroll: false });
+                }
             }
 
             // Keep sidebar history in sync immediately on first send.
@@ -661,8 +758,8 @@ export function ChatThread({
             onScroll={handleThreadScroll}
             className="flex flex-col w-full h-full overflow-y-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
         >
-            {/* If chat is 'new' or has no messages, show empty state, no loader */}
-            {state.messages.length === 0 && (!historyLoading || activeIdRef.current === "new") ? (
+            {/* Empty / new chat: empty state (never block on history). */}
+            {conversationId === "new" && state.messages.length === 0 && !state.streaming ? (
                 <div className="w-full h-full max-w-187.5 mx-auto px-4 py-6">
                     <ChatEmptyState
                         onSelect={(prompt) => {
@@ -670,13 +767,15 @@ export function ChatThread({
                         }}
                     />
                 </div>
-            ) : historyLoading ? (
-                // Show loader centered while loading for non-new chats
+            ) : state.messages.length === 0 &&
+              !state.streaming &&
+              historyLoading &&
+              conversationId !== "new" ? (
+                // Full-screen loader only when we have nothing to show yet
                 <div className="flex items-center justify-center w-full h-full">
                     <Loader />
                 </div>
             ) : (
-                // Show messages and streaming UI
                 <div className="flex flex-col w-full max-w-187.5 mx-auto px-4 py-6 gap-1">
                     {state.messages.map((msg) =>
                         msg.role === "user" ? (
@@ -692,7 +791,6 @@ export function ChatThread({
                         ),
                     )}
 
-                    {/* Live streaming message */}
                     {state.streaming && (
                         <>
                             {state.streamText === "" ? (

@@ -29,10 +29,10 @@ const TABS: Tab[] = [
 
 const SUGGESTIONS: Record<TabId, string[]> = {
     academic: [
-        "Explain the difference between TCP and UDP with examples",
-        "What is normalization in databases and why does it matter?",
-        "Summarise the key concepts from the last lecture",
-        "Give me a practice question on binary search trees",
+        "Explain the grace marks policy in simple terms",
+        "what is the hostel fee structure?",
+        "Browse departments and courses offered",
+        "Understand campus rules and policies",
     ],
     results: [
         "What is my current CGPA and how has it changed?",
@@ -41,7 +41,7 @@ const SUGGESTIONS: Record<TabId, string[]> = {
         "Do I have any carry-over subjects?",
     ],
     syllabus: [
-        "What topics are covered in Database Management Systems?",
+        "What is the syllabus ",
         "List all subjects for the current semester",
         "What is the exam pattern for Web Technology?",
         "Which subjects have practicals this semester?",
