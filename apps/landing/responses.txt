@@ -1,0 +1,194 @@
+function_declarations: [
+    { name: "get_student_status", description: "Pass/Fail/PCP distribution pie chart.", parameters: { type: "OBJECT", properties: { year: { type: "integer" }, branch: { type: "string" } } } },
+    { name: "get_branch_breakdown", description: "Branch-wise breakdown bar chart.", parameters: { type: "OBJECT", properties: { year: { type: "integer" }, branch: { type: "string" } } } },
+    { name: "get_year_comparison", description: "Compare metrics across years.", parameters: { type: "OBJECT", properties: { metric: { type: "string", enum: ["avgSgpa", "passRate", "avgMarks"] } } } },
+    { name: "get_performance_metrics", description: "KPI cards for avg SGPA and pass rates.", parameters: { type: "OBJECT", properties: { year: { type: "integer" }, branch: { type: "string" }, metric: { type: "string" } } } },
+    { name: "get_semester_progression", description: "SGPA trend line chart.", parameters: { type: "OBJECT", properties: { year: { type: "integer" }, branch: { type: "string" } } } },
+    { name: "get_sgpa_distribution", description: "SGPA frequency histogram.", parameters: { type: "OBJECT", properties: { year: { type: "integer" }, branch: { type: "string" }, semester: { type: "string" } } } },
+    { name: "get_backlog_analysis", description: "Backlog/failure stats.", parameters: { type: "OBJECT", properties: { year: { type: "integer" }, branch: { type: "string" }, groupBy: { type: "string", enum: ["semester", "subject", "branch"] } } } },
+    { name: "get_branch_performance_radar", description: "Radar Chart comparing branch strength.", parameters: { type: "OBJECT", properties: { year: { type: "integer" } } } },
+    { name: "get_top_performers", description: "Rankings and toppers list.", parameters: { type: "OBJECT", properties: { limit: { type: "integer" }, year: { type: "integer" }, branch: { type: "string" }, metric: { type: "string", enum: ["sgpa", "marks"] } } } }
+  ]
+
+
+  // "intent": "get_student_status"
+
+  {
+  "intent": "get_student_status",
+  "params": {
+    "year": 3
+  },
+  "data": {
+    "total": 1249,
+    "distribution": [
+      {
+        "status": "Pass",
+        "count": 636,
+        "percentage": 50.9207365892714,
+        "fill": "var(--chart-1)"
+      },
+      {
+        "status": "PCP",
+        "count": 357,
+        "percentage": 28.5828662930344,
+        "fill": "var(--chart-2)"
+      },
+      {
+        "status": "Fail",
+        "count": 256,
+        "percentage": 20.4963971176942,
+        "fill": "var(--chart-3)"
+      }
+    ]
+  },
+  "cached": false
+}
+
+{
+  "intent": "get_student_status",
+  "params": {
+    "branch": "cse",
+    "year": 3
+  },
+  "data": {
+    "total": 0,
+    "distribution": [
+      {
+        "status": "Pass",
+        "count": 0,
+        "percentage": 0,
+        "fill": "var(--chart-1)"
+      },
+      {
+        "status": "PCP",
+        "count": 0,
+        "percentage": 0,
+        "fill": "var(--chart-2)"
+      },
+      {
+        "status": "Fail",
+        "count": 0,
+        "percentage": 0,
+        "fill": "var(--chart-3)"
+      }
+    ]
+  },
+  "cached": false
+}
+
+//  "intent": "get_branch_breakdown",
+
+{
+  "intent": "get_branch_breakdown",
+  "params": {
+
+  },
+  "data": [
+    {
+      "branch": "CSE",
+      "pass": 1434,
+      "pcp": 527,
+      "fail": 219,
+      "total": 2180,
+      "passRate": 65.7798165137615
+    },
+    {
+      "branch": "ECE",
+      "pass": 113,
+      "pcp": 178,
+      "fail": 197,
+      "total": 488,
+      "passRate": 23.155737704918
+    },
+    {
+      "branch": "CSE-AIML",
+      "pass": 305,
+      "pcp": 133,
+      "fail": 44,
+      "total": 482,
+      "passRate": 63.2780082987552
+    },
+    {
+      "branch": "CSE-DS",
+      "pass": 283,
+      "pcp": 142,
+      "fail": 52,
+      "total": 477,
+      "passRate": 59.3291404612159
+    },
+    {
+      "branch": "CSE-AI",
+      "pass": 240,
+      "pcp": 145,
+      "fail": 48,
+      "total": 433,
+      "passRate": 55.4272517321016
+    },
+    {
+      "branch": "CSIT",
+      "pass": 154,
+      "pcp": 108,
+      "fail": 63,
+      "total": 325,
+      "passRate": 47.3846153846154
+    },
+    {
+      "branch": "IT",
+      "pass": 108,
+      "pcp": 117,
+      "fail": 48,
+      "total": 273,
+      "passRate": 39.5604395604396
+    },
+    {
+      "branch": "CSE-IoT",
+      "pass": 77,
+      "pcp": 97,
+      "fail": 65,
+      "total": 239,
+      "passRate": 32.2175732217573
+    },
+    {
+      "branch": "BT",
+      "pass": 82,
+      "pcp": 76,
+      "fail": 47,
+      "total": 205,
+      "passRate": 40
+    },
+    {
+      "branch": "CS",
+      "pass": 106,
+      "pcp": 83,
+      "fail": 15,
+      "total": 204,
+      "passRate": 51.9607843137255
+    },
+    {
+      "branch": "CE",
+      "pass": 48,
+      "pcp": 51,
+      "fail": 57,
+      "total": 156,
+      "passRate": 30.7692307692308
+    },
+    {
+      "branch": "EE",
+      "pass": 37,
+      "pcp": 59,
+      "fail": 44,
+      "total": 140,
+      "passRate": 26.4285714285714
+    },
+    {
+      "branch": "ME",
+      "pass": 19,
+      "pcp": 40,
+      "fail": 64,
+      "total": 123,
+      "passRate": 15.4471544715447
+    }
+  ],
+  "cached": false
+}
+

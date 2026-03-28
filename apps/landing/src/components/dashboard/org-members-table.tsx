@@ -37,17 +37,6 @@ import {
     SelectValue
 } from "@/components/ui/select";
 import { Search, Trash2, Users, AlertTriangle } from "lucide-react";
-// Helper to extract unique years from members (ignore missing year)
-function getUniqueYears(members: Member[]): string[] {
-    const years = new Set<string>();
-    for (const m of members) {
-        if (m.year !== null && m.year !== undefined) {
-            const y = String(m.year).trim();
-            if (y) years.add(y);
-        }
-    }
-    return Array.from(years).sort();
-}
 import { formatDistanceToNow } from "date-fns";
 import { toast } from "sonner";
 import { PendingRequests } from "./pending-requests";
@@ -60,7 +49,20 @@ type Member = {
     requestedAt: string | Date;
     acceptedAt: string | Date | null;
     user: { id: string; email: string };
+    /** From OrgUser, returned by GET /api/orgs/[orgId]/members */
+    year?: number | string | null;
 };
+
+function getUniqueYears(members: Member[]): string[] {
+    const years = new Set<string>();
+    for (const m of members) {
+        if (m.year !== null && m.year !== undefined) {
+            const y = String(m.year).trim();
+            if (y) years.add(y);
+        }
+    }
+    return Array.from(years).sort();
+}
 
 interface Props {
     orgId: string;
@@ -102,7 +104,9 @@ export function OrgMembersTable({
     const filtered = useMemo(() => {
         let result = members;
         if (yearFilter !== "__all__") {
-            result = result.filter((m) => m.year === yearFilter);
+            result = result.filter(
+                (m) => String(m.year ?? "") === yearFilter,
+            );
         }
         if (search) {
             const q = search.toLowerCase();
