@@ -32,18 +32,18 @@ const SUGGESTIONS: Record<TabId, string[]> = {
         "Explain the grace marks policy in simple terms",
         "what is the hostel fee structure?",
         "Browse departments and courses offered",
-        "Understand campus rules and policies",
+        "Understand campus rules and policies.",
     ],
     results: [
         "What is my current CGPA and how has it changed?",
         "Which subjects am I at risk of failing this semester?",
         "Show my SGPA trend across all semesters",
         "Do I have any carry-over subjects?",
-    ],
+    ],  
     syllabus: [
-        "What is the syllabus ",
-        "List all subjects for the current semester",
-        "What is the exam pattern for Web Technology?",
+        "What is the syllabus of COA in Third year.",
+        "List all subjects for the First semester",
+        "What is the credits of Web Technology in B.Tech?",
         "Which subjects have practicals this semester?",
     ],
     help: [
