@@ -8,6 +8,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { ArrowUp, Loader2 } from "lucide-react";
 import Image from "next/image";
 import { cn } from "@/lib/utils";
+import { LoadingBreadcrumb } from "@/components/ui/animated-loading-svg-text-shimmer";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -260,9 +261,11 @@ export default function PlaygroundPage() {
                                             </div>
                                         ) : (
                                             /* Loading State for Analysis */
-                                            <div className="flex items-center gap-3 text-sm text-gray-500 animate-pulse">
-                                                <div className="w-2 h-2 rounded-full bg-primary" />
-                                                Analyzing data...
+                                            <div className="w-full py-4 pl-0">
+                                                <LoadingBreadcrumb
+                                                    text="Analysing and visualizing results..."
+                                                    className="text-[15px] text-gray-500"
+                                                />
                                             </div>
                                         )}
                                     </div>
