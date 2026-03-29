@@ -1,4 +1,10 @@
 {
     "title": "Documentation",
-    "pages": ["index", "app-overview", "gemini-api-key", "test"]
+    "pages": [
+        "index",
+        "app-overview",
+        "features",
+        "endpoints",
+        "gemini-api-key"
+    ]
 }

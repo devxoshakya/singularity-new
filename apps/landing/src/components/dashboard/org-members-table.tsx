@@ -247,7 +247,7 @@ export function OrgMembersTable({
                                                     size="sm"
                                                     variant="destructive"
                                                     className="h-8 px-3 flex items-center gap-1"
-                                                    disabled={deplatforming}
+                                                    loading={deplatforming}
                                                     onClick={async () => {
                                                         setDeplatforming(true);
                                                         try {
@@ -339,10 +339,10 @@ export function OrgMembersTable({
                                                         size="sm"
                                                         variant="outline"
                                                         className="h-7 px-2 text-destructive border-destructive/30 hover:bg-destructive/5"
-                                                        disabled={removing === m.id}
+                                                        loading={removing === m.id}
                                                         onClick={() => onRemove(m.id)}
                                                     >
-                                                        <Trash2 className="w-3.5 h-3.5 mr-1" />
+                                                        {removing !== m.id && <Trash2 className="w-3.5 h-3.5 mr-1" />}
                                                         Remove
                                                     </Button>
                                                 </TableCell>

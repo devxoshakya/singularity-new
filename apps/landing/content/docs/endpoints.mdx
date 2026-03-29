@@ -1,0 +1,99 @@
+---
+title: Developer Endpoints
+description: Technical documentation for Singularity API routes and integrations.
+---
+
+Singularity provides a robust set of API endpoints for programmatic access and internal workflows. This guide covers the main routes used for analytics, organization management, and user verification.
+
+## Analytics Endpoints 📊
+
+### 1. Student Status Distribution
+Returns a breakdown of students by academic standing.
+- **Endpoint**: `GET /api/analytics/student-status-distribution`
+- **Query Params**:
+  - `year` (optional): Filter by student year.
+  - `branch` (optional): Filter by department (e.g., CSE, ECE).
+- **Response**:
+  ```json
+  {
+    "success": true,
+    "data": {
+      "total": 1500,
+      "distribution": [
+        { "status": "Pass", "count": 1200, "percentage": 80 },
+        { "status": "PCP", "count": 250, "percentage": 16.67 },
+        { "status": "Fail", "count": 50, "percentage": 3.33 }
+      ]
+    }
+  }
+  ```
+
+### 2. Branch Status Breakdown
+Returns department-specific performance metrics.
+- **Endpoint**: `GET /api/analytics/branch-status-breakdown`
+- **Query Params**:
+  - `year` (optional): Filter by year.
+
+### 3. Performance Metrics Comparison
+Compares metrics between two academic years.
+- **Endpoint**: `GET /api/analytics/performance-metrics`
+- **Query Params**:
+  - `years` (required): Comma-separated years (e.g., `years=2,1`).
+- **Response**: Includes average SGPA, pass rates, and percentage comparisons.
+
+---
+
+## Organization Management 🏢
+
+### 1. Create Organization
+Initializes a new institution with a selected plan.
+- **Endpoint**: `POST /api/orgs/create`
+- **Body**:
+  ```json
+  {
+    "orgName": "string",
+    "orgSlug": "string",
+    "plan": "BASIC | PRO | ENTERPRISE"
+  }
+  ```
+
+### 2. List Organizations
+Retrieves a list of organizations the authenticated user belongs to.
+- **Endpoint**: `GET /api/orgs/list`
+
+### 3. Membership Requests
+Allows students to request to join an organization.
+- **Endpoint**: `POST /api/orgs/[orgId]/request`
+
+---
+
+## User Verification 👤
+
+### 1. Student Verification
+Updates student profile with academic details.
+- **Endpoint**: `POST /api/orguser/verify`
+- **Body**:
+  ```json
+  {
+    "rollNo": "string",
+    "dob": "YYYY-MM-DD",
+    "year": "number"
+  }
+  ```
+
+---
+
+## Knowledge Base 📚
+
+### 1. Document Submission
+Uploads institutional files for AI indexing.
+- **Endpoint**: `POST /api/knowledge/submit`
+- **Body**: `FormData` containing `documents` (File[]), `orgId`, and `orgName`.
+
+---
+
+## Authentication & Security 🔒
+
+- **Auth Provider**: Clerk (Next.js Clerk Middleware).
+- **API Keys**: Client-side Gemini API keys are sent via the `x-api-key` header.
+- **Authorization**: Protected routes require a valid session cookie from Clerk.

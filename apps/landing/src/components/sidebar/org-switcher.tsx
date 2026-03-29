@@ -40,7 +40,7 @@ export function OrgSwitcher() {
         // Collapsed: just the logo, centered
         return (
             <div className="flex justify-center py-1">
-                <Image src="/logo.svg" alt="org" width={26} height={26} />
+                <Image src="/logo.svg" alt="org" width={26} height={26} priority />
             </div>
         );
     }
@@ -59,6 +59,7 @@ export function OrgSwitcher() {
                             alt="org"
                             width={28}
                             height={28}
+                            priority
                         />
                     </div>
 

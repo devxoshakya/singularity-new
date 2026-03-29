@@ -222,12 +222,13 @@ export function KnowledgeBase({
                     </p>
                     <Button
                         onClick={handleSubmit}
-                        disabled={files.length === 0 || submitting}
+                        loading={submitting}
+                        disabled={files.length === 0}
                         size="sm"
                         className="gap-2"
                     >
-                        <Send className="w-3.5 h-3.5" />
                         {submitting ? "Submitting..." : "Submit for indexing"}
+                        {!submitting && <Send className="w-3.5 h-3.5" />}
                     </Button>
                 </div>
             </CardContent>

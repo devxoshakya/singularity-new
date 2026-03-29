@@ -177,21 +177,23 @@ export function PendingRequests({ orgId, initialPending, onAction }: Props) {
                                                 variant="outline"
                                                 className="h-8 w-8 p-0 text-destructive hover:text-destructive border-destructive/30 hover:bg-destructive/5"
                                                 disabled={acting === m.id || actingAll}
+                                                loading={acting === m.id && actionMutation.variables?.action === "reject"}
                                                 onClick={() =>
                                                     handleAction(m.id, "reject")
                                                 }
                                             >
-                                                <X className="w-3.5 h-3.5" />
+                                                {!(acting === m.id && actionMutation.variables?.action === "reject") && <X className="w-3.5 h-3.5" />}
                                             </Button>
                                             <Button
                                                 size="sm"
                                                 className="h-8 w-8 p-0"
                                                 disabled={acting === m.id || actingAll}
+                                                loading={acting === m.id && actionMutation.variables?.action === "accept"}
                                                 onClick={() =>
                                                     handleAction(m.id, "accept")
                                                 }
                                             >
-                                                <Check className="w-3.5 h-3.5" />
+                                                {!(acting === m.id && actionMutation.variables?.action === "accept") && <Check className="w-3.5 h-3.5" />}
                                             </Button>
                                         </div>
                                     </div>
@@ -204,7 +206,7 @@ export function PendingRequests({ orgId, initialPending, onAction }: Props) {
                         {pending.length > 0 && (
                             <Button
                                 className="flex-1"
-                                disabled={actingAll}
+                                loading={actingAll}
                                 onClick={handleAcceptAll}
                             >
                                 {actingAll ? "Accepting..." : "Accept All"}
