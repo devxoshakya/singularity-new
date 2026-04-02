@@ -30,6 +30,11 @@ type SemesterItem = {
 	}>;
 };
 
+type SemesterFilter =
+	| { kind: "all" }
+	| { kind: "latest" }
+	| { kind: "exact"; semester: number };
+
 const sanitizeCarryOvers = (value: unknown): CarryOverItem[] => {
 	if (!Array.isArray(value)) {
 		return [];
@@ -50,6 +55,71 @@ const sanitizeCarryOvers = (value: unknown): CarryOverItem[] => {
 const getSemesterNumber = (semesterLabel: string): number => {
 	const match = String(semesterLabel).match(/\d+/);
 	return match ? Number(match[0]) : -1;
+};
+
+const parseSemesterFilter = (
+	semQuery: string | undefined,
+): SemesterFilter | null => {
+	if (!semQuery || semQuery === "all") {
+		return { kind: "all" };
+	}
+
+	const normalized = semQuery.trim().toLowerCase();
+	if (normalized === "latest") {
+		return { kind: "latest" };
+	}
+
+	const semester = Number.parseInt(normalized, 10);
+	if (Number.isInteger(semester) && semester >= 1 && semester <= 8) {
+		return { kind: "exact", semester };
+	}
+
+	return null;
+};
+
+const filterSemesters = (
+	semesters: SemesterItem[],
+	semesterFilter: SemesterFilter,
+	latestSemester: number | null = null,
+): SemesterItem[] => {
+	if (semesterFilter.kind === "all") {
+		return semesters;
+	}
+
+	if (semesterFilter.kind === "exact") {
+		return semesters.filter(
+			(entry) => getSemesterNumber(entry.semester) === semesterFilter.semester,
+		);
+	}
+
+	const resolvedLatestSemester =
+		latestSemester ??
+		semesters.reduce((max, entry) => Math.max(max, getSemesterNumber(entry.semester)), -1);
+
+	if (resolvedLatestSemester < 1) {
+		return [];
+	}
+
+	return semesters.filter(
+		(entry) => getSemesterNumber(entry.semester) === resolvedLatestSemester,
+	);
+};
+
+const getPrimarySemesterPayload = (semesters: SemesterItem[]) => {
+	const primarySemester = semesters[0];
+	if (!primarySemester) {
+		return {};
+	}
+
+	return {
+		semester: primarySemester.semester,
+		evenOdd: primarySemester.evenOdd,
+		totalMarksObtained: primarySemester.totalMarksObtained,
+		resultStatus: primarySemester.resultStatus,
+		SGPA: primarySemester.SGPA,
+		dateOfDeclaration: primarySemester.dateOfDeclaration,
+		subjects: primarySemester.subjects,
+	};
 };
 
 const sanitizeSemesters = (value: unknown): SemesterItem[] => {
@@ -188,9 +258,18 @@ export const getResultByRollNoController = async (c: Context<HonoContext>) => {
 	try {
 		// Get and validate query parameters
 		const rollNo = c.req.query("rollNo");
+		const sem = c.req.query("sem");
 
 		if (!rollNo) {
 			return c.json({ error: "Roll number is required" }, 400);
+		}
+
+		const semesterFilter = parseSemesterFilter(sem);
+		if (!semesterFilter) {
+			return c.json(
+				{ error: "Invalid `sem` query param. Use 1..8 or `latest`." },
+				400,
+			);
 		}
 
 		// Validate input
@@ -239,12 +318,20 @@ export const getResultByRollNoController = async (c: Context<HonoContext>) => {
 		const carryOvers = sanitizeCarryOvers(
 			Array.isArray(rawResult) ? rawResult[0]?.CarryOvers : undefined,
 		);
+		const sanitizedSemesters = sanitizeSemesters(result.semesters);
+		const filteredSemesters = filterSemesters(sanitizedSemesters, semesterFilter);
+		const primarySemesterPayload = getPrimarySemesterPayload(filteredSemesters);
+		const includeSemesters = semesterFilter.kind === "all";
+		const { semesters: _resultSemesters, ...resultWithoutSemesters } = result;
 
 		return c.json(
 			{
 				success: true,
 				data: {
-					...result,
+					...(includeSemesters
+						? { ...result, semesters: filteredSemesters }
+						: resultWithoutSemesters),
+					...primarySemesterPayload,
 					CarryOvers: carryOvers,
 				},
 			},
@@ -275,9 +362,18 @@ export const getResultsByYearController = async (c: Context<HonoContext>) => {
 	try {
 		// Get query parameters
 		const year = c.req.query("year");
+		const sem = c.req.query("sem");
 
 		if (!year) {
 			return c.json({ error: "Year is required" }, 400);
+		}
+
+		const semesterFilter = parseSemesterFilter(sem);
+		if (!semesterFilter) {
+			return c.json(
+				{ error: "Invalid `sem` query param. Use 1..8 or `latest`." },
+				400,
+			);
 		}
 
 		// Validate input
@@ -364,11 +460,67 @@ export const getResultsByYearController = async (c: Context<HonoContext>) => {
 			}
 		}
 
+		let filteredResults = results;
+		const includeSemesters = semesterFilter.kind === "all";
+
+		if (semesterFilter.kind === "exact") {
+			filteredResults = results
+				.map((student) => ({
+					constSemesters: filterSemesters(student.semesters, semesterFilter),
+					student,
+				}))
+				.filter(({ constSemesters }) => constSemesters.length > 0)
+				.map(({ student, constSemesters }) => ({
+					...(includeSemesters
+						? { ...student, semesters: constSemesters }
+						: (({ semesters: _studentSemesters, ...studentWithoutSemesters }) =>
+							studentWithoutSemesters)(student)),
+					...getPrimarySemesterPayload(constSemesters),
+				}));
+		} else if (semesterFilter.kind === "latest") {
+			const maxSemester = results.reduce((max, student) => {
+				const studentMax = (student.semesters as SemesterItem[]).reduce(
+					(acc, semesterEntry) => Math.max(acc, getSemesterNumber(semesterEntry.semester)),
+					-1,
+				);
+				return Math.max(max, studentMax);
+			}, -1);
+
+			filteredResults =
+				maxSemester < 1
+					? []
+					: results
+						.map((student) => ({
+							constSemesters: filterSemesters(
+								student.semesters,
+								semesterFilter,
+								maxSemester,
+							),
+							student,
+						}))
+						.filter(({ constSemesters }) => constSemesters.length > 0)
+						.map(({ student, constSemesters }) => ({
+							...(includeSemesters
+								? { ...student, semesters: constSemesters }
+								: (({ semesters: _studentSemesters, ...studentWithoutSemesters }) =>
+									studentWithoutSemesters)(student)),
+							...getPrimarySemesterPayload(constSemesters),
+						}));
+		} else {
+			filteredResults = results.map((student) => ({
+				...(includeSemesters
+					? student
+					: (({ semesters: _studentSemesters, ...studentWithoutSemesters }) =>
+						studentWithoutSemesters)(student)),
+				...getPrimarySemesterPayload(student.semesters),
+			}));
+		}
+
 		return c.json(
 			{
 				success: true,
-				data: results,
-				totalCount: results.length,
+				data: filteredResults,
+				totalCount: filteredResults.length,
 			},
 			200,
 		);

@@ -317,6 +317,8 @@ if (!session?.user) redirect("/login");
 
 > Backend API — Hono-based server running on Cloudflare Workers, handling authentication, onboarding, subscriptions, and cron tasks.
 
+Server API README shortcut: [apps/server/README.md](apps/server/README.md)
+
 **Purpose:** The central API server that powers all backend operations: user authentication via Better Auth, onboarding logic, subscription management with Dodo Payments, and scheduled cron jobs for subscription expiry.
 
 #### Key Features
@@ -572,6 +574,8 @@ Result ── 1:N ── Subject
 ---
 
 ## API Reference
+
+Shortcut to complete server API docs: [apps/server/README.md](apps/server/README.md)
 
 ### Authentication
 

@@ -78,10 +78,11 @@ Returns detailed result information for a specific student by their roll number.
 
 **Query Parameters:**
 - `rollNo` (required) - Student's roll number (must be numeric digits only)
+- `sem` (optional) - `1..8`, `latest`, or `all` (default)
 
 **Example Request:**
 ```bash
-GET https://singularity-server.devxoshakya.workers.dev/api/result/by-rollno?rollNo=1234567890123
+GET https://singularity-server.devxoshakya.workers.dev/api/result/by-rollno?rollNo=1234567890123&sem=latest
 ```
 
 **Success Response (200 OK):**
@@ -98,28 +99,36 @@ GET https://singularity-server.devxoshakya.workers.dev/api/result/by-rollno?roll
     "course": "B.Tech",
     "branch": "Computer Science",
     "year": 2,
-    "SGPA": [8.5, 8.7],
     "CarryOvers": [],
     "divison": "First Division",
     "cgpa": "8.6",
     "instituteName": "MIET",
     "latestResultStatus": "Pass",
-    "totalMarksObtained": 850,
     "latestCOP": "8.7",
-    "Subjects": [
+    "semester": "1",
+    "evenOdd": "Odd",
+    "totalMarksObtained": 862,
+    "resultStatus": "CP( 0)",
+    "SGPA": 9.86,
+    "dateOfDeclaration": "25/06/24",
+    "subjects": [
       {
-        "id": "507f1f77bcf86cd799439012",
-        "subject": "Data Structures",
-        "code": "CS201",
+        "code": "BAS101",
+        "name": "Engineering Physics",
         "type": "Theory",
-        "internal": "20",
-        "external": "75",
-        "resultId": "507f1f77bcf86cd799439011"
+        "internal": "30",
+        "external": "67",
+        "backPaper": "--",
+        "grade": "A+"
       }
     ]
   }
 }
 ```
+
+**Response Notes:**
+- When `sem=1..8` or `sem=latest`, `semesters` array is omitted and selected semester fields are flattened on `data`.
+- When `sem` is omitted (or `sem=all`), `semesters` is included.
 
 **Error Responses:**
 - `400 Bad Request` - Invalid or missing roll number
@@ -158,10 +167,11 @@ Returns all student results for a specific year.
 
 **Query Parameters:**
 - `year` (required) - Academic year (1-4)
+- `sem` (optional) - `1..8`, `latest`, or `all` (default)
 
 **Example Request:**
 ```bash
-GET https://singularity-server.devxoshakya.workers.dev/api/result/by-year?year=2
+GET https://singularity-server.devxoshakya.workers.dev/api/result/by-year?year=2&sem=latest
 ```
 
 **Success Response (200 OK):**
@@ -179,15 +189,19 @@ GET https://singularity-server.devxoshakya.workers.dev/api/result/by-year?year=2
       "course": "B.Tech",
       "branch": "Computer Science",
       "year": 2,
-      "SGPA": [8.5, 8.7],
       "CarryOvers": [],
       "divison": "First Division",
       "cgpa": "8.6",
       "instituteName": "MIET",
       "latestResultStatus": "Pass",
-      "totalMarksObtained": 850,
       "latestCOP": "8.7",
-      "Subjects": [...]
+      "semester": "4",
+      "evenOdd": "Even",
+      "totalMarksObtained": 792,
+      "resultStatus": "CP( 0)",
+      "SGPA": 8.91,
+      "dateOfDeclaration": "14/08/25",
+      "subjects": [...]
     }
   ],
   "totalCount": 150
@@ -223,6 +237,9 @@ GET https://singularity-server.devxoshakya.workers.dev/api/result/by-year?year=2
 **Notes:**
 - Results are ordered by roll number in ascending order
 - Endpoint uses Prisma Accelerate caching for optimized performance
+- For `sem=latest`, API computes the maximum semester available in the selected year and returns only students having that semester
+- Students with incomplete semester progression (for example dropped out at sem 2 while latest is sem 5) are excluded for `sem=latest`
+- When `sem=1..8` or `sem=latest`, `semesters` is omitted and selected semester fields are flattened per student
 
 ---
 
