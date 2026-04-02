@@ -1,36 +1,54 @@
+
+type CarryOver {
+  sem   String
+  cop   String
+  name  String?
+}
+
+type Subject {
+  code      String
+  name      String
+  type      String
+  internal  String
+  external  String
+  backPaper String
+  grade     String
+}
+
+type Semester {
+  semester           String
+  evenOdd            String
+  totalMarksObtained Int
+  resultStatus       String
+  SGPA               Float
+  dateOfDeclaration  String
+  subjects           Subject[] // Array of embedded Subject documents
+}
+
+
+
 model Result {
-  id                 String    @id @default(auto()) @map("_id") @db.ObjectId
-  rollNo             String    @unique
+  id                 String      @id @default(auto()) @map("_id") @db.ObjectId
+  rollNo             String      @unique
   enrollmentNo       String
   fullName           String
-  blocked            Boolean   @default(false)
   fatherName         String
   course             String
   branch             String
-  year               Int
-  SGPA               Json?
-  CarryOvers         Json[]
-  divison            String    @default("")
-  cgpa               String    @default("")
   instituteName      String
-  Subjects           Subject[]
-  latestResultStatus String    @default("")
-  totalMarksObtained Int       @default(0)
-  latestCOP          String    @default("")
+  
+  blocked            Boolean     @default(false)
+  year               Int?
+
+  cgpa               String      @default("")
+  divison            String      @default("") 
+  totalMarksObtained Int         @default(0)
+  latestResultStatus String      @default("")
+  latestCOP          String      @default("")
+
+  // Strictly typed arrays of embedded documents
+  CarryOvers         CarryOver[] 
+  semesters          Semester[]  
 
   @@map("result")
-}
-
-model Subject {
-  id       String  @id @default(auto()) @map("_id") @db.ObjectId
-  subject  String
-  code     String
-  type     String
-  internal String
-  external String?
-
-  resultId String   @db.ObjectId      
-  result   Result   @relation(fields: [resultId], references: [id])
-
-  @@map("subject")
 }

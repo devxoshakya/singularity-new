@@ -1,7 +1,6 @@
 import type { createBetterAuth } from "@singularity/auth";
 import { createAuthClient } from "better-auth/react";
 import { inferAdditionalFields } from "better-auth/client/plugins";
-import { redirect } from "next/navigation";
 import { dodopaymentsClient } from "@dodopayments/better-auth";
 
 
@@ -35,6 +34,6 @@ export const signIn = async () => {
 			errorCallbackURL: `${window.location.origin}/login?error=email_domain_not_allowed`,
 		});
 	} catch {
-		redirect("/login?error=email_domain_not_allowed");
+		window.location.assign("/login?error=email_domain_not_allowed");
 	}
 }

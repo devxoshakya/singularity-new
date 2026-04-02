@@ -14,96 +14,88 @@ function extractYearFromRollNo(rollNo: string): number {
 /**
  * Update a single student's result by roll number
  */
-export async function updateStudentResult(rollNo: number) {
-  try {
-    console.log(`Fetching result for roll number: ${rollNo}`);
-    
-    const resultData = await solver(rollNo);
-    
-    if (!resultData) {
-      console.log(`No result found for roll number: ${rollNo}`);
-      return { success: false, rollNo, error: "No data returned from solver" };
-    }
-
-    // Check if student already exists to preserve their year
-    const existingStudent = await prisma.result.findFirst({
-      where: { rollNo: resultData.rollNo },
-      select: { year: true },
-    });
-
-    // Use existing year if available, otherwise extract from roll number as fallback
-    // Note: Year should be updated separately using the update-years.ts script with correct data
-    const year = existingStudent?.year ?? extractYearFromRollNo(resultData.rollNo);
-
-    // Upsert the result (create or update)
-    const result = await prisma.result.upsert({
-      where: {
-        rollNo: resultData.rollNo,
-      },
-      update: {
-        enrollmentNo: resultData.enrollmentNo,
-        fullName: resultData.fullName,
-        fatherName: resultData.fatherName,
-        course: resultData.course,
-        branch: resultData.branch,
-        year: year,
-        SGPA: resultData.SGPA,
-        CarryOvers: resultData.CarryOvers,
-        divison: resultData.divison,
-        cgpa: resultData.cgpa,
-        instituteName: resultData.instituteName,
-        latestResultStatus: resultData.latestResultStatus,
-        totalMarksObtained: resultData.totalMarksObtained,
-        latestCOP: resultData.latestCOP,
-      },
-      create: {
-        rollNo: resultData.rollNo,
-        enrollmentNo: resultData.enrollmentNo,
-        fullName: resultData.fullName,
-        fatherName: resultData.fatherName,
-        course: resultData.course,
-        branch: resultData.branch,
-        year: year,
-        SGPA: resultData.SGPA,
-        CarryOvers: resultData.CarryOvers,
-        divison: resultData.divison,
-        cgpa: resultData.cgpa,
-        instituteName: resultData.instituteName,
-        latestResultStatus: resultData.latestResultStatus,
-        totalMarksObtained: resultData.totalMarksObtained,
-        latestCOP: resultData.latestCOP,
-      },
-    });
-
-    // Delete existing subjects for this result
-    await prisma.subject.deleteMany({
-      where: {
-        resultId: result.id,
-      },
-    });
-
-    // Create new subjects
-    if (resultData.Subjects && resultData.Subjects.length > 0) {
-      await prisma.subject.createMany({
-        data: resultData.Subjects.map((subject: any) => ({
-          subject: subject.subject,
-          code: subject.code,
-          type: subject.type,
-          internal: subject.internal,
-          external: subject.external || "",
-          resultId: result.id,
-        })),
-      });
-    }
-
-    console.log(`✅ Successfully updated result for: ${resultData.fullName} (${resultData.rollNo})`);
-    return { success: true, rollNo: resultData.rollNo, name: resultData.fullName };
-    
-  } catch (error) {
-    console.error(`❌ Error updating result for roll number ${rollNo}:`, error);
-    return { success: false, rollNo, error: error instanceof Error ? error.message : "Unknown error" };
-  }
-}
+ /**
+  * Update a single student's result by roll number
+  */
+ export async function updateStudentResult(rollNo: number) {
+   try {
+     console.log(`Fetching result for roll number: ${rollNo}`);
+     
+     const resultData = await solver(rollNo);
+     
+     if (!resultData) {
+       console.log(`No result found for roll number: ${rollNo}`);
+       return { success: false, rollNo, error: "No data returned from solver" };
+     }
+ 
+     // Check if student already exists to preserve their year
+     const existingStudent = await prisma.result.findFirst({
+       where: { rollNo: resultData.rollNo },
+       select: { year: true },
+     });
+ 
+     const year = existingStudent?.year ?? extractYearFromRollNo(resultData.rollNo);
+ 
+     // 1. Transform the dynamic 'semesters' dictionary into the Prisma-compliant array
+     const semestersArray = Object.values(resultData.semesters);
+ 
+     // 2. Strict Type Check for CarryOvers
+     // If the scraper returned ["No Backlogs"], we save an empty array [] to satisfy Prisma's strict types
+     const formattedCarryOvers = (resultData.CarryOvers.length > 0 && typeof resultData.CarryOvers[0] !== 'string') 
+       ? resultData.CarryOvers 
+       : [];
+ 
+     // 3. Upsert the result (All nested subjects go directly into the document!)
+     const result = await prisma.result.upsert({
+       where: {
+         rollNo: resultData.rollNo,
+       },
+       update: {
+         enrollmentNo: resultData.enrollmentNo,
+         fullName: resultData.fullName,
+         fatherName: resultData.fatherName,
+         course: resultData.course,
+         branch: resultData.branch,
+         year: year,
+         CarryOvers: formattedCarryOvers,
+         divison: resultData.division || resultData.divison, // fallback matching your scraper output
+         cgpa: resultData.cgpa,
+         instituteName: resultData.instituteName,
+         latestResultStatus: resultData.latestResultStatus,
+         totalMarksObtained: resultData.totalMarksObtained,
+         latestCOP: resultData.latestCOP,
+         semesters: semestersArray, // Sub-documents natively embedded!
+       },
+       create: {
+         rollNo: resultData.rollNo,
+         enrollmentNo: resultData.enrollmentNo,
+         fullName: resultData.fullName,
+         fatherName: resultData.fatherName,
+         course: resultData.course,
+         branch: resultData.branch,
+         year: year,
+         CarryOvers: formattedCarryOvers,
+         divison: resultData.division || resultData.divison,
+         cgpa: resultData.cgpa,
+         instituteName: resultData.instituteName,
+         latestResultStatus: resultData.latestResultStatus,
+         totalMarksObtained: resultData.totalMarksObtained,
+         latestCOP: resultData.latestCOP,
+         semesters: semestersArray, // Sub-documents natively embedded!
+       },
+     });
+ 
+     // NOTE: We completely deleted the `prisma.subject.deleteMany` and `prisma.subject.createMany` 
+     // lines here because MongoDB handles the replacement of the entire `semesters` array automatically!
+ 
+     console.log(`✅ Successfully updated result for: ${resultData.fullName} (${resultData.rollNo})`);
+     return { success: true, rollNo: resultData.rollNo, name: resultData.fullName };
+     
+   } catch (error) {
+     console.error(`❌ Error updating result for roll number ${rollNo}:`, error);
+     return { success: false, rollNo, error: error instanceof Error ? error.message : "Unknown error" };
+   }
+ }
 
 /**
  * Update all student results from the Result table

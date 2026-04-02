@@ -8,6 +8,12 @@
 		// Add public environment variables here
 		// Example: "CORS_ORIGIN": "https://your-domain.com"
 	},
+	"kv_namespaces": [
+		{
+			"binding": "RESULT_ANALYTICS_CACHE",
+			"id": "d6f42c5a35454e14adf12c0e06870e82"
+		}
+	],
 	"observability": {
     	"enabled": false
 	},

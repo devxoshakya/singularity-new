@@ -12,8 +12,10 @@ export const getResultByRollNoSchema = z.object({
 export const getResultsByYearSchema = z.object({
 	year: z
 		.string()
+		.trim()
+		.regex(/^\d+$/, "Year must be a valid number")
 		.transform((val) => parseInt(val, 10))
-		.refine((val) => !isNaN(val) && (val >= 1 && val <= 4) || val >= 2020, {
+		.refine((val) => Number.isInteger(val) && ((val >= 1 && val <= 4) || val >= 2020), {
 			message: "Year must be between 1 and 4 or a valid year from 2020 onwards",
 		}),
 });

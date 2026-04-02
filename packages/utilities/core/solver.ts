@@ -1,6 +1,5 @@
-import { stringify } from "qs"; // for form encoding with nested data
+import { stringify } from "qs"; 
 import * as cheerio from "cheerio";
-
 
 const userAgents = [
   "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
@@ -15,8 +14,6 @@ const userAgents = [
 function getRandomUserAgent(): string {
   return userAgents[Math.floor(Math.random() * userAgents.length)]!;
 }
-
-
 
 export async function solver(rollNo: number) {
   const data = stringify({
@@ -65,189 +62,160 @@ export async function solver(rollNo: number) {
       "https://oneview.aktu.ac.in/WebPages/AKTU/OneView.aspx",
       config
     );
-    const parseData = parseHTML(JSON.stringify(await response.text()));
-    // console.log(parseData);
+    
+    // FIX: Extract raw HTML without JSON.stringify
+    const htmlText = await response.text();
+    
+    // LOG: Check if we actually got the expected HTML or a CAPTCHA/Error page
+    console.log("--- HTML FETCH SUCCESS ---");
+    console.log(`Response length: ${htmlText.length} characters`);
+    
+    if (htmlText.includes("YOUR_CAPTCHA_RESPONSE") || htmlText.includes("Captcha")) {
+        console.warn("WARNING: Captcha string detected in response. You might be blocked.");
+    }
+
+    const parseData = parseHTML(htmlText);
     return parseData;
   } catch (error) {
-    console.error("Error:", error);
+    console.error("Error during fetch:", error);
   }
 }
 
-function cleanString(str: string) {
-  return str.replace(/\\r|\\n/g, "").trim();
+function cleanString(str: string | undefined | null): string {
+  return str ? str.replace(/\\r|\\n|\n|\r/g, "").trim() : "N/A";
 }
 
-function parseHTML(htmlContent: string) {
+export function parseHTML(htmlContent: string) {
   const $ = cheerio.load(htmlContent);
-  const rollNo =
-    $('td:contains("RollNo")').next().next().text().trim() || "N/A";
-  const name =
-    $('td:contains("Institute Code")')
-      .next()
-      .next()
-      .text()
-      .replace(/[0-9()]/g, "")
-      .trim()
-      .replace(/[\n\r\t]/g, "") || "N/A";
 
-  const enrollmentNo =
-    $('td:contains("EnrollmentNo")').next().next().text().trim() || "N/A";
+  // 1. Extract Primary Student Details
+  const rollNo = cleanString($('#lblRollNo').text());
+  const enrollmentNo = cleanString($('#lblEnrollmentNo').text());
+  const fullName = cleanString($('#lblFullName').text());
+  const fatherName = cleanString($('#lblFatherName').text());
+  const course = cleanString($('#lblCourse').text());
+  const branch = cleanString($('#lblBranch').text());
+  const institute = cleanString($('#lblInstitute').text());
 
-
-  const branch =
-    $('td:contains("Branch Code")')
-      .next()
-      .next()
-      .text()
-      .replace(/[0-9()]/g, "")
-      .trim() || "N/A";
-  const fullName =
-    $('td:contains("Name")')
-      .next()
-      .next()
-      .text()
-      .replace(/[0-9()]/g, "")
-      .trim()
-      .replace(/[\n\r\t]/g, "") || "N/A";
-  const names = fullName
-    .split(/\s\s+/)
-    .map((name) => name.trim())
-    .filter((name) => name);
-  const firstName = names[9];
-
-  const fatherName = $('td:contains("Father")').next().next().text().trim() || "N/A";
-
-  const course = $('td:contains("Course Code")').next().next().text().replace(/[0-9()]/g, "").trim() || "N/A";
-
-  let semesters: { [key: string]: number } = {};
-
-  $('[id*="forlblSemesterId"]').each((i, elem) => {
-    let semester = $(elem)
-      .closest("tr")
-      .find('[id*="lblSemesterId"]')
-      .text()
-      .replace(/[A-Za-z]/g, "")
-      .trim();
-
-    let sgpa =
-      $(elem)
-        .closest("tr")
-        .next()
-        .next()
-        .next()
-        .find('[id*="lblSGPA"]')
-        .text()
-        .trim() || "N/A";
-
-    let sgpaValue = parseFloat(sgpa);
-
-    if (sgpa !== "N/A" && sgpaValue !== 0) {
-      semesters[`sem${semester}`] = sgpaValue;
-    }
-  });
-
-  const CarryOvers: any = [];
-  for (let i = 4; i <= 15; i++) {
-    $(`span[id*="ctl0${i}_lblCOP"]`).each((_, element) => {
-      const cop = $(element).text().trim(); // Extract COP value
-      if (cop) {
-        const session = $(element)
-          .closest('div') // Find the parent div containing COP and session info
-          .find(`span[id*="ctl0${i}_lblSession"]`) // Locate session span
-          .text()
-          .replace('Session :', '')
-          .trim();
-        const sem = $(element).
-          closest('div') // Find the parent div containing COP and session info
-          .find(`span[id*="ctl0${i}_lblSem"]`) // Locate semester span
-          .text()
-          .replace('Sem :', '')
-          .trim();
-
-        if (cop !== "COP :") {
-          CarryOvers.push({ session, sem, cop });
-        }
-      }
-    });
-  }
-  const divison = $('span[id*="lblDivisionAwarded"]').text().trim();
-  const cgpa = $('span[id*="lblFinalMO"]').text().trim();
-
-  if (CarryOvers.length === 0) {
-    CarryOvers.push(["No Backlogs"]);
-  }
-
-  let latestResultStatus = "N/A";
-  let totalMarksObtained = 0;
-  let latestCOP = "NO Backlogs";
-  const Subjects: any = [];
-  for (let i:any = 15; i >= 4; i--) {
-    if(i<10){
-      i = `0${i}`;
-    }
-    let sem_ = 1;
-    const flag = $(`span[id*="ctl${i}_ctl00_ctl00_grdViewSubjectMarksheet_subName_0"]`).text().trim();
-    const flag2 = $(`span[id*="ctl${i}_ctl01_ctl00_grdViewSubjectMarksheet_subName_0"]`).text().trim();
-    
-    if (flag === "" && flag2 === "") {
-      continue;
-    }
-    if (flag !== "") {
-      sem_ = 1;
-    }
-    if (flag2 === "") {
-      sem_ = 0;
-    }
-
-    latestResultStatus = $(`span[id*="ctl${i}_lblResult"]`).text().trim();
-    totalMarksObtained = parseInt($(`span[id*="ctl${i}_ctl0${sem_}_lblSemesterTotalMarksObtained"]`).text().trim());
-    latestCOP = $(`span[id*="ctl${i}_lblCOP"]`).text().trim();
-
-    for (let j = 0; j < 10; j++) {
-      const subject = $(`span[id*="ctl${i}_ctl0${sem_}_ctl00_grdViewSubjectMarksheet_subName_${j}"]`).text().trim();
-      const code = $(`span[id*="ctl${i}_ctl0${sem_}_ctl00_grdViewSubjectMarksheet_subCode_${j}"]`).text().trim();
-      const type = $(`span[id*="ctl${i}_ctl0${sem_}_ctl00_grdViewSubjectMarksheet_subType_${j}"]`).text().trim();
-      const internal = $(`span[id*="ctl${i}_ctl0${sem_}_ctl00_grdViewSubjectMarksheet_subType_${j}"]`).closest('td').next().text().trim();
-      const external = $(`span[id*="ctl${i}_ctl0${sem_}_ctl00_grdViewSubjectMarksheet_subType_${j}"]`).closest('td').next().next().text().trim();
-      const latest = $(`span[id*=ctl${i}_lblSem"]`).text().trim();
-
-      if (subject !== "" && code !== "") {
-        Subjects.push({ subject, code, type, internal, external });
-      }
-    }
-
-    break;
-  }
-
-  if (
-    rollNo === "N/A" ||
-    name === "N/A" ||
-    branch === "N/A" ||
-    fullName === "N/A"
-  ) {
+  // Validate if page loaded correctly
+  if (rollNo === "N/A" || !rollNo) {
     return null;
   }
 
+  const cgpa = cleanString($('#lblFinalMO').text());
+  const division = cleanString($('#lblDivisionAwarded').text());
+
+  // 2. Parse Semesters Data
+  // By mapping to an object keyed by Semester ID, older data is safely
+  // overwritten by newer "BACK" sessions that appear later in the DOM.
+  const semestersData: Record<string, any> = {};
+
+  $('table[id$="_grdViewSubjectMarksheet"]').each((_, tableEl) => {
+    const container = $(tableEl).closest('.col-md-6');
+
+    const semId = container.find('span[id$="_lblSemesterId"]').text().trim();
+    if (!semId) return;
+
+    const evenOdd = container.find('span[id$="_lblEvenOdd"]').text().trim();
+    const totalMarksObtained = container.find('span[id$="_lblSemesterTotalMarksObtained"]').text().trim();
+    const resultStatus = container.find('span[id$="_lblResultStatus"]').text().trim();
+    const sgpaValue = parseFloat(container.find('span[id$="_lblSGPA"]').text().trim()) || 0;
+    const dateOfDeclaration = container.find('span[id$="_lblDateOfDeclaration"]').text().trim();
+
+    // Extract all subjects within this semester
+    const subjects: any[] = [];
+    $(tableEl).find('tr').each((i, tr) => {
+      if (i === 0) return; // Skip the table header row
+
+      const tds = $(tr).find('td');
+      if (tds.length >= 7) {
+        subjects.push({
+          code: cleanString($(tds[0]).text()),
+          name: cleanString($(tds[1]).text()),
+          type: cleanString($(tds[2]).text()),
+          internal: cleanString($(tds[3]).text()),
+          external: cleanString($(tds[4]).text()),
+          backPaper: cleanString($(tds[5]).text()),
+          grade: cleanString($(tds[6]).text()),
+        });
+      }
+    });
+
+    // Overwrite the semester payload. This naturally isolates the latest 
+    // performance stats (Regular vs Back) per semester, wiping out cleared COPs.
+    semestersData[`sem${semId}`] = {
+      semester: semId,
+      evenOdd,
+      totalMarksObtained: parseInt(totalMarksObtained) || 0,
+      resultStatus,
+      SGPA: sgpaValue,
+      dateOfDeclaration,
+      subjects
+    };
+  });
+
+  // 3. Determine Active Carry Overs (COPs) from the finalized, latest data
+  const activeCarryOvers: any[] = [];
+  let totalMarksAllSemesters = 0;
+
+  Object.values(semestersData).forEach((semData: any) => {
+    totalMarksAllSemesters += semData.totalMarksObtained;
+
+    semData.subjects.forEach((subject: any) => {
+      // F or ABS indicates a subject that is currently Uncleared
+      if (subject.grade.includes("F") || subject.grade.includes("ABS")) {
+        activeCarryOvers.push({
+          sem: semData.semester,
+          cop: subject.code,
+          name: subject.name
+        });
+      }
+    });
+  });
+
+  // 4. Find the latest semester safely (Numeric Sort: sem10 > sem2)
+  const semKeys = Object.keys(semestersData);
+  semKeys.sort((a, b) => parseInt(a.replace('sem', '')) - parseInt(b.replace('sem', '')));
+  
+  const latestSemKey = semKeys.length > 0 ? semKeys[semKeys.length - 1] : null;
+  const latestSemesterData = latestSemKey ? semestersData[latestSemKey] : null;
+
+  // 5. Extract COPs specific to the LATEST semester ONLY
+  let latestCOPString = "NO Backlogs";
+  if (latestSemesterData) {
+    const latestSemCOPs = activeCarryOvers.filter(c => c.sem === latestSemesterData.semester);
+    if (latestSemCOPs.length > 0) {
+      latestCOPString = latestSemCOPs.map(c => c.cop).join(", ");
+    }
+  }
+
+  // 6. Format final payload
+  const finalCarryOvers = activeCarryOvers.length > 0 ? activeCarryOvers : ["No Backlogs"];
+
   return {
-    rollNo: cleanString(rollNo),
-    enrollmentNo: cleanString(enrollmentNo),
-    fullName: cleanString(firstName || fullName),
-    fatherName: cleanString(fatherName),
-    course: cleanString(course),
-    branch: cleanString(branch),
-    SGPA: semesters,
-    CarryOvers: CarryOvers,
-    divison: cleanString(divison),
-    cgpa: cleanString(cgpa),
-    instituteName: cleanString(name),
-    Subjects: Subjects,
-    latestResultStatus: cleanString(latestResultStatus),
-    totalMarksObtained: totalMarksObtained,
-    latestCOP: cleanString(latestCOP),
+    rollNo,
+    enrollmentNo,
+    fullName,
+    fatherName,
+    course,
+    branch,
+    instituteName: institute,
+    cgpa,
+    division,
+    totalMarksObtained: totalMarksAllSemesters,
+    latestResultStatus: latestSemesterData ? latestSemesterData.resultStatus : "N/A",
+    latestCOP: latestCOPString, // Strict: Only the current semester's failures
+    CarryOvers: finalCarryOvers, // Strict: Only currently uncleared subjects
+    semesters: semestersData
   };
 }
 
 
-
-// const dataPromise = await solver(2300680100119);
-// console.log(dataPromise);
+// // Execution block
+// (async () => {
+//     const dataPromise = await solver(2400680310074);
+//   console.log("\n--- FINAL PARSED JSON ---");
+//   fs.writeFileSync("result.json", JSON.stringify(dataPromise, null, 2));
+  
+//     console.log(JSON.stringify(dataPromise, null, 2));
+// })();

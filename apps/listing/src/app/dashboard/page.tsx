@@ -1,20 +1,53 @@
-import { redirect } from "next/navigation";
+"use client";
+
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import Dashboard from "./dashboard";
-import { headers } from "next/headers";
 import { authClient } from "@/lib/auth-client";
 import Navbar from "@/components/dashboard/navbar";
 import { StudentAccordion } from "@/components/dashboard/student-accordian";
 
-export default async function DashboardPage() {
-	const session = await authClient.getSession({
-		fetchOptions: {
-			headers: await headers(),
-			throw: true,
-		},
-	});
+export default function DashboardPage() {
+	const router = useRouter();
+	const [isLoading, setIsLoading] = useState(true);
+	const [session, setSession] = useState<
+		typeof authClient.$Infer.Session | null
+	>(null);
 
-	if (!session?.user) {
-		redirect("/login");
+	useEffect(() => {
+		let isMounted = true;
+
+		const loadSession = async () => {
+			try {
+				const currentSession = await authClient.getSession();
+				if (!isMounted) return;
+
+				if (!currentSession?.data?.user) {
+					router.replace("/login");
+					return;
+				}
+
+				setSession(currentSession.data);
+			} catch {
+				if (isMounted) {
+					router.replace("/login");
+				}
+			} finally {
+				if (isMounted) {
+					setIsLoading(false);
+				}
+			}
+		};
+
+		void loadSession();
+
+		return () => {
+			isMounted = false;
+		};
+	}, [router]);
+
+	if (isLoading || !session?.user) {
+		return null;
 	}
 
 	return (

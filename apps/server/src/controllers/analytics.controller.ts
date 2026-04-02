@@ -137,28 +137,29 @@ const getCarryOverHistoryRecords = (carryOvers: any[] | null | undefined): Carry
 	return records;
 };
 
-/**
- * Helper function to get the latest semester SGPA
- * Checks all semesters from sem8 down to sem1
- */
-const getLatestSGPA = (sgpaData: any): number | null => {
-	if (!sgpaData) return null;
-
-	for (let sem = 8; sem >= 1; sem--) {
-		const semKey = `sem${sem}`;
-		if (sgpaData[semKey] !== undefined && sgpaData[semKey] !== null) {
-			return Number(sgpaData[semKey]);
-		}
-	}
-	return null;
+type SemesterSgpaEntry = {
+	semester: string;
+	SGPA: number;
 };
 
-/**
- * Helper function to calculate average SGPA
- * Takes the average of all non-null semester SGPAs
- */
-const calculateAverageSGPA = (sgpaData: any): number | null => {
-	if (!sgpaData) return null;
+const getSemesterNumber = (semesterLabel: string): number => {
+	const match = String(semesterLabel).match(/\d+/);
+	return match ? Number(match[0]) : -1;
+};
+
+const getSgpaValues = (sgpaData: any): number[] => {
+	if (!sgpaData) return [];
+
+	if (Array.isArray(sgpaData)) {
+		return [...sgpaData]
+			.sort(
+				(a, b) =>
+					getSemesterNumber((a as SemesterSgpaEntry).semester) -
+					getSemesterNumber((b as SemesterSgpaEntry).semester),
+			)
+			.map((entry) => Number((entry as SemesterSgpaEntry).SGPA))
+			.filter((value) => Number.isFinite(value));
+	}
 
 	const sgpaValues: number[] = [];
 	for (let sem = 1; sem <= 8; sem++) {
@@ -169,6 +170,38 @@ const calculateAverageSGPA = (sgpaData: any): number | null => {
 		}
 	}
 
+	return sgpaValues.filter((value) => Number.isFinite(value));
+};
+
+const getSemesterSGPA = (sgpaData: any, semester: number): number | null => {
+	if (!sgpaData) return null;
+
+	if (Array.isArray(sgpaData)) {
+		const match = sgpaData.find(
+			(entry: SemesterSgpaEntry) =>
+				getSemesterNumber(entry.semester) === semester,
+		);
+		if (!match) return null;
+		return Number.isFinite(Number(match.SGPA)) ? Number(match.SGPA) : null;
+	}
+
+	const semKey = `sem${semester}`;
+	if (sgpaData[semKey] === undefined || sgpaData[semKey] === null) {
+		return null;
+	}
+
+	const value = Number(sgpaData[semKey]);
+	return Number.isFinite(value) ? value : null;
+};
+
+const getLatestSGPA = (sgpaData: any): number | null => {
+	const values = getSgpaValues(sgpaData);
+	if (values.length === 0) return null;
+	return values[values.length - 1] ?? null;
+};
+
+const calculateAverageSGPA = (sgpaData: any): number | null => {
+	const sgpaValues = getSgpaValues(sgpaData);
 	if (sgpaValues.length === 0) return null;
 	const sum = sgpaValues.reduce((acc, val) => acc + val, 0);
 	return sum / sgpaValues.length;
@@ -434,7 +467,12 @@ export const getYearBranchComparisonController = async (
 			select: {
 				year: true,
 				branch: true,
-				SGPA: true,
+				semesters: {
+					select: {
+						semester: true,
+						SGPA: true,
+					},
+				},
 				totalMarksObtained: true,
 				latestResultStatus: true,
 				CarryOvers: true,
@@ -482,7 +520,7 @@ export const getYearBranchComparisonController = async (
 					// Calculate average SGPA
 					const sgpaValues: number[] = [];
 					branchStudents.forEach((s) => {
-						const avgSgpa = calculateAverageSGPA(s.SGPA);
+						const avgSgpa = calculateAverageSGPA(s.semesters);
 						if (avgSgpa !== null) sgpaValues.push(avgSgpa);
 					});
 
@@ -594,7 +632,12 @@ export const getPerformanceMetricsController = async (
 			select: {
 				branch: true,
 				year: true,
-				SGPA: true,
+				semesters: {
+					select: {
+						semester: true,
+						SGPA: true,
+					},
+				},
 				totalMarksObtained: true,
 				CarryOvers: true,
 			},
@@ -611,7 +654,7 @@ export const getPerformanceMetricsController = async (
 		const buildMetrics = (students: typeof baseStudents) => {
 			const totalStudents = students.length;
 			const sgpaValues = students
-				.map((s) => calculateAverageSGPA(s.SGPA))
+				.map((s) => calculateAverageSGPA(s.semesters))
 				.filter((v): v is number => v !== null);
 
 			const avgSgpa = sgpaValues.length > 0
@@ -637,7 +680,7 @@ export const getPerformanceMetricsController = async (
 				else if (status === "PCP") pcpCount++;
 				else failCount++;
 
-				const studentAvgSgpa = calculateAverageSGPA(s.SGPA);
+				const studentAvgSgpa = calculateAverageSGPA(s.semesters);
 				if (studentAvgSgpa !== null && studentAvgSgpa > 9.0) {
 					topPerformers++;
 				}
@@ -753,7 +796,12 @@ export const getSemesterProgressionController = async (
 			where,
 			select: {
 				branch: true,
-				SGPA: true,
+				semesters: {
+					select: {
+						semester: true,
+						SGPA: true,
+					},
+				},
 				latestResultStatus: true,
 				CarryOvers: true,
 				latestCOP: true,
@@ -771,17 +819,12 @@ export const getSemesterProgressionController = async (
 		const semesterData: any[] = [];
 
 		for (let sem = 1; sem <= 8; sem++) {
-			const semKey = `sem${sem}` as keyof typeof students[0]["SGPA"];
-			
 			// Get all SGPA values for this semester
 			const sgpaValues: number[] = [];
 			students.forEach((s) => {
-				if (s.SGPA && typeof s.SGPA === 'object') {
-					const sgpaObj = s.SGPA as any;
-					const value = sgpaObj[semKey];
-					if (value !== undefined && value !== null) {
-						sgpaValues.push(Number(value));
-					}
+				const value = getSemesterSGPA(s.semesters, sem);
+				if (value !== null) {
+					sgpaValues.push(value);
 				}
 			});
 
@@ -865,7 +908,12 @@ export const getSgpaRangeDistributionController = async (
 			where,
 			select: {
 				branch: true,
-				SGPA: true,
+				semesters: {
+					select: {
+						semester: true,
+						SGPA: true,
+					},
+				},
 			},
 		});
 
@@ -882,17 +930,11 @@ export const getSgpaRangeDistributionController = async (
 			let sgpaValue: number | null = null;
 			
 			if (semester === "latest") {
-				sgpaValue = getLatestSGPA(s.SGPA);
+				sgpaValue = getLatestSGPA(s.semesters);
 			} else {
 				const semNum = parseInt(semester, 10);
 				if (!isNaN(semNum) && semNum >= 1 && semNum <= 8) {
-					const semKey = `sem${semNum}`;
-					if (s.SGPA && typeof s.SGPA === 'object') {
-						const sgpaObj = s.SGPA as any;
-						if (sgpaObj[semKey] !== undefined && sgpaObj[semKey] !== null) {
-							sgpaValue = Number(sgpaObj[semKey]);
-						}
-					}
+					sgpaValue = getSemesterSGPA(s.semesters, semNum);
 				}
 			}
 			
@@ -1012,7 +1054,6 @@ export const getBacklogAnalysisController = async (
 				CarryOvers: true,
 				latestCOP: true,
 				latestResultStatus: true,
-				Subjects: true,
 			},
 		});
 
@@ -1204,7 +1245,12 @@ export const getBranchPerformanceRadarController = async (
 			where,
 			select: {
 				branch: true,
-				SGPA: true,
+				semesters: {
+					select: {
+						semester: true,
+						SGPA: true,
+					},
+				},
 				latestResultStatus: true,
 				CarryOvers: true,
 				latestCOP: true,
@@ -1257,7 +1303,7 @@ export const getBranchPerformanceRadarController = async (
 			// Calculate average SGPA
 			const sgpaValues: number[] = [];
 			data.students.forEach((s) => {
-				const avgSgpa = calculateAverageSGPA(s.SGPA);
+				const avgSgpa = calculateAverageSGPA(s.semesters);
 				if (avgSgpa !== null) {
 					sgpaValues.push(avgSgpa);
 				}
@@ -1345,7 +1391,12 @@ export const getTopPerformersController = async (
 				fullName: true,
 				branch: true,
 				year: true,
-				SGPA: true,
+				semesters: {
+					select: {
+						semester: true,
+						SGPA: true,
+					},
+				},
 				totalMarksObtained: true,
 				latestResultStatus: true,
 				CarryOvers: true,
@@ -1362,8 +1413,8 @@ export const getTopPerformersController = async (
 
 		// Calculate performance metric for each student
 		const studentsWithMetric = students.map((s) => {
-			const avgSgpa = calculateAverageSGPA(s.SGPA);
-			const latestSgpa = getLatestSGPA(s.SGPA);
+			const avgSgpa = calculateAverageSGPA(s.semesters);
+			const latestSgpa = getLatestSGPA(s.semesters);
 			const marks = s.totalMarksObtained ? Number(s.totalMarksObtained) : 0;
 			const status = classifyStudentStatus(s.CarryOvers as any[]);
 			const backlogCount = getCarryOverCount(s.CarryOvers as any[]);

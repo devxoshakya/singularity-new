@@ -10,8 +10,14 @@ import {
 	getBranchPerformanceRadarController,
 	getTopPerformersController,
 } from "../controllers/analytics.controller";
+import {
+	createKVJsonCacheMiddleware,
+	RESULT_ANALYTICS_CACHE_TTL_SECONDS,
+} from "@/utils/kv-cache";
 
 const analyticsRouter = new Hono();
+
+analyticsRouter.use("/*", createKVJsonCacheMiddleware("analytics", RESULT_ANALYTICS_CACHE_TTL_SECONDS));
 
 // GET /api/analytics/student-status-distribution - Pass/PCP/Fail distribution for pie chart
 analyticsRouter.get("/student-status-distribution", getStudentStatusDistributionController);

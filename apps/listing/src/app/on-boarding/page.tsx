@@ -1,20 +1,41 @@
+"use client";
+
+import { useEffect, useState } from "react";
 import { OnboardingPage } from "@/components/ui/onboarding-page";
 import { authClient } from "@/lib/auth-client";
-import { headers } from "next/headers";
-import { redirect } from "next/navigation";
+import { useRouter } from "next/navigation";
 
-export default async function Onboarding() {
-    const session = await authClient.getSession({
-        fetchOptions: {
-            headers: await headers(),
-            throw: true,
-        },
-    });
+export default function Onboarding() {
+    const router = useRouter();
+    const [userEmail, setUserEmail] = useState("example@gg.com");
 
-    if (!session?.user) {
-        // redirect("/login");
-    }
+    useEffect(() => {
+        let isMounted = true;
 
-    console.log("User Session:", session);
-    return <OnboardingPage userEmail={session?.user?.email || "example@gg.com"} />;
+        const loadSession = async () => {
+            try {
+                const session = await authClient.getSession();
+                if (!isMounted) return;
+
+                if (!session?.data?.user) {
+                    router.replace("/login");
+                    return;
+                }
+
+                setUserEmail(session.data.user.email || "example@gg.com");
+            } catch {
+                if (isMounted) {
+                    router.replace("/login");
+                }
+            }
+        };
+
+        void loadSession();
+
+        return () => {
+            isMounted = false;
+        };
+    }, [router]);
+
+    return <OnboardingPage userEmail={userEmail} />;
 }

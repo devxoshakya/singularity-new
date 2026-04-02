@@ -4,7 +4,10 @@ import { purgeCacheController, getCacheStatusController } from "@/controllers/ca
 
 const cacheRouter = new Hono<HonoContext>();
 
-// POST /api/cache/purge - Purge all caches
+// POST /api/cache/clear - Clear result/analytics KV cache
+cacheRouter.post("/clear", purgeCacheController);
+
+// POST /api/cache/purge - Backward-compatible alias for clear cache
 cacheRouter.post("/purge", purgeCacheController);
 
 // GET /api/cache/status - Get cache status

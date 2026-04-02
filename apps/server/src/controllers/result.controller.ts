@@ -6,6 +6,95 @@ import {
 } from "@/schemas/result.schema";
 import type { HonoContext } from "@/types/context";
 
+type CarryOverItem = {
+	sem: string;
+	cop: string;
+	name?: string;
+};
+
+type SemesterItem = {
+	semester: string;
+	evenOdd: string;
+	totalMarksObtained: number;
+	resultStatus: string;
+	SGPA: number;
+	dateOfDeclaration: string;
+	subjects: Array<{
+		code: string;
+		name: string;
+		type: string;
+		internal: string;
+		external: string;
+		backPaper: string;
+		grade: string;
+	}>;
+};
+
+const sanitizeCarryOvers = (value: unknown): CarryOverItem[] => {
+	if (!Array.isArray(value)) {
+		return [];
+	}
+
+	return value
+		.filter((entry): entry is Record<string, unknown> =>
+			typeof entry === "object" && entry !== null && !Array.isArray(entry),
+		)
+		.map((entry) => ({
+			sem: String(entry.sem ?? "").trim(),
+			cop: String(entry.cop ?? "").trim(),
+			name: entry.name == null ? undefined : String(entry.name).trim(),
+		}))
+		.filter((entry) => entry.cop.length > 0);
+};
+
+const getSemesterNumber = (semesterLabel: string): number => {
+	const match = String(semesterLabel).match(/\d+/);
+	return match ? Number(match[0]) : -1;
+};
+
+const sanitizeSemesters = (value: unknown): SemesterItem[] => {
+	if (!Array.isArray(value)) {
+		return [];
+	}
+
+	const semesters = value
+		.filter((entry): entry is Record<string, unknown> =>
+			typeof entry === "object" && entry !== null,
+		)
+		.map((entry) => {
+			const subjectsRaw = Array.isArray(entry.subjects) ? entry.subjects : [];
+			const subjects = subjectsRaw
+				.filter((subject): subject is Record<string, unknown> =>
+					typeof subject === "object" && subject !== null,
+				)
+				.map((subject) => ({
+					code: String(subject.code ?? "").trim(),
+					name: String(subject.name ?? "").trim(),
+					type: String(subject.type ?? "").trim(),
+					internal: String(subject.internal ?? "").trim(),
+					external: String(subject.external ?? "").trim(),
+					backPaper: String(subject.backPaper ?? "").trim(),
+					grade: String(subject.grade ?? "").trim(),
+				}));
+
+			return {
+				semester: String(entry.semester ?? "").trim(),
+				evenOdd: String(entry.evenOdd ?? "").trim(),
+				totalMarksObtained: Number(entry.totalMarksObtained ?? 0) || 0,
+				resultStatus: String(entry.resultStatus ?? "").trim(),
+				SGPA: Number(entry.SGPA ?? 0) || 0,
+				dateOfDeclaration: String(entry.dateOfDeclaration ?? "").trim(),
+				subjects,
+			};
+		});
+
+	semesters.sort(
+		(a, b) => getSemesterNumber(a.semester) - getSemesterNumber(b.semester),
+	);
+
+	return semesters;
+};
+
 /**
  * GET /api/result/cache
  * Get all student records with minimal fields (id, fullName, rollNo, branch)
@@ -14,30 +103,44 @@ import type { HonoContext } from "@/types/context";
  */
 export const getStudentsCacheController = async (c: Context<HonoContext>) => {
 	try {
-		// Get all students with SGPA and year for sorting
+		// Get all students with semesters and year for sorting
 		const students = await prisma.result.findMany({
 			select: {
 				id: true,
 				fullName: true,
 				rollNo: true,
 				branch: true,
-				SGPA: true,
+				semesters: {
+					select: {
+						semester: true,
+						SGPA: true,
+					},
+				},
 				year: true,
 			},
 		});
 
-		// Helper function to get the latest semester SGPA (checking all semesters)
-		const getLatestSGPA = (sgpaData: any): number | null => {
-			if (!sgpaData) return null;
-			
-			// Check all semesters from sem8 down to sem1 to find the latest available
-			for (let sem = 8; sem >= 1; sem--) {
-				const semKey = `sem${sem}`;
-				if (sgpaData[semKey] !== undefined && sgpaData[semKey] !== null) {
-					return Number(sgpaData[semKey]);
-				}
-			}
-			return null;
+		const getSemesterNumber = (semesterLabel: string): number => {
+			const match = semesterLabel.match(/\d+/);
+			return match ? Number(match[0]) : -1;
+		};
+
+		// Pick SGPA from the latest semester entry.
+		const getLatestSGPA = (
+			semesters: Array<{ semester: string; SGPA: number }>,
+		): number | null => {
+			if (!Array.isArray(semesters) || semesters.length === 0) return null;
+
+			const latestSemester = semesters.reduce((latest, current) => {
+				return getSemesterNumber(current.semester) >
+					getSemesterNumber(latest.semester)
+					? current
+					: latest;
+			});
+
+			return Number.isFinite(latestSemester.SGPA)
+				? latestSemester.SGPA
+				: null;
 		};
 
 		// Calculate latest SGPA for sorting
@@ -49,7 +152,7 @@ export const getStudentsCacheController = async (c: Context<HonoContext>) => {
 				branch: student.branch,
 				year: student.year,
 			},
-			sortSGPA: getLatestSGPA(student.SGPA),
+			sortSGPA: getLatestSGPA(student.semesters),
 		}));
 
 		// Sort by latest SGPA (descending), null values at the end
@@ -93,11 +196,26 @@ export const getResultByRollNoController = async (c: Context<HonoContext>) => {
 		// Validate input
 		const validatedData = getResultByRollNoSchema.parse({ rollNo });
 
-		// Find result by roll number
+		// Read typed fields first (excluding CarryOvers) to avoid malformed legacy data decode errors.
 		const result = await prisma.result.findFirst({
 			where: { rollNo: validatedData.rollNo },
-			include: {
-				Subjects: true,
+			select: {
+				id: true,
+				rollNo: true,
+				enrollmentNo: true,
+				fullName: true,
+				fatherName: true,
+				course: true,
+				branch: true,
+				instituteName: true,
+				blocked: true,
+				year: true,
+				cgpa: true,
+				divison: true,
+				totalMarksObtained: true,
+				latestResultStatus: true,
+				latestCOP: true,
+				semesters: true,
 			},
 		});
 
@@ -108,10 +226,27 @@ export const getResultByRollNoController = async (c: Context<HonoContext>) => {
 			);
 		}
 
+		const rawResult = await prisma.result.findRaw({
+			filter: { rollNo: validatedData.rollNo },
+			options: {
+				limit: 1,
+				projection: {
+					CarryOvers: 1,
+				},
+			},
+		});
+
+		const carryOvers = sanitizeCarryOvers(
+			Array.isArray(rawResult) ? rawResult[0]?.CarryOvers : undefined,
+		);
+
 		return c.json(
 			{
 				success: true,
-				data: result,
+				data: {
+					...result,
+					CarryOvers: carryOvers,
+				},
 			},
 			200,
 		);
@@ -150,16 +285,84 @@ export const getResultsByYearController = async (c: Context<HonoContext>) => {
 			year,
 		});
 
-		// Get all results for the year
-		const results = await prisma.result.findMany({
-			where: { year: validatedData.year },
-			include: {
-				Subjects: true,
-			},
-			orderBy: {
-				rollNo: "asc",
-			},
-		});
+		const batchSize = 300;
+		const results: Array<Record<string, any>> = [];
+		let lastRollNo: string | null = null;
+
+		while (true) {
+			const batch = await prisma.result.findMany({
+				where: { year: validatedData.year },
+				select: {
+					id: true,
+					rollNo: true,
+					enrollmentNo: true,
+					fullName: true,
+					fatherName: true,
+					course: true,
+					branch: true,
+					instituteName: true,
+					blocked: true,
+					year: true,
+					cgpa: true,
+					divison: true,
+					totalMarksObtained: true,
+					latestResultStatus: true,
+					latestCOP: true,
+					semesters: true,
+				},
+				orderBy: {
+					rollNo: "asc",
+				},
+				take: batchSize,
+				...(lastRollNo
+					? {
+						cursor: { rollNo: lastRollNo },
+						skip: 1,
+					}
+					: {}),
+			});
+
+			if (batch.length === 0) {
+				break;
+			}
+
+			const rollNos = batch.map((student) => student.rollNo);
+			const rawCarryOversBatch = await prisma.result.findRaw({
+				filter: {
+					year: validatedData.year,
+					rollNo: { $in: rollNos },
+				},
+				options: {
+					projection: {
+						rollNo: 1,
+						CarryOvers: 1,
+					},
+				},
+			});
+
+			const carryOverByRollNo = new Map<string, CarryOverItem[]>();
+			if (Array.isArray(rawCarryOversBatch)) {
+				rawCarryOversBatch.forEach((doc: any) => {
+					const key = String(doc?.rollNo ?? "").trim();
+					if (key.length > 0) {
+						carryOverByRollNo.set(key, sanitizeCarryOvers(doc?.CarryOvers));
+					}
+				});
+			}
+
+			const normalizedBatch = batch.map((student) => ({
+				...student,
+				CarryOvers: carryOverByRollNo.get(student.rollNo) ?? [],
+				semesters: sanitizeSemesters(student.semesters),
+			}));
+
+			results.push(...normalizedBatch);
+			lastRollNo = batch[batch.length - 1]?.rollNo ?? null;
+
+			if (batch.length < batchSize) {
+				break;
+			}
+		}
 
 		return c.json(
 			{

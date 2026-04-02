@@ -36,6 +36,9 @@ export interface Session {
  * Extend Hono's context type to include Better Auth user and session
  */
 export type HonoContext = {
+	Bindings: {
+		RESULT_ANALYTICS_CACHE: KVNamespace;
+	};
 	Variables: {
 		user: AuthUser | null;
 		session: typeof auth.$Infer.Session.session | null;
