@@ -1110,12 +1110,14 @@ export const getBacklogAnalysisController = async (
 			const branchData: Record<string, { active: number; cleared: number; total: number }> = {};
 
 			studentBacklogSummaries.forEach((summary) => {
-				if (!branchData[summary.branch]) {
-					branchData[summary.branch] = { active: 0, cleared: 0, total: 0 };
-				}
-				branchData[summary.branch].active += summary.active;
-				branchData[summary.branch].cleared += summary.cleared;
-				branchData[summary.branch].total += summary.total;
+				const bucket = (branchData[summary.branch] ??= {
+					active: 0,
+					cleared: 0,
+					total: 0,
+				});
+				bucket.active += summary.active;
+				bucket.cleared += summary.cleared;
+				bucket.total += summary.total;
 			});
 
 			analysisData = Object.entries(branchData).map(([branchName, data]) => ({
