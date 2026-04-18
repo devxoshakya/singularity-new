@@ -1,99 +1,114 @@
 ---
-title: Developer Endpoints
-description: Technical documentation for Singularity API routes and integrations.
+title: Analytics and API-Driven Features
+description: Feature documentation for student lookup, analytics intelligence, and dashboard data capabilities.
 ---
 
-Singularity provides a robust set of API endpoints for programmatic access and internal workflows. This guide covers the main routes used for analytics, organization management, and user verification.
+This page documents the feature capabilities enabled by the server APIs that power the authenticated analytics dashboard and intelligence workflows.
 
-## Analytics Endpoints 📊
+## Student Lookup Features
 
-### 1. Student Status Distribution
-Returns a breakdown of students by academic standing.
-- **Endpoint**: `GET /api/analytics/student-status-distribution`
-- **Query Params**:
-  - `year` (optional): Filter by student year.
-  - `branch` (optional): Filter by department (e.g., CSE, ECE).
-- **Response**:
-  ```json
-  {
-    "success": true,
-    "data": {
-      "total": 1500,
-      "distribution": [
-        { "status": "Pass", "count": 1200, "percentage": 80 },
-        { "status": "PCP", "count": 250, "percentage": 16.67 },
-        { "status": "Fail", "count": 50, "percentage": 3.33 }
-      ]
-    }
-  }
-  ```
+### Student Profile by Roll Number
 
-### 2. Branch Status Breakdown
-Returns department-specific performance metrics.
-- **Endpoint**: `GET /api/analytics/branch-status-breakdown`
-- **Query Params**:
-  - `year` (optional): Filter by year.
+- Endpoint: `GET /api/result/by-rollno`
+- Supports `sem=1..8`, `latest`, and `all`.
+- Enables instant student profile retrieval with semester context.
+- Powers profile cards, semester snapshots, and subject drill-down views.
 
-### 3. Performance Metrics Comparison
-Compares metrics between two academic years.
-- **Endpoint**: `GET /api/analytics/performance-metrics`
-- **Query Params**:
-  - `years` (required): Comma-separated years (e.g., `years=2,1`).
-- **Response**: Includes average SGPA, pass rates, and percentage comparisons.
+### Student Collections by Year
+
+- Endpoint: `GET /api/result/by-year`
+- Supports cohort-wide year exploration and filtering.
+- `sem=latest` behavior improves comparison quality by excluding incomplete progressions.
+- Powers year tabs, cohort summaries, and cohort search flows.
+
+## Shared Analytics Status Logic
+
+Across analytics endpoints:
+
+- **Pass**: `0` carry-overs
+- **PCP**: `1-2` carry-overs
+- **Fail**: `>=3` carry-overs
 
 ---
 
-## Organization Management 🏢
+## Analytics Features
 
-### 1. Create Organization
-Initializes a new institution with a selected plan.
-- **Endpoint**: `POST /api/orgs/create`
-- **Body**:
-  ```json
-  {
-    "orgName": "string",
-    "orgSlug": "string",
-    "plan": "BASIC | PRO | ENTERPRISE"
-  }
-  ```
+### 1) Student Status Distribution
 
-### 2. List Organizations
-Retrieves a list of organizations the authenticated user belongs to.
-- **Endpoint**: `GET /api/orgs/list`
+- Endpoint: `GET /api/analytics/student-status-distribution`
+- Filters: `year`, `branch`
+- Feature impact: cohort health pulse (Pass/PCP/Fail).
 
-### 3. Membership Requests
-Allows students to request to join an organization.
-- **Endpoint**: `POST /api/orgs/[orgId]/request`
+### 2) Branch Status Breakdown
+
+- Endpoint: `GET /api/analytics/branch-status-breakdown`
+- Filter: `year`
+- Feature impact: branch-level academic strength/risk comparison.
+
+### 3) Year-Branch Comparison
+
+- Endpoint: `GET /api/analytics/year-branch-comparison`
+- Filters: `years`, `branches`, `metric`
+- Feature impact: multi-year trend storytelling across departments.
+
+### 4) Performance Metrics (Two-Year KPI Compare)
+
+- Endpoint: `GET /api/analytics/performance-metrics`
+- Filters: `years=Y1,Y2` (required for new behavior), optional `branch`
+- Feature impact: executive KPI cards with trend direction and percent movement.
+
+### 5) Semester Progression
+
+- Endpoint: `GET /api/analytics/semester-progression`
+- Filters: `year`, `branch`
+- Feature impact: semester growth/decline trajectories.
+
+### 6) SGPA Range Distribution
+
+- Endpoint: `GET /api/analytics/sgpa-range-distribution`
+- Filters: `year`, `branch`, `semester`
+- Feature impact: quality band distribution and concentration analysis.
+
+### 7) Backlog Analysis
+
+- Endpoint: `GET /api/analytics/backlog-analysis`
+- Filters: `year` (required), `branch`, `groupBy`
+- Feature impact: active vs cleared backlog intelligence and intervention guidance.
+
+### 8) Branch Performance Radar
+
+- Endpoint: `GET /api/analytics/branch-performance-radar`
+- Filter: `year`
+- Feature impact: multi-dimensional branch benchmarking.
+
+### 9) Top Performers
+
+- Endpoint: `GET /api/analytics/top-performers`
+- Filters: `limit`, `year`, `branch`, `metric`
+- Feature impact: achiever spotlight and leaderboard modules.
+
+## Analytics Visual Gallery
+
+Analytics chart screenshots use the public URL path `/assets/graphs/*`, backed by files stored in `apps/landing/public/assets/graphs`.
+These are example visualizations generated from the analytics features documented above.
+
+![Bar chart showing student status distribution across Pass, PCP, and Fail categories](/assets/graphs/1.png)
+![Grouped comparison chart showing pass and risk status across academic branches](/assets/graphs/2.png)
+![Multi-year trend chart comparing branch performance metrics by selected academic years](/assets/graphs/3.png)
+![KPI dashboard chart comparing SGPA, marks, and pass-rate movement between two years](/assets/graphs/4.png)
+![Semester progression line chart showing academic performance trend over consecutive semesters](/assets/graphs/5.png)
+![Backlog and branch benchmark visualization showing active versus cleared backlog patterns](/assets/graphs/6.png)
+![Leaderboard-oriented analytics chart showing top performers and SGPA range concentration](/assets/graphs/7.png)
+
+## Playground Intelligence Contract
+
+- `POST /api/playground/optimize` transforms natural language into structured analytics intent.
+- `GET /api/playground/query?text=...` resolves intent to analytics data payloads.
+- Enables admin experimentation workflows for chart-first data exploration.
 
 ---
 
-## User Verification 👤
+## Product Snapshots Connected to Analytics Experience
 
-### 1. Student Verification
-Updates student profile with academic details.
-- **Endpoint**: `POST /api/orguser/verify`
-- **Body**:
-  ```json
-  {
-    "rollNo": "string",
-    "dob": "YYYY-MM-DD",
-    "year": "number"
-  }
-  ```
-
----
-
-## Knowledge Base 📚
-
-### 1. Document Submission
-Uploads institutional files for AI indexing.
-- **Endpoint**: `POST /api/knowledge/submit`
-- **Body**: `FormData` containing `documents` (File[]), `orgId`, and `orgName`.
-
----
-
-## Authentication & Security 🔒
-
-- **Auth Provider**: Clerk (Next.js Clerk Middleware).
-- **API Keys**: Client-side Gemini API keys are sent via the `x-api-key` header.
-- **Authorization**: Protected routes require a valid session cookie from Clerk.
+![API-driven chat assistant interface integrated with analytics dashboard](/landing/api.jpg)
+![Student outcome analysis interface showing performance visualization](/landing/miet-results.png)
