@@ -1,69 +1,82 @@
 ---
-title: App Overview
-description: A practical overview of the platform, key routes, and setup.
+title: Platform Feature Overview
+description: Complete overview of Singularity product capabilities, flows, and outcomes.
 ---
 
-This app is a Next.js platform that combines:
+Singularity is an AI-first institutional platform built to reduce repetitive student support load and improve academic operations with governed, real-time intelligence.
 
-- Public marketing pages
-- Authenticated chat experience
-- Organization onboarding and membership workflows
-- Plan-based billing with Dodo Payments
-- MDX-powered documentation
+## Core Problems Solved
 
-## Tech Stack
+- Repetitive policy, exam, and course questions from students.
+- Slow manual support resolution loops.
+- Academic and institutional data that is difficult to query quickly.
+- Scattered knowledge documents with poor retrieval usability.
+- Access governance challenges at organization scale.
 
-- Next.js App Router (`src/app`)
-- TypeScript
-- Clerk authentication
-- Prisma database access
-- Fumadocs for documentation (`content/docs`)
-- Dodo Payments for checkout and customer portal
+## End-to-End Product Flows
 
-## Main Route Groups
+### 1) New User to Active Member
 
-- `/` landing and marketing experience
-- `/login` sign-in/sign-up page
-- `/onboarding` organization onboarding flow
-- `/c/[id]` chat conversation workspace
-- `/pricing` pricing plans
-- `/docs` documentation pages
+1. User signs in.
+2. If membership is not active, onboarding starts.
+3. User creates an organization or requests to join one.
+4. Join requests stay pending until admin approval.
+5. On approval, user enters the chat workspace.
 
-## User Flow (High Level)
+### 2) Institution Setup and Paid Activation
 
-1. User visits landing page.
-2. User signs in with Clerk.
-3. If no active membership, user is redirected to onboarding.
-4. After onboarding and active org membership, user can access chat routes.
-5. Billing can be handled via checkout and customer portal routes.
+1. Admin provides organization identity and plan.
+2. Checkout is created through Dodo Payments.
+3. Webhook finalizes organization creation or upgrade.
+4. Plan limits and admin membership are applied.
+5. Clerk metadata is synchronized with org context.
 
-## API Key Behavior
+### 3) AI Chat Experience
 
-The chat UI supports a client-side backend API key value stored in browser local storage.
+1. User opens chat session.
+2. Query is sent with identity and optional key headers.
+3. Assistant responses stream in real time.
+4. Sources and context are rendered when available.
+5. Session is persisted to threaded history.
 
-- Key is saved locally (not committed in code)
-- It is sent in request headers as `x-api-key`
-- Users can edit this key from the user menu in the app sidebar
+### 4) Admin Governance and Moderation
 
-For Gemini key generation instructions, visit [Get a Gemini API Key](/docs/gemini-api-key).
+1. Admin reviews pending member requests.
+2. Approval/rejection enforces plan limits.
+3. Active members can be filtered and removed.
+4. Year-based deplatform action supports lifecycle cleanup.
 
-## Billing Endpoints
+### 5) Knowledge Improvement Loop
 
-- `/checkout` provides Dodo Payments checkout
-- `/customer-portal` redirects users to Dodo customer portal
+1. Admin uploads institutional files.
+2. Files enter ingestion and indexing flow.
+3. AI responses improve with refreshed organizational context.
 
-These endpoints require payment-related environment variables.
+## User Value by Role
 
-## Local Development
+### Students
 
-Install dependencies and run the app:
+- Instant academic and institutional answers.
+- Persistent chat history and continuity.
+- Result-focused analysis mode for performance insights.
 
-```bash
-pnpm install
-pnpm dev
-```
+### Admins
 
-Then open:
+- Controlled onboarding and role-based governance.
+- Plan-limit aware approval workflows.
+- Dashboards for usage, requests, and membership operations.
+- Analytics and intervention signals for outcomes.
 
-- App: `http://localhost:3000`
-- Docs: `http://localhost:3000/docs`
+### Institutions
+
+- Reduced support overhead.
+- Faster policy and result communication.
+- Better use of existing documents and academic datasets.
+- Scalable digital interaction layer for students and staff.
+
+## Product Visuals
+
+![Landing Hero](\u002flanding\u002fSentra.png)
+![API and Intelligence Visual](\u002flanding\u002fapi.jpg)
+![MIET Result Experience](\u002flanding\u002fmiet-results.png)
+![Dashboard Snapshot](\u002flanding\u002fdesktop.png)

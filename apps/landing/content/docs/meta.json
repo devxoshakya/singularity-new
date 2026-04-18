@@ -4,7 +4,6 @@
         "index",
         "app-overview",
         "features",
-        "endpoints",
-        "gemini-api-key"
+        "endpoints"
     ]
 }

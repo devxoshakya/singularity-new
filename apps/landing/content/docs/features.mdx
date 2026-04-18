@@ -1,53 +1,98 @@
 ---
-title: Features Overview
-description: Explore the key features of Singularity for students and organizations.
+title: Detailed Feature Inventory
+description: Complete feature-by-feature documentation across landing, chat, onboarding, admin, and knowledge tooling.
 ---
 
-Singularity is designed to bridge the gap between institutional knowledge and those who need it. Whether you are a student looking for quick answers or an administrator managing an entire organization, Singularity provides the tools you need.
+## Public Landing Experience
 
-## For Students 🎓
+- Immersive landing sections for product narrative, trust, FAQ, and CTA.
+- Pricing embedded into acquisition flow.
+- Auth-aware redirects for signed-in users.
 
-### 1. AI-Powered Chat Assistant
-The heart of Singularity is its intelligent chat interface. Students can ask questions about:
-- Course materials and syllabi.
-- Campus policies and procedures.
-- Important dates and deadlines.
-- General academic guidance.
+![Landing Product Section](\u002flanding\u002fproduct.png)
+![Landing Device Preview](\u002flanding\u002ftab.png)
 
-The AI provides **instant, accurate responses** based directly on the documents uploaded by your institution.
+## Authentication and Access
 
-### 2. Personal Dashboard
-Track your academic progress with a personalized view:
-- View your registered details (Roll Number, Year, etc.).
-- Access chat history to revisit previous guidance.
-- Stay updated with institutional announcements.
+- Clerk-powered sign-in and SSO callback support.
+- Protected app routes for authenticated users.
+- Membership-aware routing into onboarding or active workspace.
 
-### 3. Secure Verification
-Student privacy is paramount. Singularity uses a robust verification process to ensure only authorized students can access sensitive institutional data.
+## Organization Onboarding
 
----
+- Two-path onboarding: create org or join org.
+- Public org discovery with search.
+- Request lifecycle support: `PENDING`, `ACTIVE`, `REJECTED`.
+- Auto-routing based on membership state.
 
-## For Organizations 🏢
+## Role and Governance Controls
 
-### 1. Knowledge Base Management
-Administrators can easily build their institution's "AI Brain":
-- **Document Upload**: Submit PDFs, Word docs, and text files for indexing.
-- **Automated Processing**: The system automatically parses and prepares your data for the AI assistant.
-- **Dynamic Updates**: Add new information anytime to keep the AI up-to-date.
+- Explicit `ADMIN` and `MEMBER` separation.
+- Admin-only dashboard, settings, and analytics playground routes.
+- Membership moderation guarded by admin checks.
+- Plan limit enforcement during activations.
 
-### 2. Advanced Analytics
-Gain deep insights into your student body's performance and engagement:
-- **Status Distribution**: Real-time breakdown of students by academic standing (Pass, PCP, Fail).
-- **Branch Performance**: Compare metrics across different departments (CSE, ECE, etc.).
-- **Engagement Metrics**: See which topics students are asking about most frequently.
+## AI Chat and Response Experience
 
-### 3. Member Management
-Control access to your organization:
-- **Invite Staff**: Add administrators to help manage the platform.
-- **Manage Requests**: Approve or deny membership requests from students.
-- **Role-Based Access**: Ensure users only see what they are authorized to see.
+- Dual interaction modes: `rag` and `results`.
+- Real-time streaming answers (SSE).
+- Context and source rendering in thread.
+- New-chat URL promotion without disruptive reload.
+- Manual stop-stream controls.
 
-### 4. Billing & Plans
-Flexible subscription models to suit institutions of all sizes:
-- Manage your plan through an integrated **Customer Portal**.
-- Seamless upgrades and renewals powered by Dodo Payments.
+![Chat Interface Preview](\u002flanding\u002fdesktop.png)
+![Mobile Chat View](\u002flanding\u002fphone.png)
+
+## Conversation Continuity
+
+- Sidebar history grouped by date windows.
+- Local cache fallback for resilience.
+- Per-thread deletion.
+- Command palette search (`Cmd/Ctrl + K`) across recent, local, and remote sessions.
+
+## User Profile and Account Controls
+
+- Identity-aware account menu.
+- Roll number and API key local persistence.
+- API key format validation and guidance.
+- Account settings and leave-organization support for non-admin users.
+
+## Admin Dashboard Operations
+
+- Usage and pending request visibility.
+- Plan-upgrade signaling near limits.
+- Member table with search, filters, and pagination.
+- Pending request approve/reject workflows.
+- Active member removal workflows.
+- Year-based bulk deplatform action.
+
+## Student Data and Results Operations
+
+- Student cache retrieval and lookup.
+- Year and search filters for result exploration.
+- Result status representation and trend-focused UI output.
+
+![Result and Analysis View](\u002flanding\u002fmiet-results.png)
+
+## Knowledge Base and Ingestion
+
+- Multi-file drag/drop upload flow.
+- File validation for type and size.
+- Queue-based submit experience.
+- Indexing handoff pipeline for AI retrieval quality.
+- Supported formats include `pdf`, `doc`, `docx`, `txt`, `pptx`.
+
+## Billing and Plan Features
+
+- Plan tiers: `FREE`, `BASIC`, `PRO`, `PRO_PLUS`, `PREMIUM`, `PREMIUM_PLUS`.
+- Per-plan student and member limits.
+- Dodo Payments checkout integration.
+- Customer portal integration for lifecycle management.
+- Webhook-driven activation and upgrade reliability.
+
+## Documentation Platform Features
+
+- MDX-powered docs under `/docs`.
+- Search endpoint for docs discoverability.
+- Auto-generated OG images for docs pages.
+- `/llms-full.txt` export for LLM-friendly ingestion.
