@@ -3,7 +3,7 @@ title: Analytics and API-Driven Features
 description: Feature documentation for student lookup, analytics intelligence, and dashboard data capabilities.
 ---
 
-This page documents the feature capabilities enabled by the server APIs that power the landing dashboard and intelligence workflows.
+This page documents the feature capabilities enabled by the server APIs that power the authenticated analytics dashboard and intelligence workflows.
 
 ## Student Lookup Features
 
@@ -89,7 +89,7 @@ Across analytics endpoints:
 
 ## Analytics Visual Gallery
 
-Analytics chart screenshots are served from `/assets/graphs/*` (mapped from `apps/landing/public/assets/graphs`).
+Analytics chart screenshots use the public URL path `/assets/graphs/*`, backed by files stored in `apps/landing/public/assets/graphs`.
 These are example visualizations generated from the analytics features documented above.
 
 ![Bar chart showing student status distribution across Pass, PCP, and Fail categories](/assets/graphs/1.png)
