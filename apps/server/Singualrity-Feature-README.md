@@ -1,4 +1,4 @@
-# Singualrity Feature README (Landing App Focus)
+# Singularity Feature README (Landing App Focus)
 
 This document captures the **student and analytics features** used by the landing app.
 
@@ -49,9 +49,9 @@ These APIs are designed for visual, decision-friendly insights and are directly 
 
 ### Shared Analytics Status Logic
 Across analytics endpoints, student status is interpreted as:
-- **Pass:** 0 carry overs
-- **PCP:** 1–2 carry overs
-- **Fail:** 3+ carry overs
+- **Pass:** 0 carry-overs
+- **PCP:** 1–2 carry-overs
+- **Fail:** 3+ carry-overs
 
 This gives the landing app a consistent academic-health language for every chart.
 
@@ -160,4 +160,3 @@ This architecture keeps the landing experience:
 - **Insight-first** (feature-rich academic narratives)
 - **Consistent** (shared status logic and comparable filters)
 - **Scalable** (same analytics layer supports multiple views and cohorts)
-
