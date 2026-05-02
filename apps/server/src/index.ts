@@ -35,6 +35,7 @@ app.use(
     origin: [
       "https://m.devxoshakya.xyz",
       "https://s.devxoshakya.xyz",
+      "https://*.devxoshakya.xyz",
       "http://localhost:3001",
       "http://localhost:4000",
     ],
