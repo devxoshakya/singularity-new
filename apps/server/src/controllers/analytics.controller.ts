@@ -67,6 +67,117 @@ const classifyStudentStatus = (carryOvers: any[]): "Pass" | "PCP" | "Fail" => {
 	return "Fail";
 };
 
+const classifyCarryStatusV2 = (carryOvers: any[]): "Pass" | "PCP" | "Fail" => {
+	const carryOverCount = getCarryOverCount(carryOvers);
+
+	if (carryOverCount === 0) return "Pass";
+	if (carryOverCount <= 3) return "PCP";
+	return "Fail";
+};
+
+const classifyTableStatus = (carryOvers: any[]): "Pass" | "PCP" => {
+	const status = classifyCarryStatusV2(carryOvers);
+	return status === "Pass" ? "Pass" : "PCP";
+};
+
+const getYearLabel = (year: number): string => {
+	if (year >= 2020) return `${year} BATCH`;
+	if (year === 1) return "1ST YEAR";
+	if (year === 2) return "2ND YEAR";
+	if (year === 3) return "3RD YEAR";
+	if (year === 4) return "4TH YEAR";
+	return String(year);
+};
+
+const parseYearValue = (raw: string | undefined): number | null => {
+	if (!raw) return null;
+	const parsed = parseInt(raw, 10);
+	if (Number.isNaN(parsed)) return null;
+	if ((parsed >= 1 && parsed <= 4) || parsed >= 2020) return parsed;
+	return null;
+};
+
+const resolveComparisonYears = (year: number, batchYear: number): number[] => {
+	if (year >= 2020) {
+		return [year];
+	}
+
+	if (year === 1) {
+		return [3, 2, 1];
+	}
+
+	if (year === 2) {
+		return [4, 3, 2];
+	}
+
+	if (year === 3) {
+		return [4, 3, batchYear];
+	}
+
+	if (year === 4) {
+		return [4, batchYear];
+	}
+
+	return [year];
+};
+
+const parseSemesterFilter = (raw: string | undefined): { kind: "latest" } | { kind: "exact"; sem: number } | null => {
+	if (!raw || raw === "latest") {
+		return { kind: "latest" };
+	}
+
+	const parsed = parseInt(raw, 10);
+	if (Number.isNaN(parsed) || parsed < 1 || parsed > 8) {
+		return null;
+	}
+
+	return { kind: "exact", sem: parsed };
+};
+
+const pickSemesterEntry = (
+	semesters: Array<{ semester: string; subjects: Array<{ code: string; name: string; type: string; internal: string; external: string; backPaper: string; grade: string; }> }>,
+	filter: { kind: "latest" } | { kind: "exact"; sem: number },
+) => {
+	if (!Array.isArray(semesters) || semesters.length === 0) {
+		return null;
+	}
+
+	if (filter.kind === "exact") {
+		return semesters.find((entry) => getSemesterNumber(entry.semester) === filter.sem) ?? null;
+	}
+
+	const sorted = [...semesters].sort(
+		(a, b) => getSemesterNumber(b.semester) - getSemesterNumber(a.semester),
+	);
+	return sorted[0] ?? null;
+};
+
+const getCachedResultsByYearFromApi = async (
+	c: Context<HonoContext>,
+	year: number,
+): Promise<Array<Record<string, any>>> => {
+	const requestUrl = new URL(c.req.url);
+	const byYearUrl = new URL("/api/result/by-year", requestUrl.origin);
+	byYearUrl.searchParams.set("year", String(year));
+	byYearUrl.searchParams.set("sem", "latest");
+
+	const response = await fetch(byYearUrl.toString());
+	if (!response.ok) {
+		throw new Error(`Failed to fetch cached year data for year=${year}. status=${response.status}`);
+	}
+
+	const payload = await response.json() as {
+		success?: boolean;
+		data?: Array<Record<string, any>>;
+	};
+
+	if (!payload?.success || !Array.isArray(payload.data)) {
+		throw new Error(`Invalid cached by-year payload for year=${year}`);
+	}
+
+	return payload.data;
+};
+
 const parseCopCodes = (copValue: string | null | undefined): string[] => {
 	if (!copValue) return [];
 	const normalized = String(copValue).replace(/COP\s*:/i, "").trim();
@@ -1473,6 +1584,302 @@ export const getTopPerformersController = async (
 		);
 	} catch (error: any) {
 		console.error("Top performers error:", error);
+		return c.json(
+			{ success: false, error: "Internal server error" },
+			500,
+		);
+	}
+};
+
+/**
+ * GET /api/analytics/year-comparison-table
+ * Branch-wise table data with PASS, PCP and PASS RATE columns for resolved comparison years.
+ *
+ * Query Params:
+ * - year (required): 1..4 OR batch year (>=2020)
+ * - batchYear (optional): fallback batch year for year=3/year=4 flow (default: 2024)
+ * - branches (optional): comma-separated branch codes
+ */
+export const getYearComparisonTableController = async (
+	c: Context<HonoContext>,
+) => {
+	try {
+		const yearParam = c.req.query("year");
+		const batchYearParam = c.req.query("batchYear") || "2024";
+		const branchesParam = c.req.query("branches");
+
+		const year = parseYearValue(yearParam);
+		const batchYear = parseYearValue(batchYearParam);
+
+		if (year === null) {
+			return c.json(
+				{ success: false, error: "Invalid `year`. Use 1..4 or batch year (>=2020)." },
+				400,
+			);
+		}
+
+		if (batchYear === null || batchYear < 2020) {
+			return c.json(
+				{ success: false, error: "Invalid `batchYear`. Use a valid batch year (>=2020)." },
+				400,
+			);
+		}
+
+		const requestedYears = resolveComparisonYears(year, batchYear);
+		const years = Array.from(new Set(requestedYears));
+
+		const byYearPayloads = await Promise.all(
+			years.map((resolvedYear) => getCachedResultsByYearFromApi(c, resolvedYear)),
+		);
+		const students = byYearPayloads.flat();
+
+		const branchFilter = branchesParam
+			? new Set(
+					branchesParam
+						.split(",")
+						.map((b) => b.trim())
+						.filter(Boolean),
+				)
+			: null;
+
+		const filteredStudents = students.filter((student) => {
+			if (!branchFilter) return true;
+			return branchFilter.has(normalizeBranchName(student.branch));
+		});
+
+		const table: Record<
+			string,
+			Record<number, { pass: number; pcp: number; total: number; strictFail: number }>
+		> = {};
+
+		filteredStudents.forEach((student) => {
+			const branch = normalizeBranchName(student.branch);
+			const studentYear = student.year;
+			if (studentYear === null || studentYear === undefined) {
+				return;
+			}
+
+			if (!table[branch]) {
+				table[branch] = {};
+			}
+
+			const yearBucket = (table[branch][studentYear] ??= {
+					pass: 0,
+					pcp: 0,
+					total: 0,
+					strictFail: 0,
+				});
+
+			const tableStatus = classifyTableStatus(student.CarryOvers as any[]);
+			const strictStatus = classifyCarryStatusV2(student.CarryOvers as any[]);
+
+			yearBucket.total += 1;
+			if (tableStatus === "Pass") yearBucket.pass += 1;
+			else yearBucket.pcp += 1;
+
+			if (strictStatus === "Fail") {
+				yearBucket.strictFail += 1;
+			}
+		});
+
+		const branches = Object.keys(table).sort((a, b) => a.localeCompare(b));
+		const yearsMeta = years.map((value) => ({
+			value,
+			label: getYearLabel(value),
+			key: value >= 2020 ? `batch_${value}` : `year_${value}`,
+		}));
+
+		const rows = branches.map((branch) => {
+			const row: Record<string, unknown> = { branch };
+
+			yearsMeta.forEach((yearMeta) => {
+				const metrics = table[branch]?.[yearMeta.value] ?? {
+					pass: 0,
+					pcp: 0,
+					total: 0,
+					strictFail: 0,
+				};
+
+				const passRate = metrics.total > 0
+					? Math.round((metrics.pass / metrics.total) * 1000) / 10
+					: 0;
+
+				row[`${yearMeta.key}_pass`] = metrics.pass;
+				row[`${yearMeta.key}_pcp`] = metrics.pcp;
+				row[`${yearMeta.key}_passRate`] = passRate;
+				row[`${yearMeta.key}_total`] = metrics.total;
+				row[`${yearMeta.key}_strictFail`] = metrics.strictFail;
+			});
+
+			return row;
+		});
+
+		return c.json(
+			{
+				success: true,
+				data: {
+					requestedYear: year,
+					comparisonYears: yearsMeta,
+					rows,
+				},
+			},
+			200,
+		);
+	} catch (error: any) {
+		console.error("Year comparison table error:", error);
+		return c.json(
+			{ success: false, error: "Internal server error" },
+			500,
+		);
+	}
+};
+
+/**
+ * GET /api/analytics/branch-subject-table
+ * Branch-wise subject table with PASS, PCP and PASS RATE for a single year.
+ *
+ * Query Params:
+ * - year (required): 1..4 OR batch year (>=2020)
+ * - sem (optional): 1..8 or latest (default: latest)
+ * - branch (optional): branch code
+ * - subject (optional): subject code/name contains filter
+ */
+export const getBranchSubjectTableController = async (
+	c: Context<HonoContext>,
+) => {
+	try {
+		const yearParam = c.req.query("year");
+		const semParam = c.req.query("sem") || "latest";
+		const branchParam = c.req.query("branch");
+		const subjectParam = c.req.query("subject");
+
+		const year = parseYearValue(yearParam);
+		if (year === null) {
+			return c.json(
+				{ success: false, error: "Invalid `year`. Use 1..4 or batch year (>=2020)." },
+				400,
+			);
+		}
+
+		const semesterFilter = parseSemesterFilter(semParam);
+		if (!semesterFilter) {
+			return c.json(
+				{ success: false, error: "Invalid `sem`. Use 1..8 or `latest`." },
+				400,
+			);
+		}
+
+		const students = await getCachedResultsByYearFromApi(c, year);
+
+		const normalizedBranchFilter = branchParam && branchParam !== "all"
+			? branchParam.trim()
+			: null;
+		const normalizedSubjectFilter = subjectParam
+			? subjectParam.trim().toLowerCase()
+			: null;
+
+		const grouped: Record<
+			string,
+			Record<string, { code: string; name: string; pass: number; pcp: number; total: number; strictFail: number }>
+		> = {};
+
+		students.forEach((student) => {
+			const branch = normalizeBranchName(student.branch);
+			if (normalizedBranchFilter && branch !== normalizedBranchFilter) {
+				return;
+			}
+
+			const semesterEntry = pickSemesterEntry(student.semesters as any[], semesterFilter);
+			if (!semesterEntry) {
+				return;
+			}
+
+			if (!grouped[branch]) {
+				grouped[branch] = {};
+			}
+
+			const tableStatus = classifyTableStatus(student.CarryOvers as any[]);
+			const strictStatus = classifyCarryStatusV2(student.CarryOvers as any[]);
+
+			semesterEntry.subjects.forEach((subject) => {
+				const code = String(subject.code ?? "").trim();
+				const name = String(subject.name ?? "").trim();
+				const searchText = `${code} ${name}`.toLowerCase();
+
+				if (normalizedSubjectFilter && !searchText.includes(normalizedSubjectFilter)) {
+					return;
+				}
+
+				const branchBucket = grouped[branch];
+				if (!branchBucket) {
+					return;
+				}
+
+				const subjectBucket = (branchBucket[code] ??= {
+						code,
+						name,
+						pass: 0,
+						pcp: 0,
+						total: 0,
+						strictFail: 0,
+					});
+
+				subjectBucket.total += 1;
+				if (tableStatus === "Pass") subjectBucket.pass += 1;
+				else subjectBucket.pcp += 1;
+
+				if (strictStatus === "Fail") {
+					subjectBucket.strictFail += 1;
+				}
+			});
+		});
+
+		const rows: Array<{
+			branch: string;
+			subject: string;
+			subjectName: string;
+			pass: number;
+			pcp: number;
+			passRate: number;
+			total: number;
+			strictFail: number;
+		}> = [];
+
+		Object.entries(grouped)
+			.sort(([a], [b]) => a.localeCompare(b))
+			.forEach(([branch, subjects]) => {
+				Object.values(subjects)
+					.sort((a, b) => a.code.localeCompare(b.code))
+					.forEach((entry) => {
+						const passRate = entry.total > 0
+							? Math.round((entry.pass / entry.total) * 1000) / 10
+							: 0;
+						rows.push({
+							branch,
+							subject: entry.code,
+							subjectName: entry.name,
+							pass: entry.pass,
+							pcp: entry.pcp,
+							passRate,
+							total: entry.total,
+							strictFail: entry.strictFail,
+						});
+					});
+			});
+
+		return c.json(
+			{
+				success: true,
+				data: {
+					year,
+					semesterFilter: semesterFilter.kind === "latest" ? "latest" : semesterFilter.sem,
+					rows,
+				},
+			},
+			200,
+		);
+	} catch (error: any) {
+		console.error("Branch subject table error:", error);
 		return c.json(
 			{ success: false, error: "Internal server error" },
 			500,

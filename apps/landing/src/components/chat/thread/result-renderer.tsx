@@ -10,7 +10,7 @@ const AnimatedTextComponent = ({ text, className }: { text: string, className?: 
 };
 
 // ── Types matching the actual API response shape ──────────────────────────────
-// from: https://h.devshakya.xyz/api/result/by-rollno?rollNo=...
+// from: https://h.devxoshakya.xyz/api/result/by-rollno?rollNo=...
 
 interface Subject {
     id:       string

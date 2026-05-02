@@ -85,7 +85,7 @@ const GROUP_ORDER = ["Today", "Yesterday", "This week", "Older"] as const
 
 async function fetchConversations(identity?: { userId?: string | null; name?: string | null; email?: string | null }): Promise<Conversation[]> {
   const API_BASE =
-    process.env.NEXT_PUBLIC_JHUNNU_API_URL ?? "https://jhunnu-backend.devshakya.xyz"
+    process.env.NEXT_PUBLIC_JHUNNU_API_URL ?? "https://jhunnu-backend.devxoshakya.xyz"
 
   // Read cache first for fallback and quick empty-token behavior.
   let cachedConversations: Conversation[] = []
@@ -266,7 +266,7 @@ export function NavHistory() {
                             name: user?.fullName ?? user?.firstName ?? user?.username,
                             email: user?.emailAddresses?.[0]?.emailAddress,
                           }).then(token => {
-                            const API_BASE = process.env.NEXT_PUBLIC_JHUNNU_API_URL ?? "https://jhunnu-backend.devshakya.xyz";
+                            const API_BASE = process.env.NEXT_PUBLIC_JHUNNU_API_URL ?? "https://jhunnu-backend.devxoshakya.xyz";
                             fetch(`${API_BASE}/sessions/${c.id}?session_id=${c.id}`, {
                               method: 'DELETE',
                               headers: { Authorization: `Bearer ${token}`, "x-api-key": getApiKey() }

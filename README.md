@@ -417,8 +417,8 @@ Server API README shortcut: [apps/server/README.md](apps/server/README.md)
 - **Email/password:** Enabled as a secondary auth method
 - **Dodo Payments plugin:** Handles subscription creation, cancellation, and webhook events
 - **Custom user fields:** `rollNo` (string), `blocked` (boolean), `plan` (string, defaults to `"free"`)
-- **Cookie settings:** Cross-subdomain cookies for dev (`localhost`) and prod (`.devshakya.xyz`), SameSite=none, Secure, HttpOnly
-- **Trusted origins:** `http://localhost:3001`, `https://m.devshakya.xyz`, custom `FRONTEND_URL`
+- **Cookie settings:** Cross-subdomain cookies for dev (`localhost`) and prod (`.devxoshakya.xyz`), SameSite=none, Secure, HttpOnly
+- **Trusted origins:** `http://localhost:3001`, `https://m.devxoshakya.xyz`, custom `FRONTEND_URL`
 
 #### Subscription Service (`services/subscription.service.ts`)
 

@@ -51,7 +51,7 @@ const Hero = () => {
     <div className="rounded-4xl border border-muted min-h-180 pt-30 max-h-fit overflow-hidden relative">
       {/* Background Image */}
       <img
-        src="https://cdn2.devshakya.xyz/landing/FractalMaze.jpg"
+        src="https://cdn2.devxoshakya.xyz/landing/FractalMaze.jpg"
         alt="Moon background"
         className="absolute inset-0 w-full h-full opacity-40 blur-[1px] md:blur-[2px] object-cover"
       />

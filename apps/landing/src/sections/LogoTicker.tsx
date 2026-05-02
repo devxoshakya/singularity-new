@@ -3,19 +3,19 @@ import { motion } from 'framer-motion'
 
 export const LogoTicker = () => {
   const logos = [
-    'https://cdn2.devshakya.xyz/landing/assets/logo-acme.png',
-    'https://cdn2.devshakya.xyz/landing/assets/logo-pulse.png',
-    'https://cdn2.devshakya.xyz/landing/assets/logo-echo.png',
-    'https://cdn2.devshakya.xyz/landing/assets/logo-celestial.png',
-    'https://cdn2.devshakya.xyz/landing/assets/logo-apex.png',
-    'https://cdn2.devshakya.xyz/landing/assets/logo-quantum.png',
+    'https://cdn2.devxoshakya.xyz/landing/assets/logo-acme.png',
+    'https://cdn2.devxoshakya.xyz/landing/assets/logo-pulse.png',
+    'https://cdn2.devxoshakya.xyz/landing/assets/logo-echo.png',
+    'https://cdn2.devxoshakya.xyz/landing/assets/logo-celestial.png',
+    'https://cdn2.devxoshakya.xyz/landing/assets/logo-apex.png',
+    'https://cdn2.devxoshakya.xyz/landing/assets/logo-quantum.png',
     // repeat
-    'https://cdn2.devshakya.xyz/landing/assets/logo-acme.png',
-    'https://cdn2.devshakya.xyz/landing/assets/logo-pulse.png',
-    'https://cdn2.devshakya.xyz/landing/assets/logo-echo.png',
-    'https://cdn2.devshakya.xyz/landing/assets/logo-celestial.png',
-    'https://cdn2.devshakya.xyz/landing/assets/logo-apex.png',
-    'https://cdn2.devshakya.xyz/landing/assets/logo-quantum.png',
+    'https://cdn2.devxoshakya.xyz/landing/assets/logo-acme.png',
+    'https://cdn2.devxoshakya.xyz/landing/assets/logo-pulse.png',
+    'https://cdn2.devxoshakya.xyz/landing/assets/logo-echo.png',
+    'https://cdn2.devxoshakya.xyz/landing/assets/logo-celestial.png',
+    'https://cdn2.devxoshakya.xyz/landing/assets/logo-apex.png',
+    'https://cdn2.devxoshakya.xyz/landing/assets/logo-quantum.png',
   ]
   return (
     <section className="py-20 md:py-24">

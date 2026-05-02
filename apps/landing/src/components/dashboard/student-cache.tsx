@@ -122,7 +122,7 @@ function writeLocalStorage<T>(key: string, value: T) {
 // ── Fetchers ──────────────────────────────────────────────────────────────────
 
 async function fetchCache(): Promise<CacheStudent[]> {
-    const res = await fetch("https://h.devshakya.xyz/api/result/cache");
+    const res = await fetch("https://h.devxoshakya.xyz/api/result/cache");
     if (!res.ok) throw new Error("Failed to load student cache");
     const json = await res.json();
     return json.data ?? [];
@@ -130,7 +130,7 @@ async function fetchCache(): Promise<CacheStudent[]> {
 
 async function fetchStudentResult(rollNo: string): Promise<StudentResult> {
     const res = await fetch(
-        `https://h.devshakya.xyz/api/result/by-rollno?rollNo=${rollNo}`,
+        `https://h.devxoshakya.xyz/api/result/by-rollno?rollNo=${rollNo}`,
     );
     if (!res.ok) throw new Error("Failed to load result");
     const json = await res.json();

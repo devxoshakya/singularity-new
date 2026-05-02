@@ -6,25 +6,25 @@ const testimonials = [
         text: '"Students used to line up outside my office just to ask about fees and schedules. Since Singularity, those questions answer themselves."',
         name: "Dr. Priya Sharma",
         title: "HOD @ MIET College",
-        avatarImg: "https://cdn2.devshakya.xyz/landing/assets/avatar-1.png",
+        avatarImg: "https://cdn2.devxoshakya.xyz/landing/assets/avatar-1.png",
     },
     {
         text: '"Having all AKTU results pulled automatically into one dashboard has saved our admin team hours every single semester."',
         name: "Prof. Rajesh Kumar",
         title: "Registrar @ AKTU Affiliate",
-        avatarImg: "https://cdn2.devshakya.xyz/landing/assets/avatar-2.png",
+        avatarImg: "https://cdn2.devxoshakya.xyz/landing/assets/avatar-2.png",
     },
     {
         text: '"Our students love that they can just type their roll number and instantly see their SGPA trend — no portal hunting, no waiting."',
         name: "Dr. Anita Verma",
         title: "Faculty @ Engineering College",
-        avatarImg: "https://cdn2.devshakya.xyz/landing/assets/avatar-3.png",
+        avatarImg: "https://cdn2.devxoshakya.xyz/landing/assets/avatar-3.png",
     },
     {
         text: '"The knowledge base chat is surprisingly accurate. It pulled the exact hostel fee breakdown our students needed, right from our own documents."',
         name: "Prof. Mukesh Rawat",
         title: "Project Mentor @ MIET",
-        avatarImg: "https://cdn2.devshakya.xyz/landing/assets/avatar-4.png",
+        avatarImg: "https://cdn2.devxoshakya.xyz/landing/assets/avatar-4.png",
     },
 ];
 

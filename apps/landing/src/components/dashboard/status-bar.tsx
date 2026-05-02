@@ -14,7 +14,7 @@ interface Props {
 }
 
 async function fetchCacheCount(): Promise<number> {
-    const res = await fetch("https://h.devshakya.xyz/api/result/cache");
+    const res = await fetch("https://h.devxoshakya.xyz/api/result/cache");
     if (!res.ok) return 0;
     const json = await res.json();
     return Array.isArray(json.data) ? json.data.length : 0;

@@ -28,7 +28,7 @@ export function StudentVerificationDialog({ isOpen }: StudentVerificationDialogP
         try {
             // Note: URL adjusted based on user prompt /pai/results... assuming /api/results
             // It could be an external service hosted somewhere or a typo for /api.
-            const res = await fetch(`https://h.devshakya.xyz/api/result/by-rollno?rollNo=${encodeURIComponent(rollNo)}`);
+            const res = await fetch(`https://h.devxoshakya.xyz/api/result/by-rollno?rollNo=${encodeURIComponent(rollNo)}`);
             if (!res.ok) {
                 toast.error("Student not found");
                 setLoading(false);

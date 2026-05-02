@@ -10,7 +10,7 @@ export function MietResults() {
         <div className="w-full max-w-300 mx-auto">
             <div className="w-full h-120 rounded-2xl overflow-hidden relative before:absolute before:inset-0 before:rounded-2xl before:bg-linear-to-b before:from-black/20 before:via-transparent before:to-black/20 before:pointer-events-none after:absolute after:inset-0 after:rounded-2xl after:bg-linear-to-t after:from-black/10 after:via-transparent after:to-black/10 after:pointer-events-none">
                 <img
-                    src="https://cdn2.devshakya.xyz/landing/sentrabg.png"
+                    src="https://cdn2.devxoshakya.xyz/landing/sentrabg.png"
                     alt="Moon background"
                     className="absolute inset-0 w-full h-full opacity-40 blur-[1px] md:blur-[2px] object-cover"
                 />
@@ -47,7 +47,7 @@ export function MietResults() {
                                 ease: "easeOut",
                             }}
                         >
-                            <Link href={'https://m.devshakya.xyz'} target="__blank">
+                            <Link href={'https://m.devxoshakya.xyz'} target="__blank">
                                 <Button className="w-44 md:w-52 h-12 text-primary-foreground before:from-primary-foreground/20 after:from-primary-foreground/10 relative isolate inline-flex items-center justify-center overflow-hidden rounded-md px-3 text-left text-sm font-medium before:pointer-events-none before:absolute before:inset-0 before:-z-10 before:rounded-md before:bg-linear-to-b before:opacity-80 before:transition-opacity before:duration-300 before:ease-[cubic-bezier(0.4,0.36,0,1)] after:pointer-events-none after:absolute after:inset-0 after:-z-10 after:rounded-md after:bg-linear-to-b after:to-transparent after:mix-blend-overlay hover:cursor-pointer">
                                     <span className="flex group items-center gap-2">
                                         <span>Get Alpha Access</span>

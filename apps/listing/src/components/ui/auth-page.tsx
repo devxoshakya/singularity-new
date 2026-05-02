@@ -26,7 +26,7 @@ export function AuthPage() {
         <main className="relative md:h-screen md:overflow-hidden lg:grid lg:grid-cols-2">
             <div className="bg-transparent relative hidden h-full flex-col border-r p-10 lg:flex">
                 <img
-                    src="https://cdn2.devshakya.xyz/landing/sentrabg.png"
+                    src="https://cdn2.devxoshakya.xyz/landing/sentrabg.png"
                     alt="Moon background"
                     className="absolute inset-0 w-full h-full opacity-20 blur-[1px] md:blur-[2px] object-cover"
                 />

@@ -9,6 +9,8 @@ import {
 	getBacklogAnalysisController,
 	getBranchPerformanceRadarController,
 	getTopPerformersController,
+	getYearComparisonTableController,
+	getBranchSubjectTableController,
 } from "../controllers/analytics.controller";
 import {
 	createKVJsonCacheMiddleware,
@@ -45,5 +47,11 @@ analyticsRouter.get("/branch-performance-radar", getBranchPerformanceRadarContro
 
 // GET /api/analytics/top-performers - Top N performing students for radial bar chart or leaderboard
 analyticsRouter.get("/top-performers", getTopPerformersController);
+
+// GET /api/analytics/year-comparison-table - 3-year branch table (Pass/PCP/PassRate)
+analyticsRouter.get("/year-comparison-table", getYearComparisonTableController);
+
+// GET /api/analytics/branch-subject-table - Branch/subject table for a single year
+analyticsRouter.get("/branch-subject-table", getBranchSubjectTableController);
 
 export default analyticsRouter;

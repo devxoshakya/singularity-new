@@ -321,7 +321,7 @@ export function ChatThread({
 
         const API_BASE =
             process.env.NEXT_PUBLIC_JHUNNU_API_URL ??
-            "https://jhunnu-backend.devshakya.xyz";
+            "https://jhunnu-backend.devxoshakya.xyz";
 
         async function loadHistory() {
             setHistoryLoading(true);
@@ -471,7 +471,7 @@ export function ChatThread({
 
             const API_BASE =
                 process.env.NEXT_PUBLIC_JHUNNU_API_URL ??
-                "https://jhunnu-backend.devshakya.xyz";
+                "https://jhunnu-backend.devxoshakya.xyz";
 
             const endpoint =
                 mode === "rag" ? `${API_BASE}/ask` : `${API_BASE}/analyze-result`;

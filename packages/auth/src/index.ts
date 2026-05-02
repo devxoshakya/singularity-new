@@ -62,7 +62,7 @@ export const createBetterAuth = (env: AuthEnv) => {
 		},
 		trustedOrigins: [
 			"http://localhost:3001", 
-			"https://m.devshakya.xyz", 
+			"https://m.devxoshakya.xyz", 
 			env.FRONTEND_URL
 		],
 		emailAndPassword: {
@@ -96,11 +96,11 @@ export const createBetterAuth = (env: AuthEnv) => {
 				sameSite: "none",
 				secure: true,
 				httpOnly: true,
-				domain: env.WORKER_ENVIRONMENT === "prod" ? ".devshakya.xyz" : "localhost"
+				domain: env.WORKER_ENVIRONMENT === "prod" ? ".devxoshakya.xyz" : "localhost"
 			},
 		},
 		onAPIError: {
-			errorURL: env.WORKER_ENVIRONMENT === "prod" ? "https://m.devshakya.xyz/login" : "http://localhost:3001/login",
+			errorURL: env.WORKER_ENVIRONMENT === "prod" ? "https://m.devxoshakya.xyz/login" : "http://localhost:3001/login",
 		},
 
 		plugins: [

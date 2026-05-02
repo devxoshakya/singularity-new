@@ -33,8 +33,8 @@ app.use(
   "/*",
   cors({
     origin: [
-      "https://m.devshakya.xyz",
-      "https://s.devshakya.xyz",
+      "https://m.devxoshakya.xyz",
+      "https://s.devxoshakya.xyz",
       "http://localhost:3001",
       "http://localhost:4000",
     ],
