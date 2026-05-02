@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import {
     Card,
@@ -64,30 +64,56 @@ type CacheStudent = {
 };
 
 type Subject = {
-    subject: string;
     code: string;
+    name: string;
     type: string;
     internal: string;
     external: string;
+    backPaper?: string;
+    grade?: string;
+    semester?: string;
+};
+
+type CarryOver = {
+    sem?: string;
+    cop?: string;
+    name?: string;
+};
+
+type SemesterResult = {
+    semester: string;
+    evenOdd?: string;
+    totalMarksObtained?: number;
+    resultStatus?: string;
+    SGPA?: number;
+    dateOfDeclaration?: string;
+    subjects: Subject[];
+    CarryOvers: CarryOver[];
 };
 
 type StudentResult = {
+    id?: string;
     rollNo: string;
     fullName: string;
+    fatherName?: string;
     course: string;
     branch: string;
+    instituteName?: string;
+    blocked?: boolean;
     year: number;
     cgpa: string;
-    SGPA: Record<string, number>;
-    CarryOvers: Array<{ session?: string; sem?: string; cop?: string }>;
-    backlogSubjects: string[];
-    backlogCount: number;
-    computedStatus: "PASS" | "PCP" | "FAIL";
-    latestResultStatus?: string;
-    latestCOP?: string;
+    divison?: string;
     division?: string;
     totalMarksObtained: number;
+    latestResultStatus?: string;
+    latestCOP?: string;
+    semester?: string;
+    evenOdd?: string;
+    resultStatus?: string;
+    SGPA: Record<string, number>;
+    CarryOvers: CarryOver[];
     Subjects: Subject[];
+    semesters: SemesterResult[];
 };
 
 type YearFilter = "all" | "1" | "2" | "3" | "4" | "2024";
@@ -128,6 +154,125 @@ async function fetchCache(): Promise<CacheStudent[]> {
     return json.data ?? [];
 }
 
+function normalizeSubject(subject: unknown): Subject | null {
+    if (!subject || typeof subject !== "object") return null;
+
+    const raw = subject as Record<string, unknown>;
+    const code = String(raw.code ?? "").trim();
+    const name = String(raw.name ?? raw.subject ?? "").trim();
+
+    if (!code && !name) return null;
+
+    return {
+        code,
+        name,
+        type: String(raw.type ?? "").trim(),
+        internal: String(raw.internal ?? "").trim(),
+        external: String(raw.external ?? "").trim(),
+        backPaper: raw.backPaper != null ? String(raw.backPaper).trim() : undefined,
+        grade: raw.grade != null ? String(raw.grade).trim() : undefined,
+        semester: raw.semester != null ? String(raw.semester).trim() : undefined,
+    };
+}
+
+function normalizeSubjects(subjects: unknown, semester?: string): Subject[] {
+    if (!Array.isArray(subjects)) return [];
+
+    return subjects
+        .map(normalizeSubject)
+        .filter((subject): subject is Subject => subject !== null)
+        .map((subject) => ({
+            ...subject,
+            semester: subject.semester ?? semester,
+        }));
+}
+
+function normalizeCarryOvers(value: unknown): CarryOver[] {
+    if (!Array.isArray(value)) return [];
+
+    const carryOvers: CarryOver[] = [];
+
+    value.forEach((entry) => {
+        if (typeof entry === "string") {
+            const cop = entry.trim();
+            if (cop) carryOvers.push({ cop });
+            return;
+        }
+
+        if (Array.isArray(entry)) {
+            entry.forEach((item) => {
+                if (typeof item !== "string") return;
+                const cop = item.trim();
+                if (cop) carryOvers.push({ cop });
+            });
+            return;
+        }
+
+        if (entry && typeof entry === "object") {
+            const raw = entry as Record<string, unknown>;
+            const sem = raw.sem != null ? String(raw.sem).trim() : "";
+            const cop = raw.cop != null ? String(raw.cop).trim() : "";
+            const name = raw.name != null ? String(raw.name).trim() : "";
+
+            if (sem || cop || name) {
+                carryOvers.push({
+                    sem: sem || undefined,
+                    cop: cop || undefined,
+                    name: name || undefined,
+                });
+            }
+        }
+    });
+
+    return carryOvers;
+}
+
+function normalizeSemesterResult(value: unknown): SemesterResult | null {
+    if (!value || typeof value !== "object") return null;
+
+    const raw = value as Record<string, unknown>;
+    const semester = String(raw.semester ?? raw.sem ?? "").trim();
+
+    if (!semester) return null;
+
+    return {
+        semester,
+        evenOdd: raw.evenOdd != null ? String(raw.evenOdd).trim() : undefined,
+        totalMarksObtained:
+            raw.totalMarksObtained != null
+                ? Number(raw.totalMarksObtained)
+                : undefined,
+        resultStatus:
+            raw.resultStatus != null ? String(raw.resultStatus).trim() : undefined,
+        SGPA: raw.SGPA != null ? Number(raw.SGPA) : undefined,
+        dateOfDeclaration:
+            raw.dateOfDeclaration != null
+                ? String(raw.dateOfDeclaration).trim()
+                : undefined,
+        subjects: normalizeSubjects(raw.subjects ?? raw.Subjects, semester),
+        CarryOvers: normalizeCarryOvers(raw.CarryOvers),
+    };
+}
+
+function normalizeSgpaRecord(semesters: SemesterResult[], rawSgpa: unknown) {
+    if (rawSgpa && typeof rawSgpa === "object" && !Array.isArray(rawSgpa)) {
+        return Object.fromEntries(
+            Object.entries(rawSgpa)
+                .map(([key, value]) => [key, Number(value)] as const)
+                .filter(([, value]) => Number.isFinite(value) && value > 0),
+        ) as Record<string, number>;
+    }
+
+    return Object.fromEntries(
+        semesters
+            .map((semester) => [
+                `sem${semester.semester}`,
+                Number(semester.SGPA ?? 0),
+            ] as const)
+            .filter(([, value]) => Number.isFinite(value) && value > 0),
+    ) as Record<string, number>;
+}
+
 async function fetchStudentResult(rollNo: string): Promise<StudentResult> {
     const res = await fetch(
         `https://h.devxoshakya.xyz/api/result/by-rollno?rollNo=${rollNo}`,
@@ -138,60 +283,47 @@ async function fetchStudentResult(rollNo: string): Promise<StudentResult> {
     const envelope = Array.isArray(json) ? json[0] : json;
     const raw = envelope?.data ?? envelope;
 
-    const carryOvers = Array.isArray(raw?.CarryOvers) ? raw.CarryOvers : [];
-    const backlogSubjects: string[] = Array.from(
-        new Set(
-            carryOvers
-                .flatMap((entry: unknown): string[] => {
-                    if (Array.isArray(entry)) {
-                        return entry.filter(
-                            (v): v is string => typeof v === "string",
-                        );
-                    }
-                    if (
-                        entry &&
-                        typeof entry === "object" &&
-                        "cop" in entry &&
-                        typeof (entry as { cop?: unknown }).cop === "string"
-                    ) {
-                        return ((entry as { cop: string }).cop ?? "")
-                            .replace(/^COP\s*:\s*/i, "")
-                            .split(",")
-                            .map((s) => s.trim());
-                    }
-                    return [];
-                })
-                .map((s: string) => s.trim())
-                .filter(
-                    (s: string) =>
-                        !!s &&
-                        s.toLowerCase() !== "no backlogs" &&
-                        s.toLowerCase() !== "none",
-                ),
-        ),
+    const semesters = Array.isArray(raw?.semesters)
+        ? (raw.semesters as unknown[])
+              .map((semester: unknown) => normalizeSemesterResult(semester))
+              .filter((semester): semester is SemesterResult => semester !== null)
+        : [];
+    const latestSemester = semesters.at(-1);
+    const latestSubjects = normalizeSubjects(
+        raw?.subjects ?? raw?.Subjects ?? latestSemester?.subjects,
+        raw?.semester != null ? String(raw.semester) : latestSemester?.semester,
     );
-
-    const backlogCount = backlogSubjects.length;
-    const computedStatus =
-        backlogCount === 0 ? "PASS" : backlogCount <= 3 ? "PCP" : "FAIL";
+    const carryOvers = normalizeCarryOvers(
+        raw?.CarryOvers ?? latestSemester?.CarryOvers,
+    );
+    const sgpaRecord = normalizeSgpaRecord(semesters, raw?.SGPA);
 
     return {
-        rollNo: raw?.rollNo ?? rollNo,
+        id: raw?.id,
+        rollNo: String(raw?.rollNo ?? rollNo),
         fullName: raw?.fullName ?? "Unknown",
+        fatherName: raw?.fatherName,
         course: raw?.course ?? "",
         branch: raw?.branch ?? "",
+        instituteName: raw?.instituteName,
+        blocked: Boolean(raw?.blocked ?? false),
         year: Number(raw?.year ?? 0),
         cgpa: String(raw?.cgpa ?? "0"),
-        SGPA: raw?.SGPA ?? {},
-        CarryOvers: carryOvers,
-        backlogSubjects,
-        backlogCount,
-        computedStatus,
+        divison: raw?.divison,
+        division: raw?.division,
+        totalMarksObtained: Number(raw?.totalMarksObtained ?? 0),
         latestResultStatus: raw?.latestResultStatus,
         latestCOP: raw?.latestCOP,
-        division: raw?.divison ?? raw?.division,
-        totalMarksObtained: Number(raw?.totalMarksObtained ?? 0),
-        Subjects: Array.isArray(raw?.Subjects) ? raw.Subjects : [],
+        semester:
+            raw?.semester != null
+                ? String(raw.semester)
+                : latestSemester?.semester,
+        evenOdd: raw?.evenOdd ?? latestSemester?.evenOdd,
+        resultStatus: raw?.resultStatus ?? latestSemester?.resultStatus,
+        SGPA: sgpaRecord,
+        CarryOvers: carryOvers,
+        Subjects: latestSubjects,
+        semesters,
     };
 }
 
@@ -240,6 +372,40 @@ function extractCopCodes(copText?: string): string[] {
         .filter(Boolean);
 }
 
+function extractCarryOverCodes(carryOvers: CarryOver[]): string[] {
+    return Array.from(
+        new Set(
+            carryOvers
+                .flatMap((carryOver) => {
+                    if (carryOver.cop) {
+                        return carryOver.cop
+                            .replace(/^COP\s*:\s*/i, "")
+                            .split(",")
+                            .map((code) => code.trim().toUpperCase());
+                    }
+
+                    if (carryOver.name) {
+                        return carryOver.name
+                            .split(",")
+                            .map((code) => code.trim().toUpperCase());
+                    }
+
+                    return [];
+                })
+                .filter(Boolean),
+        ),
+    );
+}
+
+function getSemesterNumber(semester: string) {
+    const parsed = Number.parseInt(semester, 10);
+    return Number.isNaN(parsed) ? Number.MAX_SAFE_INTEGER : parsed;
+}
+
+function getSemesterLabel(semester: string) {
+    return `Sem ${semester}`;
+}
+
 // ── Student result sheet ──────────────────────────────────────────────────────
 
 function StudentSheet({
@@ -262,6 +428,8 @@ function StudentSheet({
         [rollNo],
     );
 
+    const [selectedSemester, setSelectedSemester] = useState<string | null>(null);
+
     const { data, isLoading } = useQuery({
         queryKey: ["student-result", rollNo],
         queryFn: async () => {
@@ -275,25 +443,81 @@ function StudentSheet({
         refetchOnMount: true,
     });
 
-    const sgpaEntries = data
-        ? Object.entries(data.SGPA).filter(([, v]) => v > 0)
-        : [];
-    const latestSgpa =
-        sgpaEntries.length > 0 ? sgpaEntries[sgpaEntries.length - 1] : null;
-    const status = data ? getResultStatusBadge(data.computedStatus) : null;
-    const latestCopCodes = useMemo(
-        () => new Set(extractCopCodes(data?.latestCOP)),
-        [data?.latestCOP],
-    );
-    const backlogCodeSet = useMemo(
+    const availableSemesters = useMemo(
         () =>
-            new Set(
-                (data?.backlogSubjects ?? []).map((code) =>
-                    String(code).trim().toUpperCase(),
-                ),
+            [...(data?.semesters ?? [])].sort(
+                (a, b) =>
+                    getSemesterNumber(a.semester) - getSemesterNumber(b.semester),
             ),
-        [data?.backlogSubjects],
+        [data?.semesters],
     );
+
+    useEffect(() => {
+        if (!availableSemesters.length) {
+            setSelectedSemester(null);
+            return;
+        }
+
+        setSelectedSemester((current) => {
+            if (
+                current &&
+                availableSemesters.some((entry) => entry.semester === current)
+            ) {
+                return current;
+            }
+
+            return availableSemesters.at(-1)?.semester ?? availableSemesters[0].semester;
+        });
+    }, [availableSemesters, rollNo]);
+
+    const selectedSemesterEntries = useMemo(() => {
+        if (!availableSemesters.length) return [];
+
+        const selected = availableSemesters.find(
+            (semester) => semester.semester === selectedSemester,
+        );
+
+        return selected ? [selected] : [availableSemesters.at(-1)!];
+    }, [availableSemesters, selectedSemester]);
+
+    const sgpaEntries = useMemo(
+        () =>
+            availableSemesters
+                .map((semester) => [semester.semester, Number(semester.SGPA ?? 0)] as const)
+                .filter(([, value]) => value > 0),
+        [availableSemesters],
+    );
+
+    const latestSgpa = sgpaEntries.length > 0 ? sgpaEntries.at(-1) : null;
+    const carryOverCodes = useMemo(
+        () => extractCarryOverCodes(data?.CarryOvers ?? []),
+        [data?.CarryOvers],
+    );
+    const status = data
+        ? getResultStatusBadge(
+              carryOverCodes.length === 0
+                  ? "PASS"
+                  : carryOverCodes.length <= 3
+                    ? "PCP"
+                    : "FAIL",
+          )
+        : null;
+    const subjectsToDisplay = useMemo(() => {
+        if (!data) return [];
+
+        if (selectedSemesterEntries.length > 0) {
+            return selectedSemesterEntries.flatMap((semester) =>
+                semester.subjects.map((subject) => ({
+                    ...subject,
+                    semester: semester.semester,
+                })),
+            );
+        }
+
+        return data.Subjects;
+    }, [data, selectedSemesterEntries]);
+    const selectedSemesterLabel =
+        selectedSemester ? getSemesterLabel(selectedSemester) : "Select semester";
 
     return (
         <Sheet open={open} onOpenChange={(v) => !v && onClose()}>
@@ -323,28 +547,48 @@ function StudentSheet({
                     </div>
                 ) : data ? (
                     <div className="space-y-6">
-                        {status && (
-                            <div className="flex items-center justify-between gap-3 rounded-lg border p-3 bg-muted/30">
-                                <div>
-                                    <p className="text-sm font-medium">
-                                        Result status
-                                    </p>
-                                    <p className="text-xs text-muted-foreground mt-0.5">
-                                        Rule: PASS = 0 carry over, PCP = up to 3, FAIL = above 3
-                                    </p>
-                                </div>
-                                <Badge
-                                    variant="outline"
-                                    className={`gap-1.5 ${status.className}`}
-                                >
-                                    <status.icon className="w-3.5 h-3.5" />
-                                    {status.label}
-                                </Badge>
+                        <div className="flex flex-col gap-3 rounded-lg border p-3 bg-muted/30 sm:flex-row sm:items-center sm:justify-between">
+                            <div className="flex items-center gap-2 min-w-0">
+                                <p className="text-sm font-medium whitespace-nowrap">
+                                    Result status
+                                </p>
+                                {status && (
+                                    <Badge
+                                        variant="outline"
+                                        className={`gap-1.5 ${status.className}`}
+                                    >
+                                        <status.icon className="w-3.5 h-3.5" />
+                                        {status.label}
+                                    </Badge>
+                                )}
+                                <p className="hidden sm:block text-xs text-muted-foreground truncate">
+                                    {data.resultStatus ?? data.latestResultStatus ?? "Result summary"}
+                                </p>
                             </div>
-                        )}
+                            <div className="flex items-center gap-2 min-w-0 sm:justify-end">
+                                <p className="text-sm font-medium whitespace-nowrap">Semester</p>
+                                <Select
+                                    value={selectedSemester ?? undefined}
+                                    onValueChange={(value) => setSelectedSemester(value)}
+                                >
+                                    <SelectTrigger className="h-8 w-40 sm:w-44">
+                                        <SelectValue placeholder={selectedSemesterLabel} />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {availableSemesters.map((semester) => (
+                                            <SelectItem
+                                                key={semester.semester}
+                                                value={semester.semester}
+                                            >
+                                                {getSemesterLabel(semester.semester)}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                        </div>
 
-                        {/* Quick stats */}
-                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
                             <div className="rounded-lg border p-3 text-center">
                                 <p className="text-lg font-bold">{data.year}</p>
                                 <p className="text-xs text-muted-foreground">
@@ -353,19 +597,17 @@ function StudentSheet({
                             </div>
                             <div className="rounded-lg border p-3 text-center">
                                 <p className="text-lg font-bold">
-                                    {latestSgpa
-                                        ? latestSgpa[1].toFixed(2)
-                                        : "—"}
+                                    {latestSgpa ? latestSgpa[1].toFixed(2) : "—"}
                                 </p>
                                 <p className="text-xs text-muted-foreground">
                                     {latestSgpa
-                                        ? `SGPA ${latestSgpa[0].replace("sem", "Sem ")}`
-                                        : "SGPA"}
+                                        ? `Semester ${latestSgpa[0].replace("sem", "Sem ")}`
+                                        : "Semester"}
                                 </p>
                             </div>
                             <div className="rounded-lg border p-3 text-center">
                                 <p className="text-lg font-bold">
-                                    {data.totalMarksObtained}
+                                    {selectedSemesterEntries.at(-1)?.totalMarksObtained ?? data.totalMarksObtained}
                                 </p>
                                 <p className="text-xs text-muted-foreground">
                                     Total marks
@@ -373,7 +615,7 @@ function StudentSheet({
                             </div>
                             <div className="rounded-lg border p-3 text-center">
                                 <p className="text-lg font-bold">
-                                    {data.backlogCount}
+                                    {carryOverCodes.length}
                                 </p>
                                 <p className="text-xs text-muted-foreground">
                                     Carry overs
@@ -381,24 +623,23 @@ function StudentSheet({
                             </div>
                         </div>
 
-                        {/* SGPA trend */}
                         {sgpaEntries.length > 0 && (
                             <div>
                                 <p className="text-sm font-medium mb-2 flex items-center gap-1.5">
                                     <TrendingUp className="w-4 h-4 text-muted-foreground" />
                                     SGPA progression
                                 </p>
-                                <div className="flex gap-2 flex-wrap">
+                                <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4">
                                     {sgpaEntries.map(([sem, val]) => (
                                         <div
                                             key={sem}
-                                            className={`rounded-md px-2.5 py-1.5 text-center min-w-13 ${getSgpaTextClass(val)}`}
+                                            className={`rounded-md px-2.5 py-2 text-center ${getSgpaTextClass(val)}`}
                                         >
                                             <p className="text-sm font-semibold">
                                                 {val.toFixed(2)}
                                             </p>
                                             <p className="text-[10px] capitalize opacity-90">
-                                                {sem.replace("sem", "Sem ")}
+                                                Semester {sem.toUpperCase()}
                                             </p>
                                         </div>
                                     ))}
@@ -406,7 +647,6 @@ function StudentSheet({
                             </div>
                         )}
 
-                        {/* Subjects */}
                         <div>
                             <p className="text-sm font-medium mb-2">Subjects</p>
                             <div className="max-h-95 overflow-auto no-scrollbar rounded-lg border">
@@ -425,41 +665,40 @@ function StudentSheet({
                                         </TableRow>
                                     </TableHeader>
                                     <TableBody>
-                                        {data.Subjects.map((s, index) => {
+                                        {subjectsToDisplay.map((s, index) => {
                                             const code = s.code.toUpperCase();
                                             const hasCop =
-                                                latestCopCodes.has(code) ||
-                                                backlogCodeSet.has(code);
+                                                carryOverCodes.includes(code);
 
                                             return (
-                                            <TableRow
-                                                key={`${s.code}-${index}`}
-                                                className={
-                                                    hasCop
-                                                        ? "bg-red-500/10 hover:bg-red-500/15"
-                                                        : ""
-                                                }
-                                            >
-                                                <TableCell className="max-w-70 truncate font-medium">
-                                                    {s.subject}
-                                                </TableCell>
-                                                <TableCell
+                                                <TableRow
+                                                    key={`${s.semester ?? "latest"}-${s.code}-${index}`}
                                                     className={
                                                         hasCop
-                                                            ? "text-red-400 font-semibold"
+                                                            ? "bg-red-500/10 hover:bg-red-500/15"
                                                             : ""
                                                     }
                                                 >
-                                                    {s.code}
-                                                </TableCell>
-                                                <TableCell>{s.type}</TableCell>
-                                                <TableCell className="text-right">
-                                                    {s.internal || "-"}
-                                                </TableCell>
-                                                <TableCell className="text-right">
-                                                    {s.external || "-"}
-                                                </TableCell>
-                                            </TableRow>
+                                                    <TableCell className="max-w-70 truncate font-medium">
+                                                        {s.name}
+                                                    </TableCell>
+                                                    <TableCell
+                                                        className={
+                                                            hasCop
+                                                                ? "text-red-400 font-semibold"
+                                                                : ""
+                                                        }
+                                                    >
+                                                        {s.code}
+                                                    </TableCell>
+                                                    <TableCell>{s.type}</TableCell>
+                                                    <TableCell className="text-right">
+                                                        {s.internal || "-"}
+                                                    </TableCell>
+                                                    <TableCell className="text-right">
+                                                        {s.external || "-"}
+                                                    </TableCell>
+                                                </TableRow>
                                             );
                                         })}
                                     </TableBody>
@@ -467,34 +706,23 @@ function StudentSheet({
                             </div>
                         </div>
 
-                        {/* Carry overs */}
                         <div>
                             <p className="text-sm font-medium mb-1">Backlogs</p>
                             {data.CarryOvers.length > 0 ? (
                                 <div className="space-y-2">
                                     {data.CarryOvers.map((co, index) => (
                                         <div
-                                            key={`${co.session ?? "session"}-${index}`}
-                                            className="rounded-lg border p-3"
+                                            key={`${co.sem ?? "semester"}-${co.cop ?? co.name ?? index}`}
+                                            className="flex flex-wrap items-center justify-between gap-2 rounded-lg border px-3 py-2"
                                         >
-                                            <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground mb-1">
-                                                {co.session && (
-                                                    <Badge
-                                                        variant="secondary"
-                                                        className="font-normal"
-                                                    >
-                                                        {co.session}
-                                                    </Badge>
-                                                )}
-                                                {co.sem && (
-                                                    <span>
-                                                        Semester: {co.sem}
-                                                    </span>
-                                                )}
+                                            <div className="min-w-0 flex-1">
+                                                <p className="truncate text-sm font-medium">
+                                                    {co.name ?? co.cop ?? "-"}
+                                                </p>
                                             </div>
-                                            <p className="text-sm">
-                                                {co.cop ?? "-"}
-                                            </p>
+                                            <Badge variant="secondary" className="shrink-0 font-normal text-red-400">
+                                                {co.cop ?? "Code N/A"}
+                                            </Badge>
                                         </div>
                                     ))}
                                 </div>
@@ -504,7 +732,7 @@ function StudentSheet({
                                 </p>
                             )}
                             {data.latestCOP && (
-                                <p className="text-xs text-muted-foreground mt-2">
+                                <p className="text-xs text-muted-foreground my-2">
                                     Latest COP: {data.latestCOP}
                                 </p>
                             )}
